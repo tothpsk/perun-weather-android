@@ -10,8 +10,6 @@ It is the Android version of [Perun Weather for Linux and Windows](https://githu
 
 <p align="center">
   <img src="docs/screenshots/now.png" alt="Now screen with current conditions, an alert badge, the day summary and tiles" width="260">
-  <img src="docs/screenshots/forecast-day.png" alt="Hourly detail of one forecast day with a row for every parameter" width="260">
-  <img src="docs/screenshots/charts.png" alt="Temperature and precipitation charts with an uncertainty band" width="260">
 </p>
 
 ## A tour of the app
@@ -108,7 +106,7 @@ Background refresh with battery and network rules, language, units and the air q
 
 ## Why another weather app
 
-There are plenty of weather apps for Android, so why make a new one? I had two reasons.
+There are plenty of great weather apps for Android, so why make a new one? I had two reasons.
 
 The first is that every app I tried was missing something I wanted, or it was full of ads.
 
