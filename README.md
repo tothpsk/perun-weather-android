@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.0.3 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.0.4 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -16,13 +16,15 @@ The current conditions for the selected location: temperature and what it feels 
 
 Swipe left or right to move between your saved locations. Every location can have its own weather model and alert sources.
 
+A long press on the app icon offers shortcuts to Now, Forecast, Maps and Alerts.
+
 <p align="center">
   <img src="docs/screenshots/now.png" alt="Now screen with current conditions, an alert badge, the day summary and tiles" width="260">
 </p>
 
 ### Forecast
 
-The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time.
+The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time. At the cursor, precipitation is shown as snow depth for snow, as an amount for rain, and as both for rain with snow.
 
 <p align="center">
   <img src="docs/screenshots/forecast-days.png" alt="Forecast by day for temperature" width="260">
@@ -61,7 +63,7 @@ The air quality index on the European or the US scale, particulate matter, gases
 
 ### Sea data
 
-For places by the sea, charts of sea temperature, sea level and other marine data. The section can be switched off when you do not need it.
+For places by the sea, charts of sea temperature, sea level and other marine data. The sea level chart marks the model maximum and minimum. The section can be switched off when you do not need it.
 
 <p align="center">
   <img src="docs/screenshots/marine.png" alt="Sea temperature and sea level charts" width="260">
@@ -131,6 +133,8 @@ The original [Perun Weather](https://github.com/tothpsk/perun-weather) is a desk
 1. Download `Perun-<version>.apk` from the [Releases](../../releases) page. The release also contains a `.sha256` file for checking the download.
 2. Open the APK on the phone and allow installation from that source when Android asks.
 3. To update, install the newer APK over the existing app. Your locations and settings are kept.
+
+There is no preset location: on the first start the app asks you to add one, by search or from your current position.
 
 The app is not on Google Play and does not update itself.
 
