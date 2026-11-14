@@ -11,6 +11,7 @@ import org.json.JSONObject
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import java.time.Duration
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -94,16 +95,25 @@ private fun priority(code: Int): Int = when {
     else -> 0
 }
 
-// Port of normalize._build_alerts: first matching hour in the loaded series.
-private fun localAlerts(code: DoubleArray, gust: DoubleArray, precip: DoubleArray, temp: DoubleArray): List<AlertItem> {
-    fun any(values: DoubleArray, test: (Double) -> Boolean) = values.any { it.isFinite() && test(it) }
-    val out = mutableListOf<AlertItem>()
-    if (any(code) { it.toInt() in setOf(95, 96, 99) }) out += AlertItem("Thunderstorm risk", "red", true)
-    if (any(gust) { it >= 60.0 }) out += AlertItem("Strong wind gusts", "orange", true)
-    if (any(precip) { it >= 10.0 }) out += AlertItem("Heavy precipitation", "orange", true)
-    if (any(temp) { it >= 35.0 }) out += AlertItem("Extreme heat", "yellow", true)
-    if (any(temp) { it <= -15.0 }) out += AlertItem("Extreme cold", "yellow", true)
-    return out
+// Local estimates from the forecast. One rule set for the Now screen, notifications, widgets and the Alerts screen:
+// the first matching hour whose validity window (hours after that hour) has not passed yet.
+internal class LocalAlertHit(val event: String, val level: String, val start: Instant, val end: Instant)
+private class LocalAlertRule(val event: String, val level: String, val hours: Long, val series: Int, val test: (Double) -> Boolean)
+private val LOCAL_ALERT_RULES = listOf(
+    LocalAlertRule("Thunderstorm risk", "red", 6, 0) { it.toInt() in setOf(95, 96, 99) },
+    LocalAlertRule("Strong wind gusts", "orange", 12, 1) { it >= 60.0 },
+    LocalAlertRule("Heavy precipitation", "orange", 6, 2) { it >= 10.0 },
+    LocalAlertRule("Extreme heat", "yellow", 24, 3) { it >= 35.0 },
+    LocalAlertRule("Extreme cold", "yellow", 24, 3) { it <= -15.0 },
+)
+internal fun localAlertHits(times: List<Instant>, code: DoubleArray, gust: DoubleArray, precip: DoubleArray, temp: DoubleArray, now: Instant): List<LocalAlertHit> {
+    val series = listOf(code, gust, precip, temp)
+    return LOCAL_ALERT_RULES.mapNotNull { r ->
+        val values = series[r.series]
+        val window = Duration.ofHours(r.hours)
+        val i = times.indices.firstOrNull { it < values.size && values[it].isFinite() && r.test(values[it]) && times[it].plus(window).isAfter(now) } ?: return@mapNotNull null
+        LocalAlertHit(r.event, r.level, times[i], times[i].plus(window))
+    }
 }
 
 internal suspend fun loadOverview(location: Location, alertSource: String = "kde", model: String = "best_match"): OverviewData = withContext(Dispatchers.IO) {
@@ -244,7 +254,9 @@ internal suspend fun loadOverview(location: Location, alertSource: String = "kde
             else OverviewHour(t, temp[i], if (code[i].isFinite()) code[i].toInt() else -1, prob[i], precip[i], cloud[i], wind[i], gust[i])
         }
         val hours = upcoming.take(6)
-        val alerts = alertTask.await() + (if ("local" in alertSourceSet(alertSource)) localAlerts(code, gust, precip, temp) else emptyList())
+        // An hour that cannot be parsed gets the epoch, so its window is long over and it never matches.
+        val alertTimes = times.map { runCatching { LocalDateTime.parse(it).atZone(zone).toInstant() }.getOrDefault(Instant.EPOCH) }
+        val alerts = alertTask.await() + (if ("local" in alertSourceSet(alertSource)) localAlertHits(alertTimes, code, gust, precip, temp, Instant.now()).map { AlertItem(it.event, it.level, true) } else emptyList())
         OverviewData(
             time = nowTime, zone = zone, latitude = location.latitude, longitude = location.longitude,
             temperature = c.optDouble("temperature_2m"), apparent = c.optDouble("apparent_temperature"), code = c.optInt("weather_code", -1), isDayFlag = c.optInt("is_day", 1) == 1,

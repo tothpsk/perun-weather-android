@@ -78,35 +78,31 @@ private fun timeRange(a: AlertItem,z: ZoneId): String {
     }
 }
 private class AlertHourly(val zone: ZoneId,val times: List<Instant>,val code: DoubleArray,val gust: DoubleArray,val precip: DoubleArray,val temp: DoubleArray)
-private fun loadHourly(l: Location): AlertHourly {
+// Same forecast model as the Now screen, so both screens estimate from the same data.
+private fun loadHourly(l: Location,model: String): AlertHourly {
     val tz=URLEncoder.encode(l.timezone.ifBlank { "auto" },"UTF-8"); val elevation=l.elevation?.let { "&elevation=$it" } ?: ""
     val url="https://api.open-meteo.com/v1/forecast?latitude=${l.latitude}&longitude=${l.longitude}&timezone=$tz$elevation&timeformat=unixtime&forecast_days=5&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm&hourly=temperature_2m,weather_code,precipitation,wind_gusts_10m"
-    val root=JSONObject(String(fetchBytes(url),Charsets.UTF_8)); val z=ZoneId.of(root.getString("timezone")); val h=root.getJSONObject("hourly"); val t=h.getJSONArray("time"); val n=t.length()
+    fun fetch(models: String)=JSONObject(String(fetchBytes(url+models),Charsets.UTF_8))
+    val root=fetch(if (model=="best_match") "" else "&models="+URLEncoder.encode(model,"UTF-8")); val z=ZoneId.of(root.getString("timezone")); val h=root.getJSONObject("hourly"); val t=h.getJSONArray("time"); val n=t.length()
     check(n>0)
-    fun series(k: String): DoubleArray { val a=h.optJSONArray(k); return DoubleArray(n) { i ->a?.optDouble(i,Double.NaN) ?: Double.NaN } }
+    fun missing(k: String): Boolean { val a=h.optJSONArray(k); return a==null || (0 until n).all { a.isNull(it) } }
+    val keys=listOf("weather_code","wind_gusts_10m","precipitation","temperature_2m")
+    // Values the selected model does not provide are taken from best_match, as on the Now screen.
+    val spare=if (model!="best_match" && keys.any { missing(it) }) try { fetch("").getJSONObject("hourly").takeIf { it.getJSONArray("time").toString()==t.toString() } } catch (e: Exception) { null } else null
+    fun series(k: String): DoubleArray { val a=(if (missing(k)) spare?.optJSONArray(k) else null) ?: h.optJSONArray(k); return DoubleArray(n) { i ->a?.optDouble(i,Double.NaN) ?: Double.NaN } }
     return AlertHourly(z,List(n) { Instant.ofEpochSecond(t.getLong(it)) },series("weather_code"),series("wind_gusts_10m"),series("precipitation"),series("temperature_2m"))
 }
-private class LocalRule(val event: String,val level: String,val hours: Long,val test: (AlertHourly,Int)->Boolean)
-private val LocalRules=listOf(
-    LocalRule("Thunderstorm risk","red",6) { h,i ->h.code[i].isFinite() && h.code[i].toInt() in setOf(95,96,99) },
-    LocalRule("Strong wind gusts","orange",12) { h,i ->h.gust[i].isFinite() && h.gust[i]>=60.0 },
-    LocalRule("Heavy precipitation","orange",6) { h,i ->h.precip[i].isFinite() && h.precip[i]>=10.0 },
-    LocalRule("Extreme heat","yellow",24) { h,i ->h.temp[i].isFinite() && h.temp[i]>=35.0 },
-    LocalRule("Extreme cold","yellow",24) { h,i ->h.temp[i].isFinite() && h.temp[i]<=-15.0 },
-)
-private fun localEstimates(h: AlertHourly,now: Instant): List<AlertItem> = LocalRules.mapNotNull { r ->
-    val i=h.times.indices.firstOrNull { r.test(h,it) && h.times[it].plus(Duration.ofHours(r.hours)).isAfter(now) } ?: return@mapNotNull null
-    val start=h.times[i]; AlertItem(r.event,r.level,true,start,start.plus(Duration.ofHours(r.hours)),LocalIssuer,"")
-}
+// Rules and validity windows are shared with the Now screen (localAlertHits in OverviewData.kt).
+private fun localEstimates(h: AlertHourly,now: Instant): List<AlertItem> = localAlertHits(h.times,h.code,h.gust,h.precip,h.temp,now).map { AlertItem(it.event,it.level,true,it.start,it.end,LocalIssuer,"") }
 private fun alertSourceTitle(name: String)=if (name=="KDE") "FOSS Public Alert Server" else name
 private class AlertsData(val items: List<AlertItem>,val reports: List<SourceReport>,val localOk: Boolean,val zone: ZoneId,val labels: List<String>)
-private suspend fun loadAlerts(l: Location,source: String): AlertsData=withContext(Dispatchers.IO) { coroutineScope {
+private suspend fun loadAlerts(l: Location,source: String,model: String): AlertsData=withContext(Dispatchers.IO) { coroutineScope {
     val tasks=mutableListOf<Deferred<SourceReport>>()
     val chosen=alertSourceSet(source)
     if ("meteo" in chosen && hasMeteoAlarm(l.countryCode)) tasks+=async { meteoReport(l) }
     if ("libre" in chosen) tasks+=async { libreReport(l) }
     if ("kde" in chosen) tasks+=async { kdeReport(l) }
-    val hourlyTask=async { if ("local" !in chosen) null else try { loadHourly(l) } catch (e: CancellationException) { throw e } catch (e: Exception) { null } }
+    val hourlyTask=async { if ("local" !in chosen) null else try { loadHourly(l,model) } catch (e: CancellationException) { throw e } catch (e: Exception) { null } }
     val raw=tasks.awaitAll(); val h=hourlyTask.await(); val now=Instant.now()
     val reports=raw.map { it.copy(items=it.items.filter { a ->a.end?.isAfter(now)!=false }) }
     val order=compareByDescending<AlertItem> { rankOf(it) }.thenBy { it.start ?: Instant.MAX }
@@ -145,14 +141,14 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
 }
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable internal fun AlertsScreen(location: Location) {
-    val source=rememberForecastPreferences().alertSource
+    val preferences=rememberForecastPreferences(); val source=preferences.alertSource; val model=preferences.model
     var data by remember(location) { mutableStateOf<AlertsData?>(null) }
     var loading by remember(location) { mutableStateOf(true) }
     var failed by remember(location) { mutableStateOf(false) }
     var reload by remember { mutableIntStateOf(0) }
-    LaunchedEffect(location,source,reload) {
+    LaunchedEffect(location,source,model,reload) {
         loading=true
-        try { data=loadAlerts(location,source); failed=false } catch (e: CancellationException) { throw e } catch (e: Exception) { failed=true } finally { loading=false }
+        try { data=loadAlerts(location,source,model); failed=false } catch (e: CancellationException) { throw e } catch (e: Exception) { failed=true } finally { loading=false }
     }
     PullToRefreshBox(isRefreshing=loading,onRefresh={ if (!loading) { NetCache.invalidate(); loading=true; reload++ } },modifier=Modifier.fillMaxSize().background(ScreenBg)) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
