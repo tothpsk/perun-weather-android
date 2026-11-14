@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="marine_high_tide" formatted="false">"Príliv"</string>
+    <string name="marine_low_tide" formatted="false">"Odliv"</string>
+</resources>
