@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="marine_high_tide" formatted="false">"High tide"</string>
-    <string name="marine_low_tide" formatted="false">"Low tide"</string>
+    <string name="marine_high_tide" formatted="false">"Model maximum"</string>
+    <string name="marine_low_tide" formatted="false">"Model minimum"</string>
 </resources>

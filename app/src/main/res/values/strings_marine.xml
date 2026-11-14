@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="marine_high_tide" formatted="false">"Príliv"</string>
-    <string name="marine_low_tide" formatted="false">"Odliv"</string>
+    <!-- Legend of the sea level chart. The markers are extremes of the hourly model, not guaranteed tide times. -->
+    <string name="marine_high_tide" formatted="false">"Modelové maximum"</string>
+    <string name="marine_low_tide" formatted="false">"Modelové minimum"</string>
 </resources>

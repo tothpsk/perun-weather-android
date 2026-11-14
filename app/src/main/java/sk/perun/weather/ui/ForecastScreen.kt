@@ -410,7 +410,12 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val selectedHour=selected?.let { day.hours[it] }
                 fun label(h:ForecastHour,chosen:Boolean):String {
                     if(!chosen) return number(h)
-                    if(v==FV.Rain) return number(h)+" "+unit(v,u)+(if(h.v("snowfall")>0) uiText(R.string.ui_sneh_bbd0d4e8)+weatherUnitNumber(u.precipitation.fromSnowCentimetres(h.v("snowfall")),1)+" "+u.precipitation.snowSymbol else "")
+                    if(v==FV.Rain) {
+                        // At the cursor: snow in snow units, rain in liquid units, both for mixed precipitation.
+                        val snow=h.v("snowfall");val wet=(h.v("rain").takeIf { it.isFinite() } ?: 0.0)+(h.v("showers").takeIf { it.isFinite() } ?: 0.0)
+                        val snowText=weatherUnitNumber(u.precipitation.fromSnowCentimetres(snow),1)+" "+u.precipitation.snowSymbol
+                        return if(snow>0 && wet>0) weatherUnitNumber(convert(v,wet,u),decimals(v,u))+" "+unit(v,u)+uiText(R.string.ui_sneh_bbd0d4e8)+snowText else if(snow>0) snowText else number(h)+" "+unit(v,u)
+                    }
                     if(v==FV.Direction) return number(h)+"°"
                     return value(v,h.v(row.key),u).trim()
                 }
