@@ -2,9 +2,11 @@ package sk.perun.weather.ui
 
 import sk.perun.weather.R
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -27,9 +29,16 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     val nav=rememberNavController();val entry by nav.currentBackStackEntryAsState();val route=entry?.destination?.route?.substringBefore('?');val current=if(route?.startsWith("more/")==true) Tab.More.route else route
     val context=LocalContext.current;val locations=remember {LocationState(LocationStore(context))};var sheet by remember {mutableStateOf(false)}
     var sourceEditor by remember {mutableStateOf(false)}
+    val background=Color(0xFF323E4F);val text=Color(0xFFE8EAF0);val accent=Color(0xFF4FC3F7);val muted=Color(0xFFBBC4D2)
+    // No preset place: until the first location is added, the app only offers adding one.
+    if(locations.locations.isEmpty()) {
+        if(sheet) LocationsSheet(locations) {sheet=false}
+        Box(Modifier.fillMaxSize().background(background),contentAlignment=Alignment.Center) {Button(onClick={sheet=true}) {Icon(PerunIcons.Plus,null);Text(uiText(R.string.ui_pridat_lokalitu_70dce8af))}}
+        return
+    }
     LaunchedEffect(notificationToken) {
         val requested=notificationRoute ?: return@LaunchedEffect
-        val allowed=requested in setOf("overview","alerts","forecast","more/air") || requested.startsWith("forecast?chart=")
+        val allowed=requested in setOf("overview","alerts","forecast","maps","more/air") || requested.startsWith("forecast?chart=")
         if(!allowed) return@LaunchedEffect
         val index=locations.locations.indexOfFirst { BackgroundRefresh.locationKey(it)==notificationLocation }
         if(index>=0) locations.select(index)
@@ -45,7 +54,6 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
         }
     }
     val sources=rememberLocationSourcePreferences(locations.current)
-    val background=Color(0xFF323E4F);val text=Color(0xFFE8EAF0);val accent=Color(0xFF4FC3F7);val muted=Color(0xFFBBC4D2)
     CompositionLocalProvider(LocalLocationSourcePreferences provides sources) {
         if(sheet) LocationsSheet(locations) {sheet=false}
         if(sourceEditor) key(locationSourceKey(locations.current)) {LocationSourceEditorHost(locations.current) {sourceEditor=false}}

@@ -23,16 +23,15 @@ internal data class Location(
     val admin: String = "",
 )
 
-internal val DefaultLocation = Location("Bratislava", "Slovakia", 48.1482, 17.1067, null, "Europe/Bratislava", "SK", "Bratislava Region")
-
 internal class LocationStore(context: Context) {
     private val prefs = context.applicationContext.getSharedPreferences("perun_locations", Context.MODE_PRIVATE)
 
+    // There is no preset place: an empty list means that the user has not added a location yet.
     fun load(): List<Location> {
-        val raw = prefs.getString("locations", null) ?: return listOf(DefaultLocation)
+        val raw = prefs.getString("locations", null) ?: return emptyList()
         return try {
             val array = JSONArray(raw)
-            val list = List(array.length()) { i ->
+            List(array.length()) { i ->
                 val o = array.getJSONObject(i)
                 Location(
                     o.getString("name"), o.optString("country", ""), o.getDouble("latitude"), o.getDouble("longitude"),
@@ -40,9 +39,8 @@ internal class LocationStore(context: Context) {
                     o.optString("timezone", "auto"), o.optString("countryCode", ""), o.optString("region", ""), o.optString("admin", ""),
                 )
             }
-            list.ifEmpty { listOf(DefaultLocation) }
         } catch (e: Exception) {
-            listOf(DefaultLocation)
+            emptyList()
         }
     }
 
@@ -70,14 +68,15 @@ internal class LocationStore(context: Context) {
 internal class LocationState(private val store: LocationStore) {
     var locations by mutableStateOf(store.load())
         private set
-    var selected by mutableIntStateOf(store.loadSelected().coerceIn(0, locations.lastIndex))
+    var selected by mutableIntStateOf(store.loadSelected().coerceIn(0, maxOf(0, locations.lastIndex)))
         private set
 
+    // Only valid when locations is not empty; PerunApp shows the first-run screen otherwise.
     val current: Location get() = locations[selected]
 
     private fun commit(list: List<Location>, index: Int) {
         locations = list
-        selected = index.coerceIn(0, list.lastIndex)
+        selected = index.coerceIn(0, maxOf(0, list.lastIndex))
         store.save(list, selected)
     }
 
