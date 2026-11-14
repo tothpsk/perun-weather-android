@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import sk.perun.weather.ui.PerunApp
+import sk.perun.weather.ui.publishAppShortcuts
 import sk.perun.weather.ui.theme.PerunTheme
 
 class MainActivity : ComponentActivity() {
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         notificationIntent=intent
+        publishAppShortcuts(this)
         enableEdgeToEdge()
         setContent {
             PerunTheme { PerunApp(notificationIntent?.getStringExtra("perun_route"),notificationIntent?.getStringExtra("perun_location"),notificationToken) }

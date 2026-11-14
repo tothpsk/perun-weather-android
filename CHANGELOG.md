@@ -2,6 +2,22 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.0.4] - 2026-11-14
+
+### Added
+
+- A long press on the app icon offers shortcuts to Now, Forecast, Maps and Alerts. They appear after the first start of this version.
+- Sea level chart: a legend for the model maximum and model minimum markers.
+
+### Changed
+
+- There is no preset location any more. Until the first location is added, the app only offers adding one. If you used only the preset Bratislava and never added or reordered a location, add it again after updating.
+- Hourly forecast detail: the precipitation value at the cursor follows the type of precipitation. It shows the snow depth for snow, the amount in liquid units for rain, and both for rain with snow.
+
+### Fixed
+
+- Local alert estimates are computed in the same way on Now and on Alerts, so an estimate shown on Now is also listed on Alerts. Both screens use the forecast model selected for the location and the same validity windows; Now and notifications no longer report an estimate whose window has already passed.
+
 ## [1.0.3] - 2026-11-12
 
 ### Fixed
