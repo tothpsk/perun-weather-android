@@ -1,0 +1,689 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="ensemble_automatic_label" formatted="false">"Automaticky podľa predpovedného modelu"</string>
+    <string name="map_alert_count">"Výstrahy v zobrazenej oblasti: %1$s."</string>
+    <string name="map_alerts_load_error">"Výstrahy sa nepodarilo načítať (%1$s). To neznamená, že žiadne nie sú."</string>
+    <string name="map_forecast_time">"%1$s min · %2$s · predpoveď"</string>
+    <string name="map_frames_load_error">"Snímky LibreWXR sa nepodarilo načítať (%1$s). Nejde o „žiadne zrážky“. Skús obnoviť."</string>
+    <string name="map_history_time">"%1$s min · %2$s"</string>
+    <string name="map_now_time">"Teraz · %1$s"</string>
+    <string name="ui_10_km_a_viac_265d0ceb" formatted="false">"10 km a viac"</string>
+    <string name="ui_1_4_km_42694d48" formatted="false">"1 – 4 km"</string>
+    <string name="ui_3_h_195c553b" formatted="false">" / 3 h"</string>
+    <string name="ui_3_h_a8c2ce7c" formatted="false">"/3 h"</string>
+    <string name="ui_4_10_km_916c65ea" formatted="false">"4 – 10 km"</string>
+    <string name="ui_a_cbf7f300" formatted="false">" a "</string>
+    <string name="ui_aktualne_pocasie_e2638e4d" formatted="false">"Aktuálne počasie"</string>
+    <string name="ui_aktualne_vystrahy_a783f8f8" formatted="false">"Aktuálne výstrahy"</string>
+    <string name="ui_aktualny_modelovy_uv_index_podla_stupnice_who_816c1c7f" formatted="false">"Aktuálny modelový UV index podľa stupnice WHO."</string>
+    <string name="ui_ambrozia_5cdaf78e" formatted="false">"Ambrózia"</string>
+    <string name="ui_aqi_43cb31d0" translatable="false" formatted="false">"AQI"</string>
+    <string name="ui_automaticky_vyber_podla_rodiny_predpovedneho_modelu_5b0286bd" formatted="false">"automatický výber podľa rodiny predpovedného modelu"</string>
+    <string name="ui_bez_burkovych_buniek_07125c80" formatted="false">"Bez búrkových buniek"</string>
+    <string name="ui_bez_ciastkoveho_indexu_eb453b41" formatted="false">"Bez čiastkového indexu"</string>
+    <string name="ui_bez_dostatocnych_clenov_value_3d74c527">" Bez dostatočných členov: %1$s."</string>
+    <string name="ui_bez_zrazok_2da018fe" formatted="false">"bez zrážok"</string>
+    <string name="ui_bez_zrazok_cf1104e5" formatted="false">"Bez zrážok"</string>
+    <string name="ui_bezvetrie_cd38ecb2" formatted="false">"Bezvetrie"</string>
+    <string name="ui_blesky_25_km_value_69d5d7c7">"Blesky (25 km): %1$s"</string>
+    <string name="ui_blesky_bcc2d8d0" formatted="false">"Blesky"</string>
+    <string name="ui_blesky_do_25_km_62a7ba5c" formatted="false">"Blesky do 25 km: "</string>
+    <string name="ui_blesky_do_25_km_ce2c4ebd" formatted="false">"Blesky do 25 km"</string>
+    <string name="ui_blokovane_a6121cb7" formatted="false">"blokované"</string>
+    <string name="ui_bodka_je_tmavomodra_6221eed2" formatted="false">"Bodka je tmavomodrá."</string>
+    <string name="ui_bodka_je_zlata_7b37dd0d" formatted="false">"Bodka je zlatá."</string>
+    <string name="ui_bodkovana_siva_ciara_male_disky_na_nej_oznacuju_hlavne_faz_16549c66" formatted="false">"Bodkovaná sivá čiara. Malé disky na nej označujú hlavné fázy: nov, prvú štvrť, spln a poslednu štvrť."</string>
+    <string name="ui_breza_274e3ab2" formatted="false">"Breza"</string>
+    <string name="ui_bud_pozorny_fe1c266c" formatted="false">"Buď pozorný."</string>
+    <string name="ui_bunky_a_blesky_z_librewxr_v_okoli_100_km_odhad_prichodu_zn_5d1bc5d5" formatted="false">"Bunky a blesky z LibreWXR v okolí 100 km. Odhad príchodu znamená priblíženie do 8 km pri zachovaní aktuálneho pohybu počas najbližšej hodiny. Nie je to oficiálna výstraha."</string>
+    <string name="ui_burka_da3df9bc" formatted="false">"Búrka"</string>
+    <string name="ui_burka_je_pri_lokalite_17b2f702" formatted="false">"Búrka je pri lokalite."</string>
+    <string name="ui_burkova_bunka_v_okoli_ed6921f4" formatted="false">"Búrková bunka v okolí"</string>
+    <string name="ui_burkove_bunky_02324dfe" formatted="false">"Búrkové bunky"</string>
+    <string name="ui_burkove_bunky_a_blesky_cc129d3b" formatted="false">"Búrkové bunky a blesky"</string>
+    <string name="ui_burkove_bunky_a_blesky_v_okoli_100_km_pismeno_s_oznacuje_s_70b50c90" formatted="false">"Búrkové bunky a blesky v okolí 100 km. Písmeno S označuje sever, mierka je vľavo dole pri radare. Červenou bodkou je tvoja lokalita. Čiarkovaná čiara so šípkou ukazuje smer pohybu najbližšej bunky, žlté blesky blikajú podľa ich výskytu a zelený lúč je len ozdobný."</string>
+    <string name="ui_burkove_bunky_a_blesky_voci_lokalite_sever_je_hore_a2fbf923" formatted="false">"Búrkové bunky a blesky voči lokalite; sever je hore"</string>
+    <string name="ui_burkove_bunky_a_blesky_voci_lokalite_sever_je_hore_mierka_62f9f97f">"Búrkové bunky a blesky voči lokalite; sever je hore; mierka %1$s km"</string>
+    <string name="ui_burky_a079c974" formatted="false">"Búrky"</string>
+    <string name="ui_burky_v_okoli_60c0371d" formatted="false">"Búrky v okolí"</string>
+    <string name="ui_burlivy_vietor_12ab2d33" formatted="false">"Búrlivý vietor"</string>
+    <string name="ui_c_ccd18b02" formatted="false">" °C"</string>
+    <string name="ui_cas_nie_je_uvedeny_3aa85dd3" formatted="false">"Čas nie je uvedený"</string>
+    <string name="ui_cas_snimky_87293daa" formatted="false">"Čas snímky"</string>
+    <string name="ui_casovy_interval_historia_e76ab9b1" formatted="false">"Časový interval (história)"</string>
+    <string name="ui_casovy_interval_medzi_vlnami_v_sekundach_eea8e9f8" formatted="false">"Časový interval medzi vlnami v sekundách."</string>
+    <string name="ui_casovy_limit_2687ec9f" formatted="false">"časový limit"</string>
+    <string name="ui_casy_z_time_expires_povodny_jazyk_librewxr_sa_automaticky_0e440490" formatted="false">"Časy z time/expires. Pôvodný jazyk LibreWXR sa automaticky neprekladá."</string>
+    <string name="ui_cela_dostupna_historia_24c2ee99" formatted="false">"Celá dostupná história"</string>
+    <string name="ui_celkova_modelova_oblacnost_v_percentach_0_je_jasno_100_zam_fe810d8f" formatted="false">"Celková modelová oblačnosť v percentách: 0 % je jasno, 100 % zamračené."</string>
+    <string name="ui_celkova_modelova_oblacnost_v_percentach_oblak_sa_naplna_zd_83740492" formatted="false">"Celková modelová oblačnosť v percentách. Oblak sa napĺňa zdola podľa percent."</string>
+    <string name="ui_celkova_oblacnost_v_e6d4c200" formatted="false">"Celková oblačnosť v %."</string>
+    <string name="ui_cerstvy_vietor_a5ad3c92" formatted="false">"Čerstvý vietor"</string>
+    <string name="ui_cervena_b7b3d767" formatted="false">"ČERVENÁ"</string>
+    <string name="ui_cervena_f1d8f5c8" formatted="false">"Červená"</string>
+    <string name="ui_chlad_7284d347" formatted="false">"Chlad"</string>
+    <string name="ui_chyba_b622e8d6" formatted="false">"Chyba"</string>
+    <string name="ui_chyba_b9f17311" formatted="false">"chyba"</string>
+    <string name="ui_chyba_nacitania_62fc4ef6" formatted="false">"Chyba načítania"</string>
+    <string name="ui_chybaju_hodinove_morske_udaje_0054120c" formatted="false">"Chýbajú hodinové morské údaje"</string>
+    <string name="ui_chybaju_hodinove_udaje_33c2aefa" formatted="false">"Chýbajú hodinové údaje"</string>
+    <string name="ui_chybajuce_udaje_sa_nedoplnaju_z_ineho_ensemble_b2b00123" formatted="false">" Chýbajúce údaje sa nedopĺňajú z iného ensemble."</string>
+    <string name="ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f" formatted="false">" Chýbajúce UV doplnené z GFS bez predĺženia hlavného horizontu."</string>
+    <string name="ui_cm_snehu_9f691427" formatted="false">" cm snehu"</string>
+    <string name="ui_co_fc8842c6" translatable="false" formatted="false">"CO"</string>
+    <string name="ui_contains_modified_copernicus_atmosphere_monitoring_service_d82a97ef" translatable="false">"Contains modified Copernicus Atmosphere Monitoring Service information %1$s"</string>
+    <string name="ui_cuva_c55fd1d0" formatted="false">"Cúva"</string>
+    <string name="ui_cuvajuci_kosacik_03e67d5f" formatted="false">"Cúvajúci kosáčik"</string>
+    <string name="ui_cuvajuci_mesiac_4a6a004c" formatted="false">"Cúvajúci Mesiac"</string>
+    <string name="ui_dalsie_zdroje_0e84da7e" formatted="false">"Ďalšie zdroje "</string>
+    <string name="ui_dazd_8eda180e" formatted="false">"Dážď"</string>
+    <string name="ui_dazd_a_prehanky_9e6eff58" formatted="false">"Dážď a prehánky"</string>
+    <string name="ui_dazd_potrva_aspon_hodinu_c0146efe" formatted="false">"Dážď potrvá aspoň hodinu"</string>
+    <string name="ui_dazd_skonci_o_value_min_25bffcd9">"Dážď skončí o ~%1$s min"</string>
+    <string name="ui_dazd_so_snehom_586507c0" formatted="false">"Dážď so snehom"</string>
+    <string name="ui_dazd_zacne_o_value_min_1d0cabf6">"Dážď začne o ~%1$s min"</string>
+    <string name="ui_dazdnik_ukazuje_pravdepodobnost_zrazok_cim_je_modrejsi_tym_bbe5b634" formatted="false">"Dáždnik ukazuje pravdepodobnosť zrážok. Čím je modrejší, tým je pravdepodobnosť vyššia. Nevypovedá o intenzite."</string>
+    <string name="ui_den_8cdbc624" formatted="false">"Deň"</string>
+    <string name="ui_denny_uhrn_dazda_a_prehanok_a_samostatne_vyska_snehu_jedno_567afe4f" formatted="false">"Denný úhrn dažďa a prehánok a samostatne výška snehu. Jednotky podľa nastavení. Dáždnik ukazuje najvyššiu hodinovú pravdepodobnosť."</string>
+    <string name="ui_dlazdice_obrazovky_teraz_8ac7b973" formatted="false">"Dlaždice obrazovky Teraz"</string>
+    <string name="ui_dlhy_pobyt_vonku_sa_neodporuca_4c84d339" formatted="false">"Dlhý pobyt vonku sa neodporúča."</string>
+    <string name="ui_dlhy_pobyt_vonku_v_poludnie_sa_neodporuca_068ddfa4" formatted="false">"Dlhý pobyt vonku v poludnie sa neodporúča."</string>
+    <string name="ui_dlzka_dna_bc509f34" formatted="false">"Dĺžka dňa"</string>
+    <string name="ui_dnes_2b1a88a3" formatted="false">"dnes "</string>
+    <string name="ui_dnes_b6dcb499" formatted="false">"° dnes"</string>
+    <string name="ui_dnes_ce1bed34" formatted="false">"Dnes"</string>
+    <string name="ui_dnes_ef517dc4" formatted="false">" dnes"</string>
+    <string name="ui_dnes_max_value_4d6092b5">"Dnes max. %1$s"</string>
+    <string name="ui_dnesok_e2299229" formatted="false">"Dnešok"</string>
+    <string name="ui_dobra_19daeeb7" formatted="false">"Dobrá"</string>
+    <string name="ui_dolny_percentil_4cf4ff75" formatted="false">"Dolný percentil"</string>
+    <string name="ui_doplnkovy_zdroj_vystrah_ac01b130" formatted="false">"Doplnkový zdroj výstrah"</string>
+    <string name="ui_dorastajuci_kosacik_8e90f090" formatted="false">"Dorastajúci kosáčik"</string>
+    <string name="ui_dorastajuci_mesiac_0d9af424" formatted="false">"Dorastajúci Mesiac"</string>
+    <string name="ui_dost_cerstvy_vietor_aac5a22e" formatted="false">"Dosť čerstvý vietor"</string>
+    <string name="ui_dusno_ab731e80" formatted="false">"Dusno"</string>
+    <string name="ui_dva_druhy_s_najvyssou_zatazou_v_aktualnej_hodine_vedla_naz_4aa38ca5" formatted="false">"Dva druhy s najvyššou záťažou v aktuálnej hodine; vedľa názvu je koncentrácia v zrnách na m³. Farba podľa úrovne daného druhu. Nejde o individuálnu predpoveď ťažkostí; pokrytie je obmedzené na Európu a sezónu."</string>
+    <string name="ui_ensemble_28aa136a" formatted="false">"Ensemble: "</string>
+    <string name="ui_ensemble_model_b09a8627" formatted="false">"Ensemble model"</string>
+    <string name="ui_ensemble_pasmo_nie_je_dostupne_f45105d6" formatted="false">": ensemble pásmo nie je dostupné."</string>
+    <string name="ui_ensemble_sa_nacitava_abfb276f" formatted="false">"Ensemble sa načítava."</string>
+    <string name="ui_ensemble_sa_nepodarilo_nacitat_value_hlavna_predpoved_zost_091af7e1">"Ensemble sa nepodarilo načítať: %1$s. Hlavná predpoveď zostáva dostupná."</string>
+    <string name="ui_ensemble_value_value_pvaluepvalue_1f97e0c6">"Ensemble: %1$s · %2$s · P%3$s–P%4$s."</string>
+    <string name="ui_eu_aqi_3234eb6d" translatable="false" formatted="false">"EU AQI"</string>
+    <string name="ui_europska_komisia_ani_ecmwf_nezodpovedaju_za_pouzitie_infor_0e8269e6" formatted="false">"Európska komisia ani ECMWF nezodpovedajú za použitie informácií Copernicus. Modelové údaje a odhady, nie meranie zo stanice ani oficiálna výstraha."</string>
+    <string name="ui_europska_komisia_ani_ecmwf_nezodpovedaju_za_pouzitie_infor_85a94267" formatted="false">"Európska komisia ani ECMWF nezodpovedajú za použitie informácií Copernicus."</string>
+    <string name="ui_europsky_aqi_z_cams_copernicus_cez_open_meteo_nie_je_to_am_dba1f246" formatted="false">"Európsky AQI z CAMS/Copernicus cez Open-Meteo. Nie je to americký index."</string>
+    <string name="ui_extremna_11_a_viac_bed08146" formatted="false">"Extrémna · 11 a viac"</string>
+    <string name="ui_extremna_c1ea86db" formatted="false">"Extrémna"</string>
+    <string name="ui_extremne_teplo_cdcd5041" formatted="false">"Extrémne teplo"</string>
+    <string name="ui_extremne_zla_9c6c07ef" formatted="false">"Extrémne zlá"</string>
+    <string name="ui_extremny_chlad_d4aeb237" formatted="false">"Extrémny chlad"</string>
+    <string name="ui_farba_podla_teploty_c7e72e64" formatted="false">"Farba podľa teploty"</string>
+    <string name="ui_faza_vychadza_z_uhlovej_vzdialenosti_mesiaca_od_slnka_v_po_6a6b7ba7" formatted="false">"Fáza vychádza z uhlovej vzdialenosti Mesiaca od Slnka v poludnie vybraného dňa. Ikona ukazuje osvetlenú časť disku a číslo jej podiel v percentách."</string>
+    <string name="ui_fazy_nov_dorastajuci_kosacik_prva_stvrt_dorastajuci_mesiac_8ef47325" formatted="false">"Fázy: nov, dorastajúci kosáčik, prvá štvrť, dorastajúci Mesiac, spln, cúvajúci Mesiac, posledná štvrť, cúvajúci kosáčik."</string>
+    <string name="ui_g_m3_db57960b" formatted="false">" µg/m³"</string>
+    <string name="ui_graf_ukazuje_vysku_slnka_a_mesiaca_nad_obzorom_v_stupnoch_97656c01" formatted="false">"Graf ukazuje výšku Slnka a Mesiaca nad obzorom v stupňoch. 0° je obzor: kladná hodnota znamená, že teleso je nad obzorom, záporná, že je pod ním."</string>
+    <string name="ui_graf_vysky_slnka_a_mesiaca_posun_cez_okraj_dlazdice_odcita_8ce96158" formatted="false">"Graf výšky Slnka a Mesiaca. Posun cez okraj dlaždice; odčítanie dotykom v grafe."</string>
+    <string name="ui_hladam_ee3413d5" formatted="false">"Hľadám…"</string>
+    <string name="ui_hladat_d6982a8b" formatted="false">"Hľadať"</string>
+    <string name="ui_hladina_mora_a4623230" formatted="false">"Hladina mora"</string>
+    <string name="ui_hmla_386a47cf" formatted="false">"Hmla"</string>
+    <string name="ui_hodinovy_meteogram_value_zrazky_zahrnaju_sneh_vo_vodnom_ek_27b999fc">"Hodinový meteogram %1$s. Zrážky zahŕňajú sneh vo vodnom ekvivalente. Ružica ukazuje kam fúka vietor."</string>
+    <string name="ui_hodinovy_prehlad_value_svetlejsie_pozadie_oznacuje_den_pod_ca158a37">"Hodinový prehľad %1$s. Svetlejšie pozadie označuje deň podľa vypočítanej polohy Slnka. Podrž a posúvaj prst pre odčítanie hodnôt."</string>
+    <string name="ui_hodinovy_vyhlad_pouziva_jednotlive_hodinove_modelove_hodno_27561dcf" formatted="false">"Hodinový výhľad používa jednotlivé hodinové modelové hodnoty. Denný výhľad používa minimá a maximá teploty, denné zrážky, maximum vetra a nárazov, priemernú a maximálnu oblačnosť, maximum UV a európskeho AQI."</string>
+    <string name="ui_hodinovy_vyhlad_sa_nepodarilo_obnovit_zobrazene_udaje_mozu_f6724c79" formatted="false">"Hodinový výhľad sa nepodarilo obnoviť. Zobrazené údaje môžu byť staršie."</string>
+    <string name="ui_horizontalna_viditelnost_v_km_37878c66" formatted="false">"Horizontálna viditeľnosť v km."</string>
+    <string name="ui_horny_percentil_8555fb69" formatted="false">"Horný percentil"</string>
+    <string name="ui_horucava_d2c7a7d1" formatted="false">"Horúčava"</string>
+    <string name="ui_ide_o_orientacny_odhad_intenzity_z_radarovej_odrazivosti_n_def8da11" formatted="false">"Ide o orientačný odhad intenzity z radarovej odrazivosti, nie meranie. Keď radar nie je dostupný, použije sa 15-minútová modelová predpoveď."</string>
+    <string name="ui_index_kvality_ovzdusia_d9bab98d" formatted="false">"Index kvality ovzdušia"</string>
+    <string name="ui_informacia_b277d884" formatted="false">"Informácia"</string>
+    <string name="ui_informacie_bc63e043" formatted="false">"Informácie: "</string>
+    <string name="ui_informacie_o_grafe_37b2a71e" formatted="false">"Informácie o grafe: "</string>
+    <string name="ui_informacie_value_f076eb88">"Informácie: %1$s"</string>
+    <string name="ui_infracerveny_satelit_noaa_gmgsi_stupnica_pre_satelit_zatia_a998f52f" formatted="false">"Infračervený satelit (NOAA GMGSI). Stupnica pre satelit zatiaľ nie je doplnená, lebo nie je overená podľa linuxovej aplikácie."</string>
+    <string name="ui_interval_a_krok_vyberaju_len_existujuce_snimky_nic_sa_nein_872feabc" formatted="false">"Interval a krok vyberajú len existujúce snímky, nič sa neinterpoluje. Predpoveď (nowcast) zostáva zahrnutá."</string>
+    <string name="ui_interval_nie_je_cely_uvedeny_pozri_detail_c84fdda4" formatted="false">"Interval nie je celý uvedený; pozri detail."</string>
+    <string name="ui_j_6da43b94" formatted="false">"J"</string>
+    <string name="ui_jasno_e78eee64" formatted="false">"Jasno"</string>
+    <string name="ui_jelsa_50b3fc2b" formatted="false">"Jelša"</string>
+    <string name="ui_jemne_castice_5b95fd95" formatted="false">"Jemné častice"</string>
+    <string name="ui_jemne_castice_pm2_5_d3f95b57" formatted="false">"Jemné častice PM2.5"</string>
+    <string name="ui_jv_002b53e7" formatted="false">"JV"</string>
+    <string name="ui_jz_f296f166" formatted="false">"JZ"</string>
+    <string name="ui_kazdych_20_minut_8c036649" formatted="false">"Každých 20 minút"</string>
+    <string name="ui_kazdych_30_minut_c0d1867e" formatted="false">"Každých 30 minút"</string>
+    <string name="ui_klesa_54707dc3" formatted="false">"Klesá"</string>
+    <string name="ui_km_h_14c28063" formatted="false">" km/h"</string>
+    <string name="ui_kniznicu_mapy_leaflet_sa_nepodarilo_nacitat_skontroluj_pri_a323dd2e" formatted="false">"Knižnicu mapy (Leaflet) sa nepodarilo načítať. Skontroluj pripojenie."</string>
+    <string name="ui_koncentracie_plynov_055a3e2f" formatted="false">"Koncentrácie plynov"</string>
+    <string name="ui_koniec_nie_je_uvedeny_aa6efcff" formatted="false">" (koniec nie je uvedený)"</string>
+    <string name="ui_kratke_a_lokalne_zrazky_6fc5ecd7" formatted="false">"Krátke a lokálne zrážky."</string>
+    <string name="ui_krok_medzi_snimkami_e093aa89" formatted="false">"Krok medzi snímkami"</string>
+    <string name="ui_kvalita_ovzdusia_08946dda" formatted="false">"Kvalita ovzdušia"</string>
+    <string name="ui_kvalita_ovzdusia_a_pel_4aa97320" formatted="false">"Kvalita ovzdušia a peľ"</string>
+    <string name="ui_kvapalne_zrazky_0c457a52" formatted="false">"Kvapalné zrážky."</string>
+    <string name="ui_legenda_61154f2a" formatted="false">"Legenda"</string>
+    <string name="ui_librewxr_nevratil_ziadne_snimky_pre_tuto_vrstvu_89c7d6cc" formatted="false">"LibreWXR nevrátil žiadne snímky pre túto vrstvu."</string>
+    <string name="ui_librewxr_orientacny_odhad_intenzity_z_radarovej_odrazivost_c3457efe" formatted="false">"LibreWXR: orientačný odhad intenzity z radarovej odrazivosti Z = 200·R^1,6, nie meranie. Open-Meteo: 15-minútová modelová predpoveď. Pri nedostupnom zdroji sa použije záloha."</string>
+    <string name="ui_librewxr_radar_a_nowcast_orientacny_odhad_nie_meranie_3f6df595" formatted="false">"LibreWXR radar a nowcast · orientačný odhad, nie meranie."</string>
+    <string name="ui_librewxr_zaloha_open_meteo_91902c11" formatted="false">"LibreWXR; záloha: Open-Meteo"</string>
+    <string name="ui_licencia_udajov_open_meteo_5b91d58f" formatted="false">"Licencia údajov Open-Meteo"</string>
+    <string name="ui_lokality_144a4cba" formatted="false">"Lokality"</string>
+    <string name="ui_lokalne_extremy_hodinoveho_modelu_nie_garantovane_casy_pri_dc84a8ea" formatted="false">"Lokálne extrémy hodinového modelu, nie garantované časy prílivu a odlivu v prístave."</string>
+    <string name="ui_lokalne_odhady_z_predpovede_sa_nepodarilo_vypocitat_db7210d0" formatted="false">"Lokálne odhady z predpovede sa nepodarilo vypočítať."</string>
+    <string name="ui_lokalny_odhad_72c32ba1" formatted="false">"Lokálny odhad"</string>
+    <string name="ui_lokalny_odhad_d1e2c561" formatted="false">" · lokálny odhad"</string>
+    <string name="ui_mapa_s_radarom_e59e75af" formatted="false">"Mapa s radarom"</string>
+    <string name="ui_mapy_c9e02d67" formatted="false">"Mapy"</string>
+    <string name="ui_max_1eed76ee" formatted="false">"max "</string>
+    <string name="ui_menej_ako_12_5_8952dd78" formatted="false">"menej ako 12,5 %"</string>
+    <string name="ui_menej_ako_1_km_06843312" formatted="false">"menej ako 1 km"</string>
+    <string name="ui_menej_ako_1_km_pri_soferovani_zniz_rychlost_4dedd316" formatted="false">"menej ako 1 km; pri šoférovaní zníž rýchlosť"</string>
+    <string name="ui_mesiac_3ca578fb" formatted="false">"Mesiac"</string>
+    <string name="ui_mesiac_cuva_osvetlenie_klesa_d31ace13" formatted="false">"Mesiac cúva (osvetlenie klesá)"</string>
+    <string name="ui_mesiac_dnes_0e15b5c9" formatted="false">"Mesiac dnes"</string>
+    <string name="ui_mesiac_dorasta_osvetlenie_rastie_a5ae864c" formatted="false">"Mesiac dorastá (osvetlenie rastie)"</string>
+    <string name="ui_mierna_35_62495930" formatted="false">"Mierna · 3–5"</string>
+    <string name="ui_mierna_5f589b5b" formatted="false">"Mierna"</string>
+    <string name="ui_mierne_zrazky_066689b5" formatted="false">"Mierne zrážky"</string>
+    <string name="ui_mierne_zrazky_beedc2e1" formatted="false">"mierne zrážky"</string>
+    <string name="ui_mierny_vietor_93ea48e7" formatted="false">"Mierny vietor"</string>
+    <string name="ui_miesto_alebo_suradnice_10e88c14" formatted="false">"Miesto alebo súradnice"</string>
+    <string name="ui_mimo_zobrazeneho_rozsahu_59a94038" formatted="false">"Mimo zobrazeného rozsahu"</string>
+    <string name="ui_min_value_e4167bc2">"Min. %1$s"</string>
+    <string name="ui_minimum_a_maximum_vychadzaju_z_dostupnych_hodin_dnesneho_m_e6b61ae2" formatted="false">"Minimum a maximum vychádzajú z dostupných hodín dnešného miestneho dňa. Nejde o meranie na konkrétnej pláži."</string>
+    <string name="ui_mm_c1752600" formatted="false">" mm"</string>
+    <string name="ui_mm_h_0c7ac40f" formatted="false">" mm/h"</string>
+    <string name="ui_model_nevratil_predpoved_pre_lokalitu_07d7763e" formatted="false">"Model nevrátil predpoveď pre lokalitu."</string>
+    <string name="ui_model_nevratil_predpoved_pre_lokalitu_f9977c57" formatted="false">"Model nevrátil predpoveď pre lokalitu"</string>
+    <string name="ui_modelova_bunka_value_value_vzdialenost_value_km_hodina_uda_3e3abccc">"Modelová bunka %1$s, %2$s, vzdialenosť %3$s km. Hodina údaja: "</string>
+    <string name="ui_modelova_bunka_value_value_vzdialenost_value_km_zdroj_open_1032d7ec">"Modelová bunka: %1$s, %2$s; vzdialenosť %3$s km. Zdroj: Open-Meteo Marine API. Chýbajúce hodiny sa nedopĺňajú."</string>
+    <string name="ui_modelova_hladina_voci_strednej_hladine_mora_msl_21f4a62d" formatted="false">"Modelová hladina voči strednej hladine mora (MSL)."</string>
+    <string name="ui_modelova_hodina_97a95bf3" formatted="false">"Modelová hodina"</string>
+    <string name="ui_modelova_horizontalna_viditelnost_v_km_d7a2ed32" formatted="false">"Modelová horizontálna viditeľnosť v km."</string>
+    <string name="ui_modelova_teplota_povrchovej_vrstvy_mora_7d6ec8aa" formatted="false">"Modelová teplota povrchovej vrstvy mora."</string>
+    <string name="ui_modelove_maximum_cf189a4c" formatted="false">"▲ Modelové maximum"</string>
+    <string name="ui_modelove_minimum_97d29dc6" formatted="false">"▼ Modelové minimum"</string>
+    <string name="ui_modelove_udaje_nie_meranie_zo_stanice_open_meteo_com_cc_by_1b91e112" formatted="false">"Modelové údaje, nie meranie zo stanice.\nOpen-Meteo.com · CC BY 4.0\nKvalita ovzdušia a peľ: CAMS/Copernicus cez Open-Meteo\nRadar, nowcast, bunky a blesky: LibreWXR (librewxr.net)\nVýstrahy: MeteoAlarm, KDE a lokálne odhady"</string>
+    <string name="ui_modelove_udaje_nie_su_urcene_na_navigaciu_ani_bezpecnostne_8cde5256" formatted="false">"Modelové údaje nie sú určené na navigáciu ani bezpečnostné rozhodnutia. Ťuknutie na dlaždicu otvorí obrazovku More."</string>
+    <string name="ui_modelove_udaje_nie_su_urcene_na_navigaciu_ani_bezpecnostne_b26ce977" formatted="false">"Modelové údaje nie sú určené na navigáciu ani bezpečnostné rozhodnutia. Nemusia opisovať konkrétny prístav alebo pláž."</string>
+    <string name="ui_modelove_udaje_pre_zvolenu_lokalitu_nie_meranie_zo_stanice_6895cfe0" formatted="false">"Modelové údaje pre zvolenú lokalitu, nie meranie zo stanice. Pomlčka znamená nedostupný údaj."</string>
+    <string name="ui_modelovy_uv_index_podla_stupnice_who_v_noci_je_nulovy_ff39b5cb" formatted="false">"Modelový UV index podľa stupnice WHO. V noci je nulový."</string>
+    <string name="ui_modely_923c7200" formatted="false">"Modely"</string>
+    <string name="ui_modely_sa_overuju_postupne_podla_teplotnych_udajov_najbliz_15bfab73" formatted="false">"Modely sa overujú postupne podľa teplotných údajov najbližších hodín a blízkosti modelovej bunky. Ostatné premenné môžu mať iné pokrytie. Už overený model možno vybrať aj počas overovania ďalších."</string>
+    <string name="ui_mohutna_vichrica_453ef247" formatted="false">"Mohutná víchrica"</string>
+    <string name="ui_moj_graf_8d99f519" formatted="false">"Môj graf"</string>
+    <string name="ui_moj_morsky_graf_38d619b9" formatted="false">"Môj morský graf"</string>
+    <string name="ui_more_d47d7cb0" formatted="false">"More"</string>
+    <string name="ui_morske_dlazdice_37987fc9" formatted="false">"Morské dlaždice"</string>
+    <string name="ui_morske_udaje_931b71bd" formatted="false">"Morské údaje"</string>
+    <string name="ui_moznosti_0fec1c16" formatted="false">"Možnosti"</string>
+    <string name="ui_mrholenie_081d9f6f" formatted="false">"Mrholenie"</string>
+    <string name="ui_msl_be8d7660" formatted="false">"MSL · "</string>
+    <string name="ui_msl_je_stredna_hladina_mora_nie_miestna_namorna_nula_zapor_40fcb415" formatted="false">"MSL je stredná hladina mora, nie miestna námorná nula. Záporná hodnota je pod touto rovinou."</string>
+    <string name="ui_msl_nie_je_miestna_namorna_nula_trend_porovnava_aktualnu_m_3cb06968" formatted="false">"MSL nie je miestna námorná nula. Trend porovnáva aktuálnu modelovú hodinu s nasledujúcou; zmena do 0,01 m sa označuje ako stabilná. Chýbajúci údaj nie je nulová hladina."</string>
+    <string name="ui_nacitanie_zlyhalo_value_potiahni_nadol_pre_obnovenie_pripa_bf1bd2f6">"Načítanie zlyhalo: %1$s. Potiahni nadol pre obnovenie. Prípadné zobrazené údaje sú z predchádzajúceho načítania."</string>
+    <string name="ui_nacitanie_zlyhalo_value_pripadne_zobrazene_udaje_su_zo_sko_1395c1e9">"Načítanie zlyhalo: %1$s. Prípadné zobrazené údaje sú zo skoršieho načítania."</string>
+    <string name="ui_nacitavam_snimky_librewxr_265b09ca" formatted="false">"Načítavam snímky LibreWXR…"</string>
+    <string name="ui_nacitavam_vystrahy_5e685bde" formatted="false">"Načítavam výstrahy…"</string>
+    <string name="ui_nad_100_c3e214fd" formatted="false">"nad 100"</string>
+    <string name="ui_nahradne_uv_nie_je_dostupne_d90ceb69" formatted="false">" Náhradné UV nie je dostupné."</string>
+    <string name="ui_najsilnejsi_vietor_a_narazy_dna_ruzica_ukazuje_kam_fuka_je_d6d05be8" formatted="false">"Najsilnejší vietor a nárazy dňa. Ružica ukazuje, kam fúka. Jednotky podľa nastavení; farebné prahy vychádzajú z km/h."</string>
+    <string name="ui_najsilnejsie_o_235015eb" formatted="false">"Najsilnejšie o "</string>
+    <string name="ui_najsilnejsie_o_value_valuevalue_7f222bf2">"Najsilnejšie o %1$s · %2$s%3$s"</string>
+    <string name="ui_najsilnejsie_value_61d58ca0">"najsilnejšie: %1$s"</string>
+    <string name="ui_najviac_3_grafy_kazdy_s_1_az_4_premennymi_prepinac_urcuje_b037d8ed" formatted="false">"Najviac 3 grafy, každý s 1 až 4 premennými. Prepínač určuje zobrazenie grafu."</string>
+    <string name="ui_najviac_tri_grafy_kazdy_s_jednou_az_styrmi_velicinami_8d7b0051" formatted="false">"Najviac tri grafy, každý s jednou až štyrmi veličinami."</string>
+    <string name="ui_najviac_tri_najvyznamnejsie_druhy_podla_stupna_a_pomeru_k_65df291a" formatted="false">"Najviac tri najvýznamnejšie druhy podľa stupňa a pomeru k hranici vysokej koncentrácie. Model CAMS/Copernicus, nie individuálna predpoveď alergických ťažkostí."</string>
+    <string name="ui_najviac_value_49103e3f">"Najviac %1$s"</string>
+    <string name="ui_najvyssi_europsky_aqi_dna_nie_americky_index_dbdc436d" formatted="false">"Najvyšší európsky AQI dňa, nie americký index."</string>
+    <string name="ui_najvyssia_a_najnizsia_teplota_dna_jednotky_sa_riadia_nasta_944fd0b1" formatted="false">"Najvyššia a najnižšia teplota dňa. Jednotky sa riadia nastaveniami; farby vychádzajú z pôvodných °C."</string>
+    <string name="ui_najvyssia_denna_koncentracia_pelu_8c321cba" formatted="false">"Najvyššia denná koncentrácia peľu: "</string>
+    <string name="ui_najvyssia_hodinova_hodnota_uv_indexu_dna_farba_a_stupen_po_a10baa15" formatted="false">"Najvyššia hodinová hodnota UV indexu dňa. Farba a stupeň podľa stupnice WHO."</string>
+    <string name="ui_narazovy_vietor_ca701315" formatted="false">"Nárazový vietor"</string>
+    <string name="ui_narazy_3e1df66b" formatted="false">"nárazy "</string>
+    <string name="ui_narazy_b151d6fb" formatted="false">"Nárazy"</string>
+    <string name="ui_narazy_df599680" formatted="false">"Nárazy "</string>
+    <string name="ui_narazy_su_kratkodobe_maxima_rychlosti_vetra_pri_silnom_vet_fd7f47bd" formatted="false">"Nárazy sú krátkodobé maximá rýchlosti vetra. Pri silnom vetre môžu byť výrazne vyššie než priemerný vietor."</string>
+    <string name="ui_narazy_value_8270e71d">"Nárazy %1$s"</string>
+    <string name="ui_narazy_vetra_31d92aae" formatted="false">"Nárazy vetra."</string>
+    <string name="ui_nasledujuci_den_3872abbe" formatted="false">"Nasledujúci deň"</string>
+    <string name="ui_nastavenia_4465d758" formatted="false">"Nastavenia"</string>
+    <string name="ui_nazov_a_jednotka_28e528ad" formatted="false">"Názov a jednotka"</string>
+    <string name="ui_nazov_f7f0ac88" formatted="false">"Názov"</string>
+    <string name="ui_nazov_grafu_c2727703" formatted="false">"Názov grafu"</string>
+    <string name="ui_nebezpecna_f88656e8" formatted="false">"Nebezpečná"</string>
+    <string name="ui_nebezpecne_pocasie_626c5a11" formatted="false">"Nebezpečné počasie."</string>
+    <string name="ui_neocakavany_format_8c464e2c" formatted="false">"neočakávaný formát"</string>
+    <string name="ui_neocakavany_format_odpovede_7aab4c98" formatted="false">"neočakávaný formát odpovede"</string>
+    <string name="ui_neplatna_casova_os_a0ba71bc" formatted="false">"Neplatná časová os"</string>
+    <string name="ui_neplatne_casove_poradie_efcd08b4" formatted="false">"Neplatné časové poradie"</string>
+    <string name="ui_neplatne_casy_ensemble_d69337d8" formatted="false">"Neplatné časy ensemble"</string>
+    <string name="ui_neplatny_interval_v_podklade_b9f0925c" formatted="false">"Neplatný interval v podklade."</string>
+    <string name="ui_nepodarilo_sa_nacitat_7b748049" formatted="false">": nepodarilo sa načítať ("</string>
+    <string name="ui_neuplne_udaje_b649939a" formatted="false">"Neúplné údaje"</string>
+    <string name="ui_neutralna_85457835" formatted="false">"NEUTRÁLNA"</string>
+    <string name="ui_nezdrava_4f9ce3d5" formatted="false">"Nezdravá"</string>
+    <string name="ui_nezdrava_pre_citlive_skupiny_7c64c682" formatted="false">"Nezdravá pre citlivé skupiny"</string>
+    <string name="ui_neznamy_ensemble_model_value_6c24183b">"Neznámy ensemble model: %1$s"</string>
+    <string name="ui_neznamy_predpovedny_model_value_28933271">"Neznámy predpovedný model: %1$s"</string>
+    <string name="ui_nic_sa_nenaslo_9c709cd6" formatted="false">"Nič sa nenašlo."</string>
+    <string name="ui_niektore_dlazdice_sa_nenacitali_mimo_pokrytia_alebo_chyba_61fdbc23" formatted="false">"Niektoré dlaždice sa nenačítali (mimo pokrytia alebo chyba siete)."</string>
+    <string name="ui_niektore_spravy_sa_nenacitali_zoznam_nemusi_byt_uplny_f75f0167" formatted="false">": niektoré správy sa nenačítali, zoznam nemusí byť úplný."</string>
+    <string name="ui_nizka_02_93a5db81" formatted="false">"Nízka · 0–2"</string>
+    <string name="ui_nizka_7bf8cc6a" formatted="false">"nízka"</string>
+    <string name="ui_nizka_992049fb" formatted="false">"Nízka"</string>
+    <string name="ui_nizka_zataz_pelu_044ea494" formatted="false">"Nízka záťaž peľu"</string>
+    <string name="ui_nizko_presne_geometricke_vypocty_v_zariadeni_nie_meranie_g_473d1e10" formatted="false">"Nízko presné geometrické výpočty v zariadení, nie meranie. Graf nevyjadruje viditeľnosť cez oblaky ani prekážky."</string>
+    <string name="ui_no2_13442efb" translatable="false" formatted="false">"NO₂"</string>
+    <string name="ui_noc_c592606f" formatted="false">"Noc"</string>
+    <string name="ui_normalna_b50a82f9" formatted="false">"Normálna"</string>
+    <string name="ui_nov_3e630d29" formatted="false">"Nov"</string>
+    <string name="ui_nowcast_nie_je_na_serveri_dostupny_zobrazena_je_len_histor_76b4d741" formatted="false">"Nowcast nie je na serveri dostupný, zobrazená je len história."</string>
+    <string name="ui_nowcast_sa_nepodarilo_nacitat_neznamena_to_ze_nebudu_zrazk_def9a9ee" formatted="false">"Nowcast sa nepodarilo načítať; neznamená to, že nebudú zrážky."</string>
+    <string name="ui_nowcast_zrazok_60_min_24463d15" formatted="false">"Nowcast zrážok (60 min)"</string>
+    <string name="ui_nowcast_zrazok_753057c8" formatted="false">"Nowcast zrážok"</string>
+    <string name="ui_o3_1903ec79" translatable="false" formatted="false">"O₃"</string>
+    <string name="ui_obalka_3db174bd" formatted="false">"Obálka"</string>
+    <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"Obálka je vypnutá."</string>
+    <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"Obálka nie je dostupná"</string>
+    <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Obálka pravdepodobnosti zrážok: ensemble neposkytuje priamo pravdepodobnosť, preto je odvodená z členov. Dolná hranica je podiel členov so zrážkami aspoň 1 mm za hodinu, horná podiel členov s aspoň 0,1 mm."</string>
+    <string name="ui_obalka_sa_pocita_samostatne_pre_kazdu_velicinu_a_hodinu_as_b5f39ef8" formatted="false">" Obálka sa počíta samostatne pre každú veličinu a hodinu aspoň z dvoch rôznych dostupných členov. Je to rozptyl členov, nie záruka okolo hlavnej predpovede."</string>
+    <string name="ui_oblacnost_b5a6e70c" formatted="false">"Oblačnosť"</string>
+    <string name="ui_obmedz_pobyt_na_slnku_v_poludnajsich_hodinach_pouzi_spf_30_3591c93c" formatted="false">"Obmedz pobyt na slnku v poludňajších hodinách, použi SPF 30 a viac."</string>
+    <string name="ui_obnovit_p10p90_7936736e" formatted="false">"Obnoviť P10–P90"</string>
+    <string name="ui_obnovit_snimky_55c17851" formatted="false">"Obnoviť snímky"</string>
+    <string name="ui_ochrana_zvycajne_nie_je_potrebna_87975225" formatted="false">"Ochrana zvyčajne nie je potrebná."</string>
+    <string name="ui_od_0_1_mm_h_57493f20" formatted="false">"od 0,1 mm/h"</string>
+    <string name="ui_od_0_5_mm_h_d85adb17" formatted="false">"od 0,5 mm/h"</string>
+    <string name="ui_od_2_5_mm_h_7ca50a7e" formatted="false">"od 2,5 mm/h"</string>
+    <string name="ui_od_7_6_mm_h_0d6cb6d1" formatted="false">"od 7,6 mm/h"</string>
+    <string name="ui_od_prahu_vysokej_urovne_4bfe789b" formatted="false">"od prahu vysokej úrovne"</string>
+    <string name="ui_od_prahu_zvysenej_urovne_e27eb726" formatted="false">"od prahu zvýšenej úrovne"</string>
+    <string name="ui_od_value_km_h_a1ba8bc3">"od %1$s km/h"</string>
+    <string name="ui_odcitanie_v_grafe_posun_na_nadpise_a_okrajoch_6ae1a3d9" formatted="false">". Odčítanie v grafe, posun na nadpise a okrajoch."</string>
+    <string name="ui_odhad_5dde2d79" formatted="false">" · odhad"</string>
+    <string name="ui_odhad_intenzity_zrazok_v_nasledujucej_hodine_po_10_minutac_091a8693" formatted="false">"Odhad intenzity zrážok v nasledujúcej hodine po 10 minútach. Stĺpce ukazujú intenzitu, pod nimi je čas. Keď ťukneš na stĺpec, uvidíš čas a očakávanú intenzitu zrážok."</string>
+    <string name="ui_odrazivost_radaru_od_10_do_80_dbz_7d801db2" formatted="false">"Odrazivosť radaru od 10 do 80 dBZ"</string>
+    <string name="ui_odrazivost_radaru_v_dbz_10_az_80_je_to_orientacna_velicina_9c205545" formatted="false">"Odrazivosť radaru v dBZ (10 až 80). Je to orientačná veličina, nie množstvo zrážok v mm/h. Snímky označené „predpoveď“ sú nowcast, teda extrapolácia radaru, nie pozorovanie."</string>
+    <string name="ui_odstranit_d24effb5" formatted="false">"Odstrániť"</string>
+    <string name="ui_odstranit_graf_76f7f441" formatted="false">"Odstrániť graf?"</string>
+    <string name="ui_odstranit_lokalitu_7ed2d74e" formatted="false">"Odstrániť lokalitu"</string>
+    <string name="ui_oficialna_vystraha_85131657" formatted="false">" · oficiálna výstraha"</string>
+    <string name="ui_oficialna_vystraha_95c0276a" formatted="false">"Oficiálna výstraha"</string>
+    <string name="ui_oficialne_vystrahy_a_lokalne_odhady_z_predpovede_farba_zod_2d393e9d" formatted="false">"Oficiálne výstrahy a lokálne odhady z predpovede. Farba zodpovedá stupňu závažnosti."</string>
+    <string name="ui_oficialne_vystrahy_meteoalarm_kde_a_samostatne_oznacene_lo_fbb8b096" formatted="false">"Oficiálne výstrahy MeteoAlarm/KDE a samostatne označené lokálne odhady z modelovej predpovede."</string>
+    <string name="ui_oliva_3462b6a4" formatted="false">"Oliva"</string>
+    <string name="ui_open_meteo_15_minutova_modelova_predpoved_ff7057a6" formatted="false">"Open-Meteo · 15-minútová modelová predpoveď."</string>
+    <string name="ui_oranzova_240b737c" formatted="false">"ORANŽOVÁ"</string>
+    <string name="ui_oranzova_ab35bb41" formatted="false">"Oranžová"</string>
+    <string name="ui_orkan_8f9a5a59" formatted="false">"Orkán"</string>
+    <string name="ui_osvetlenie_38b6bd7b" formatted="false">" · osvetlenie "</string>
+    <string name="ui_overene_value_z_value_99404697">"Overené %1$s z %2$s"</string>
+    <string name="ui_overit_modely_znova_44e5e11e" formatted="false">"Overiť modely znova"</string>
+    <string name="ui_ovladanie_mapy_45588feb" formatted="false">"Ovládanie mapy"</string>
+    <string name="ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53" formatted="false">"Ovládanie: v grafe podrž a posúvaj prst pre odčítanie hodnôt. Čas posúvaš ťahom na nadpise alebo na okrajoch dlaždice. Ak je v grafe viac premenných, ťuknutím na legendu jednu dočasne skryješ alebo zobrazíš."</string>
+    <string name="ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_fa1c527d" formatted="false">"Ovládanie: v grafe podrž a posúvaj prst pre odčítanie hodnôt (modrá čiara). Čas posúvaš ťahom na nadpise alebo na okrajoch dlaždice, naraz sú vidieť tri dni. Šípkami pod grafom zmeníš deň, ťuknutím na dátum otvoríš kalendár (rok 1950 až 2100), Teraz sa vráti na dnešok. Ak sú v grafe dve krivky, ťuknutím na legendu jednu dočasne skryješ."</string>
+    <string name="ui_ovzdusie_a_pel_89f8f42d" formatted="false">"Ovzdušie a peľ"</string>
+    <string name="ui_oxid_dusicity_06483361" formatted="false">"Oxid dusičitý"</string>
+    <string name="ui_oxid_dusicity_no2_6cae0699" formatted="false">"Oxid dusičitý NO₂"</string>
+    <string name="ui_oxid_siricity_245bd3ab" formatted="false">"Oxid siričitý"</string>
+    <string name="ui_oxid_siricity_so2_7ae55399" formatted="false">"Oxid siričitý SO₂"</string>
+    <string name="ui_oxid_uholnaty_co_beacefa6" formatted="false">"Oxid uhoľnatý CO"</string>
+    <string name="ui_oxid_uholnaty_e8f2de2d" formatted="false">"Oxid uhoľnatý"</string>
+    <string name="ui_ozon_ae213c8d" formatted="false">"Ozón"</string>
+    <string name="ui_ozon_o3_fb7c4ac5" formatted="false">"Ozón O₃"</string>
+    <string name="ui_palina_6c25bcd3" formatted="false">"Palina"</string>
+    <string name="ui_pasmo_pravdepodobnosti_zrazok_nie_je_percentilove_hranice_defaa900" formatted="false">" Pásmo pravdepodobnosti zrážok nie je percentilové: hranice sú podiely členov s úhrnom aspoň 1 a 0,1 mm za hodinu."</string>
+    <string name="ui_pel_9ee1ac34" formatted="false">"Peľ – "</string>
+    <string name="ui_pel_aktualne_0fd4a0ea" formatted="false">"Peľ aktuálne"</string>
+    <string name="ui_pel_ca4a713f" formatted="false">"Peľ"</string>
+    <string name="ui_percentily_ensemble_obalky_a825c14f" formatted="false">"Percentily ensemble obálky"</string>
+    <string name="ui_perioda_je_v_sekundach_nie_rychlost_ani_vyska_vln_8376497d" formatted="false">"Perióda je v sekundách, nie rýchlosť ani výška vĺn."</string>
+    <string name="ui_perioda_nie_je_rychlost_ani_vyska_vln_jednotka_je_sekunda_944b5fb6" formatted="false">"Perióda nie je rýchlosť ani výška vĺn. Jednotka je sekunda."</string>
+    <string name="ui_perioda_vln_47347236" formatted="false">"Perióda vĺn"</string>
+    <string name="ui_perioda_vln_interval_medzi_vlnami_v_sekundach_5a86050e" formatted="false">"Perióda vĺn: interval medzi vlnami v sekundách."</string>
+    <string name="ui_plati_do_cea9ccd2" formatted="false">"Platí do "</string>
+    <string name="ui_plati_od_97113b0d" formatted="false">"Platí od "</string>
+    <string name="ui_plna_zlta_ciara_svetlejsia_vypln_medzi_ciarou_a_obzorom_sv_ad4af0e2" formatted="false">"Plná žltá čiara, svetlejšia výplň medzi čiarou a obzorom. Svetlejšie pozadie grafu označuje deň."</string>
+    <string name="ui_plynula_interpolacia_nemeni_hodinove_hodnoty_ani_polohu_ex_84f1971f" formatted="false">"Plynulá interpolácia nemení hodinové hodnoty ani polohu extrémov. Pri vlastných grafoch sa metre zdieľajú na jednej osi; teplota a sekundy majú vlastné osi. Ťuknutím na legendu premennú dočasne skryješ."</string>
+    <string name="ui_pm10_dca32eb0" translatable="false" formatted="false">"PM10"</string>
+    <string name="ui_pm10_value_840f8ad6">"PM10 %1$s"</string>
+    <string name="ui_pm2_5_7d02b735" translatable="false" formatted="false">"PM2.5"</string>
+    <string name="ui_pm2_5_value_4038bed9">"PM2,5 %1$s"</string>
+    <string name="ui_pocitova_acd4f8bb" formatted="false">"Pocitová"</string>
+    <string name="ui_pocitova_teplota_a08f2e01" formatted="false">"Pocitová teplota"</string>
+    <string name="ui_pocitova_teplota_vietor_vlhkost_ziarenie_0cf6ca0d" formatted="false">"Pocitová teplota (vietor, vlhkosť, žiarenie)."</string>
+    <string name="ui_pocitova_teplota_zohladnuje_vietor_vlhkost_a_slnecne_ziare_1f74486b" formatted="false">"Pocitová teplota zohľadňuje vietor, vlhkosť a slnečné žiarenie. Môže sa výrazne líšiť od teploty vzduchu."</string>
+    <string name="ui_pocitovo_b1afb67c" formatted="false">"pocitovo "</string>
+    <string name="ui_pocitovo_e11312e3" formatted="false">"Pocitovo "</string>
+    <string name="ui_pocitovo_value_2f1c5876">"Pocitovo %1$s"</string>
+    <string name="ui_pod_prahom_zvysenej_urovne_b3b23adf" formatted="false">"pod prahom zvýšenej úrovne"</string>
+    <string name="ui_podkladove_dlazdice_openstreetmap_sa_nenacitali_77cb8583" formatted="false">"Podkladové dlaždice OpenStreetMap sa nenačítali."</string>
+    <string name="ui_podrobna_predpoved_6372d922" formatted="false">"Podrobná predpoveď"</string>
+    <string name="ui_podrobnosti_4a928310" formatted="false">"Podrobnosti"</string>
+    <string name="ui_podrz_prst_v_grafe_na_odcitanie_cas_posuvas_tahom_na_nadpi_22830073" formatted="false">"Podrž prst v grafe na odčítanie. Čas posúvaš ťahom na nadpise alebo okrajoch; grafy sa posúvajú spoločne. Obnovíš potiahnutím nadol."</string>
+    <string name="ui_pohyb_na_920fce15" formatted="false">"pohyb na "</string>
+    <string name="ui_pokrytie_oblohy_jasno_pod_12_5_prevazne_jasno_pod_37_5_pol_5cd2eda1" formatted="false">"Pokrytie oblohy: jasno pod 12,5 %, prevažne jasno pod 37,5 %, polooblačno pod 62,5 %, prevažne oblačno pod 87,5 %, inak zamračené."</string>
+    <string name="ui_poladovica_459cceb0" formatted="false">"Poľadovica"</string>
+    <string name="ui_polohu_sa_nepodarilo_zistit_94d1d68c" formatted="false">"Polohu sa nepodarilo zistiť."</string>
+    <string name="ui_polojasno_6ccdd079" formatted="false">"Polojasno"</string>
+    <string name="ui_polooblacno_83f2c354" formatted="false">"Polooblačno"</string>
+    <string name="ui_pomala_7b30c785" formatted="false">"Pomalá"</string>
+    <string name="ui_pomocnik_c68b7b84" formatted="false">"Pomocník"</string>
+    <string name="ui_popis_af1eeac7" formatted="false">"Popis"</string>
+    <string name="ui_posledna_stvrt_7a12e0f9" formatted="false">"Posledná štvrť"</string>
+    <string name="ui_poslednych_120_minut_7a0b6f9e" formatted="false">"Posledných 120 minút"</string>
+    <string name="ui_poslednych_60_minut_e647f479" formatted="false">"Posledných 60 minút"</string>
+    <string name="ui_posun_cez_okraj_dlazdice_odcitanie_dotykom_v_grafe_1e76db34" formatted="false">". Posun cez okraj dlaždice; odčítanie dotykom v grafe."</string>
+    <string name="ui_posunut_nizsie_ee019ae9" formatted="false">"Posunúť nižšie"</string>
+    <string name="ui_posunut_vyssie_f4e2d086" formatted="false">"Posunúť vyššie"</string>
+    <string name="ui_potiahni_nadol_pre_obnovenie_971de0eb" formatted="false">". Potiahni nadol pre obnovenie."</string>
+    <string name="ui_pouzi_spf_30_a_viac_32d74f96" formatted="false">"Použi SPF 30 a viac."</string>
+    <string name="ui_povolenie_polohy_nebolo_udelene_ca808ef8" formatted="false">"Povolenie polohy nebolo udelené."</string>
+    <string name="ui_povrchova_teplota_modelovej_bunky_nie_meranie_na_plazi_jed_dfd0e93b" formatted="false">"Povrchová teplota modelovej bunky, nie meranie na pláži. Jednotka sa riadi Nastaveniami."</string>
+    <string name="ui_pozastavit_f7ac504e" formatted="false">"Pozastaviť"</string>
+    <string name="ui_poziadavka_zlyhala_alebo_ju_api_odmietlo_value_nie_je_to_p_61af315a">" Požiadavka zlyhala alebo ju API odmietlo: %1$s. Nie je to potvrdenie chýbajúceho geografického pokrytia."</string>
+    <string name="ui_pozor_na_vyvoj_situacie_256af0fc" formatted="false">"Pozor na vývoj situácie."</string>
+    <string name="ui_ppb_co_v_ppm_8c3193c0" formatted="false">"ppb (CO v ppm)"</string>
+    <string name="ui_prachove_castice_a8cc6445" formatted="false">"Prachové častice"</string>
+    <string name="ui_prachove_castice_pm10_7e459420" formatted="false">"Prachové častice PM10"</string>
+    <string name="ui_prachove_castice_pm2_5_a_pm10_sa_zobrazuju_vzdy_v_g_m3_pel_6c94244c" formatted="false">"Prachové častice PM2.5 a PM10 sa zobrazujú vždy v µg/m³, peľ v zrnách na m³. Prepočet na ppb a ppm platí pre 25 °C a 1 atm. Voľba platí pre obrazovku Kvalita ovzdušia a peľ; obrazovka Teraz zatiaľ zobrazuje európsky AQI."</string>
+    <string name="ui_prahy_zvysena_vysoka_jelsa_50_200_breza_50_400_trava_20_50_b9196393" formatted="false">"Prahy zvýšená / vysoká: jelša 50 / 200, breza 50 / 400, tráva 20 / 50, palina 20 / 50, ambrózia 10 / 50, oliva 50 / 200 zŕn/m³."</string>
+    <string name="ui_pravd_value_81df4778">"Pravd. %1$s"</string>
+    <string name="ui_pravdepodobnost_bc2683dc" formatted="false">"Pravdepodobnosť"</string>
+    <string name="ui_pravdepodobnost_zrazok_c9b0a84a" formatted="false">"Pravdepodobnosť zrážok"</string>
+    <string name="ui_pravdepodobnost_zrazok_dc4a8c6f" formatted="false">"Pravdepodobnosť zrážok."</string>
+    <string name="ui_pre_tuto_lokalitu_nie_su_dostupne_pouzitelne_morske_udaje_b05257f0" formatted="false">"Pre túto lokalitu nie sú dostupné použiteľné morské údaje do 30 km. Vyber pobrežnú alebo morskú lokalitu v hornej lište."</string>
+    <string name="ui_predchadzajuci_den_e52ce20c" formatted="false">"Predchádzajúci deň"</string>
+    <string name="ui_predpoved_20fdfd9d" formatted="false">"Predpoveď"</string>
+    <string name="ui_predpoved_nie_je_dostupna_obnovis_ju_potiahnutim_nadol_b6b1e2f8" formatted="false">"Predpoveď nie je dostupná. Obnovíš ju potiahnutím nadol."</string>
+    <string name="ui_predpoved_nie_je_dostupna_potiahni_nadol_a_skus_znova_d03cf27d" formatted="false">"Predpoveď nie je dostupná. Potiahni nadol a skús znova."</string>
+    <string name="ui_predpovedny_model_666f632c" formatted="false">"Predpovedný model"</string>
+    <string name="ui_prehanky_ef949e7b" formatted="false">"Prehánky"</string>
+    <string name="ui_prehrat_9b880ad3" formatted="false">"Prehrať"</string>
+    <string name="ui_prekrytia_8b855b5d" formatted="false">"Prekrytia"</string>
+    <string name="ui_premenne_value_4_a87d9828">"Premenné: %1$s/4"</string>
+    <string name="ui_prepnut_8ce4129e" formatted="false">"Prepnúť: "</string>
+    <string name="ui_prerusovana_ciara_ukazuje_pravdepodobnost_zrazok_v_danej_h_5ac15e46" formatted="false">"Prerušovaná čiara ukazuje pravdepodobnosť zrážok v danej hodine. Nevypovedá o intenzite zrážok."</string>
+    <string name="ui_presunut_lokalitu_9fe20534" formatted="false">"Presunúť lokalitu"</string>
+    <string name="ui_prevazne_jasno_7331ba47" formatted="false">"Prevažne jasno"</string>
+    <string name="ui_prevazne_oblacno_e5122573" formatted="false">"Prevažne oblačno"</string>
+    <string name="ui_pri_hodnoteni_sa_pouziva_povodny_rosny_bod_v_c_bez_ohladu_b00e4efb" formatted="false">"Pri hodnotení sa používa pôvodný rosný bod v °C, bez ohľadu na zvolené jednotky."</string>
+    <string name="ui_pri_polarnom_dni_alebo_noci_vychod_a_zapad_nemusia_nastat_322de0fe" formatted="false">"Pri polárnom dni alebo noci východ a západ nemusia nastať; vtedy sa zobrazí pomlčka."</string>
+    <string name="ui_pri_vas_o_value_min_84402b5d">"pri vás o ~%1$s min"</string>
+    <string name="ui_pri_zlej_a_horsej_kvalite_ovzdusia_obmedz_namahavu_aktivit_fa3dc0e7" formatted="false">"Pri zlej a horšej kvalite ovzdušia obmedz namáhavú aktivitu vonku, najmä ak si citlivý alebo máš ochorenie dýchacích ciest."</string>
+    <string name="ui_pridat_aktualnu_polohu_gps_99585c15" formatted="false">"  Pridať aktuálnu polohu (GPS)"</string>
+    <string name="ui_pridat_graf_96f50f22" formatted="false">"Pridať graf"</string>
+    <string name="ui_pridat_lokalitu_0252522b" formatted="false">"Pridať lokalitu"</string>
+    <string name="ui_pridat_lokalitu_70dce8af" formatted="false">"  Pridať lokalitu"</string>
+    <string name="ui_priehladnost_vrstvy_7515278a" formatted="false">"Priehľadnosť vrstvy"</string>
+    <string name="ui_priemerna_a_najvyssia_hodinova_oblacnost_dna_v_percentach_56da6f04" formatted="false">"Priemerná a najvyššia hodinová oblačnosť dňa v percentách."</string>
+    <string name="ui_prijatelna_47496cf3" formatted="false">"Prijateľná"</string>
+    <string name="ui_prijemna_26c506d8" formatted="false">"Príjemná"</string>
+    <string name="ui_prilis_velka_odpoved_8aad5e07" formatted="false">"príliš veľká odpoveď"</string>
+    <string name="ui_prudky_vietor_03f07e8a" formatted="false">"Prudký vietor"</string>
+    <string name="ui_prva_stvrt_4ecd8721" formatted="false">"Prvá štvrť"</string>
+    <string name="ui_radar_524f8327" formatted="false">"Radar"</string>
+    <string name="ui_radar_a_burky_4218b3cf" formatted="false">"Radar a búrky"</string>
+    <string name="ui_radar_a_satelit_dea02d0a" formatted="false">"Radar a satelit"</string>
+    <string name="ui_rastie_a5341d12" formatted="false">"Rastie"</string>
+    <string name="ui_referencny_cas_value_b8abe88e">"Referenčný čas: %1$s"</string>
+    <string name="ui_relativna_vlhkost_vzduchu_7dfed857" formatted="false">"Relatívna vlhkosť vzduchu."</string>
+    <string name="ui_relativna_vlhkost_vzduchu_a_rosny_bod_rosny_bod_je_teplota_c1b0a236" formatted="false">"Relatívna vlhkosť vzduchu a rosný bod. Rosný bod je teplota, pri ktorej by sa vzduch nasýtil vodnou parou. Čím je vyšší, tým je vzduch pocitovo vlhkejší."</string>
+    <string name="ui_relativna_vlhkost_vzduchu_v_pod_30_je_vzduch_suchy_525c9825" formatted="false">"Relatívna vlhkosť vzduchu v %. Pod 30 % je vzduch suchý."</string>
+    <string name="ui_riziko_burok_8fa6514a" formatted="false">"Riziko búrok"</string>
+    <string name="ui_rosny_bod_6caea4c6" formatted="false">"Rosný bod"</string>
+    <string name="ui_rosny_bod_754737bc" formatted="false">"Rosný bod "</string>
+    <string name="ui_rosny_bod_je_teplota_pri_ktorej_by_sa_vzduch_nasytil_vodno_ad206731" formatted="false">"Rosný bod je teplota, pri ktorej by sa vzduch nasýtil vodnou parou. Čím je vyšší, tým je vzduch pocitovo vlhkejší: od 16 ° je vlhko, od 21 ° dusno."</string>
+    <string name="ui_rosny_bod_od_16_53b53fa7" formatted="false">"rosný bod od 16 °"</string>
+    <string name="ui_rosny_bod_od_21_8f801694" formatted="false">"rosný bod od 21 °"</string>
+    <string name="ui_rosny_bod_pod_16_0cb517ab" formatted="false">"rosný bod pod 16 °"</string>
+    <string name="ui_rosny_bod_teplota_pri_ktorej_sa_vzduch_nasyti_b115885f" formatted="false">"Rosný bod – teplota, pri ktorej sa vzduch nasýti."</string>
+    <string name="ui_rozbalit_den_9601108c" formatted="false">"Rozbaliť deň"</string>
+    <string name="ui_rozsah_0100_dolny_percentil_musi_byt_mensi_nez_horny_p10p9_bb4d7ae0" formatted="false">"Rozsah 0–100. Dolný percentil musí byť menší než horný. P10–P90 je pásmo medzi 10. a 90. percentilom členov ensemble; minimum a maximum budú samostatnou voľbou v grafe."</string>
+    <string name="ui_rozsah_podla_dostupnej_teplotnej_predpovede_zvoleneho_mode_b54cf840" formatted="false">"Rozsah podľa dostupnej teplotnej predpovede zvoleného modelu. Pomlčka znamená nedostupný údaj."</string>
+    <string name="ui_rychla_b8d46a57" formatted="false">"Rýchla"</string>
+    <string name="ui_rychlo_klesa_1bac87f5" formatted="false">"Rýchlo klesá"</string>
+    <string name="ui_rychlo_stupa_aea55e49" formatted="false">"Rýchlo stúpa"</string>
+    <string name="ui_rychlost_animacie_fc172f06" formatted="false">"Rýchlosť animácie"</string>
+    <string name="ui_rychly_pokles_tlaku_casto_predchadza_zhorseniu_pocasia_nie_ace0ce61" formatted="false">"Rýchly pokles tlaku často predchádza zhoršeniu počasia. Nie je to však výstraha."</string>
+    <string name="ui_s_8de0b3c4" formatted="false">"S"</string>
+    <string name="ui_s_value_km_b12c6a08">"S · %1$s km"</string>
+    <string name="ui_satelit_4a02d9f5" formatted="false">"Satelit"</string>
+    <string name="ui_silna_vichrica_2d7e107a" formatted="false">"Silná víchrica"</string>
+    <string name="ui_silne_narazy_vetra_7b7b006f" formatted="false">"Silné nárazy vetra"</string>
+    <string name="ui_silne_zrazky_208eb2db" formatted="false">"silné zrážky"</string>
+    <string name="ui_silne_zrazky_2630cc03" formatted="false">"Silné zrážky"</string>
+    <string name="ui_silny_vietor_2766694f" formatted="false">"Silný vietor"</string>
+    <string name="ui_sipky_pohybu_10b141be" formatted="false">"Šípky pohybu"</string>
+    <string name="ui_skusit_znova_69d3c884" formatted="false">"Skúsiť znova"</string>
+    <string name="ui_slabe_zrazky_135b3ccf" formatted="false">"slabé zrážky"</string>
+    <string name="ui_slabe_zrazky_32fb6955" formatted="false">"Slabé zrážky"</string>
+    <string name="ui_slaby_vietor_96b40e12" formatted="false">"Slabý vietor"</string>
+    <string name="ui_slnecne_poludnie_je_stred_medzi_vychodom_a_zapadom_okamih_7db4dbc5" formatted="false">"Slnečné poludnie je stred medzi východom a západom. Okamih najvyššej polohy Slnka sa od neho môže líšiť o pár minút."</string>
+    <string name="ui_slnecne_poludnie_stred_medzi_vychodom_a_zapadom_164006d0" formatted="false">"Slnečné poludnie – stred medzi východom a západom"</string>
+    <string name="ui_slnko_a_mesiac_10659686" formatted="false">"Slnko a Mesiac"</string>
+    <string name="ui_slnko_d4e0d075" formatted="false">"Slnko"</string>
+    <string name="ui_slnko_dnes_4d65cb81" formatted="false">"Slnko dnes"</string>
+    <string name="ui_smer_nedostupny_f96aaf53" formatted="false">"Smer nedostupný"</string>
+    <string name="ui_smer_sirenia_e0efaa7c" formatted="false">"Smer šírenia "</string>
+    <string name="ui_smer_vetra_f7a54eb7" formatted="false">"Smer vetra"</string>
+    <string name="ui_sneh_27400f08" formatted="false">"Sneh"</string>
+    <string name="ui_sneh_bbd0d4e8" formatted="false">" · sneh "</string>
+    <string name="ui_snezenie_c9ed5546" formatted="false">"Sneženie"</string>
+    <string name="ui_so2_220bf934" translatable="false" formatted="false">"SO₂"</string>
+    <string name="ui_spat_000d5419" formatted="false">"Späť"</string>
+    <string name="ui_spat_na_lokalitu_f2fe9805" formatted="false">"Späť na lokalitu"</string>
+    <string name="ui_spln_cc87a236" formatted="false">"Spln"</string>
+    <string name="ui_stabilna_be3f811f" formatted="false">"Stabilná"</string>
+    <string name="ui_stabilny_17f01156" formatted="false">"Stabilný"</string>
+    <string name="ui_stav_nie_je_dostupny_03c5a0b5" formatted="false">"Stav nie je dostupný"</string>
+    <string name="ui_stlpceky_ukazuju_uhrn_zrazok_za_predchadzajucu_hodinu_vo_v_f54831bd" formatted="false">"Stĺpčeky ukazujú úhrn zrážok za predchádzajúcu hodinu vo vodnom ekvivalente, aj pri snehu. Farba stĺpčeka podľa typu zrážok."</string>
+    <string name="ui_strucny_popis_e8d7e5f7" formatted="false">"Stručný popis"</string>
+    <string name="ui_stupa_c05574b4" formatted="false">"Stúpa"</string>
+    <string name="ui_stupnov_55efc5ad" formatted="false">" stupňov"</string>
+    <string name="ui_suchy_vzduch_b65d36c7" formatted="false">"Suchý vzduch"</string>
+    <string name="ui_suhrn_dna_12a3ae07" formatted="false">"Súhrn dňa"</string>
+    <string name="ui_suvisle_zrazky_ae2adfaf" formatted="false">"Súvislé zrážky."</string>
+    <string name="ui_sv_a4cd8b4d" formatted="false">"SV"</string>
+    <string name="ui_sz_c29f2aa3" formatted="false">"SZ"</string>
+    <string name="ui_teplota_4b720579" formatted="false">"Teplota"</string>
+    <string name="ui_teplota_a_pocitova_teplota_77eaa2b6" formatted="false">"Teplota a pocitová teplota"</string>
+    <string name="ui_teplota_a_pocitova_teplota_su_modelove_veliciny_jednotku_z_7351638f" formatted="false">"Teplota a pocitová teplota sú modelové veličiny. Jednotku zvolíš v Nastaveniach. Farba bodky vychádza z pôvodnej teploty v °C a zmenou jednotiek sa nemení."</string>
+    <string name="ui_teplota_mora_0e2349bf" formatted="false">"Teplota mora"</string>
+    <string name="ui_teplota_stav_pocasia_a_suhrn_dna_zostavaju_vzdy_skrytie_vy_e1ee5b22" formatted="false">"Teplota, stav počasia a súhrn dňa zostávajú vždy. Skrytie výstrah nevypína výstrahy ani ich obrazovku."</string>
+    <string name="ui_teplota_vzduchu_vo_vyske_2_m_0bd0b14b" formatted="false">"Teplota vzduchu vo výške 2 m."</string>
+    <string name="ui_teplota_vzduchu_vo_vyske_2_m_z_hodinovej_predpovede_modelu_77ed797a" formatted="false">"Teplota vzduchu vo výške 2 m z hodinovej predpovede modelu. Jednotku zvolíš v Nastaveniach."</string>
+    <string name="ui_teraz_6172392c" formatted="false">"Teraz"</string>
+    <string name="ui_teraz_e6989b57" formatted="false">"Teraz "</string>
+    <string name="ui_tlak_vzduchu_cc4c1846" formatted="false">"Tlak vzduchu"</string>
+    <string name="ui_tlak_vzduchu_prepocitany_na_hladinu_mora_80fcc497" formatted="false">"Tlak vzduchu prepočítaný na hladinu mora."</string>
+    <string name="ui_tlak_vzduchu_prepocitany_na_hladinu_mora_a_jeho_zmena_za_p_fc20d5b7" formatted="false">"Tlak vzduchu prepočítaný na hladinu mora a jeho zmena za posledné 3 hodiny. Farba bodky vyjadruje trend."</string>
+    <string name="ui_tlak_vzduchu_prepocitany_na_hladinu_mora_rychly_pokles_tla_9b07cb62" formatted="false">"Tlak vzduchu prepočítaný na hladinu mora. Rýchly pokles tlaku často predchádza zhoršeniu počasia."</string>
+    <string name="ui_to_neznamena_ze_ziadne_vystrahy_nie_su_ac01ebd6" formatted="false">"). To neznamená, že žiadne výstrahy nie sú."</string>
+    <string name="ui_trava_30b5b0b5" formatted="false">"Tráva"</string>
+    <string name="ui_trend_nedostupny_87cb2581" formatted="false">"Trend nedostupný"</string>
+    <string name="ui_trend_nie_je_dostupny_9e207c82" formatted="false">"Trend nie je dostupný"</string>
+    <string name="ui_trend_tlaku_1e853b71" formatted="false">"Trend tlaku"</string>
+    <string name="ui_trend_ukazuje_ci_osvetlenie_mesiaca_v_priebehu_24_hodin_ok_4b1eaa5d" formatted="false">"Trend ukazuje, či osvetlenie Mesiaca v priebehu 24 hodín okolo poludnia rastie (dorastá) alebo klesá (cúva)."</string>
+    <string name="ui_typ_vrstvy_55f95de0" formatted="false">"Typ vrstvy"</string>
+    <string name="ui_udaj_nedostupny_8bbc9c94" formatted="false">"Údaj nedostupný"</string>
+    <string name="ui_udaj_nie_je_dostupny_f3105a65" formatted="false">"Údaj nie je dostupný"</string>
+    <string name="ui_udaje_nie_su_dostupne_4e729f61" formatted="false">"Údaje nie sú dostupné"</string>
+    <string name="ui_udaje_nie_su_dostupne_f7a6149a" formatted="false">"Údaje nie sú dostupné."</string>
+    <string name="ui_udaje_o_burkovych_bunkach_nie_su_dostupne_05ced842" formatted="false">"Údaje o búrkových bunkách nie sú dostupné"</string>
+    <string name="ui_udaje_sa_nepodarilo_nacitat_value_to_neznamena_dobru_kvali_7eb3f020">"Údaje sa nepodarilo načítať: %1$s. To neznamená dobrú kvalitu ovzdušia. Potiahni nadol pre obnovenie."</string>
+    <string name="ui_udaje_sa_nepodarilo_obnovit_potiahni_nadol_a_skus_znova_zo_cd3e0669" formatted="false">"Údaje sa nepodarilo obnoviť. Potiahni nadol a skús znova. Zobrazené údaje môžu pochádzať z predchádzajúceho načítania."</string>
+    <string name="ui_udaje_sa_nepodarilo_obnovit_zobrazene_udaje_mozu_byt_stars_d68150be" formatted="false">"Údaje sa nepodarilo obnoviť. Zobrazené údaje môžu byť staršie."</string>
+    <string name="ui_uhrn_je_vo_vodnom_ekvivalente_nie_vyska_snehu_f9add673" formatted="false">"Úhrn je vo vodnom ekvivalente, nie výška snehu."</string>
+    <string name="ui_uhrn_za_uvedeny_modelovy_interval_pravdepodobnost_nevyjadr_3f71976b" formatted="false">"Úhrn za uvedený modelový interval. Pravdepodobnosť nevyjadruje intenzitu. Nowcast sa zobrazí pri zrážkach teraz alebo v nasledujúcej hodine."</string>
+    <string name="ui_uhrn_zrazok_za_hodinu_vo_vodnom_ekvivalente_2eed557b" formatted="false">"Úhrn zrážok za hodinu vo vodnom ekvivalente."</string>
+    <string name="ui_uhrn_zrazok_za_posledny_interval_modelu_farba_bodky_a_hodn_2547a048" formatted="false">"Úhrn zrážok za posledný interval modelu. Farba bodky a hodnoty podľa typu zrážok."</string>
+    <string name="ui_ulozene_lokality_e678b27e" formatted="false">"Uložené lokality"</string>
+    <string name="ui_ulozene_pasmo_pvaluepvalue_61b19643">"Uložené pásmo: P%1$s–P%2$s"</string>
+    <string name="ui_ulozeny_ensemble_zatial_nie_je_overeny_alebo_nema_aktualne_1d5a414c" formatted="false">"Uložený ensemble zatiaľ nie je overený alebo nemá aktuálne údaje. Výber sa automaticky nemení."</string>
+    <string name="ui_ulozeny_model_zatial_nie_je_overeny_alebo_nema_aktualne_ud_90bb6e81" formatted="false">"Uložený model zatiaľ nie je overený alebo nemá aktuálne údaje. Výber sa automaticky nemení."</string>
+    <string name="ui_ulozit_bf7cd927" formatted="false">"Uložiť"</string>
+    <string name="ui_ulozit_percentily_02eece4c" formatted="false">"Uložiť percentily"</string>
+    <string name="ui_upravit_0e8a3f5b" formatted="false">"Upraviť"</string>
+    <string name="ui_upravit_morsky_graf_b8568add" formatted="false">"Upraviť morský graf"</string>
+    <string name="ui_upravit_vlastny_graf_d4e9b317" formatted="false">"Upraviť vlastný graf"</string>
+    <string name="ui_upravit_zdroje_lokality_7fabf29d" formatted="false">"Upraviť zdroje lokality"</string>
+    <string name="ui_us_aqi_924055e5" translatable="false" formatted="false">"US AQI"</string>
+    <string name="ui_uv_027fcbbc" translatable="false" formatted="false">"UV"</string>
+    <string name="ui_uv_index_podla_stupnice_who_20ec7a75" formatted="false">"UV index podľa stupnice WHO."</string>
+    <string name="ui_uz_je_pri_vas_f67eeb25" formatted="false">"už je pri vás"</string>
+    <string name="ui_v_de5a6f78" formatted="false">"V"</string>
+    <string name="ui_v_dostupnych_udajoch_nie_je_ziadny_pel_96308221" formatted="false">"V dostupných údajoch nie je žiadny peľ."</string>
+    <string name="ui_v_okoli_100_km_sa_nenasla_burkova_bunka_ce84559e" formatted="false">"v okolí 100 km sa nenašla búrková bunka"</string>
+    <string name="ui_v_poludnie_hladaj_tien_0209161d" formatted="false">"V poludnie hľadaj tieň."</string>
+    <string name="ui_v_poludnie_hladaj_tien_pouzi_klobuk_a_krem_s_ochrannym_fak_963ad988" formatted="false">"V poludnie hľadaj tieň, použi klobúk a krém s ochranným faktorom."</string>
+    <string name="ui_v_poludnie_sa_slnku_vyhybaj_19ae3bee" formatted="false">"V poludnie sa slnku vyhýbaj."</string>
+    <string name="ui_v_poludnie_sa_slnku_vyhybaj_pouzivaj_spf_50_oblecenie_a_ok_211537fe" formatted="false">"V poludnie sa slnku vyhýbaj, používaj SPF 50, oblečenie a okuliare."</string>
+    <string name="ui_v_zobrazenej_oblasti_librewxr_nevratil_ziadne_vystrahy_pok_025fb013" formatted="false">"V zobrazenej oblasti LibreWXR nevrátil žiadne výstrahy (pokrytie nemusí byť úplné; oficiálne výstrahy sú na karte Výstrahy)."</string>
+    <string name="ui_value_bft_value_87b5fd30">"%1$s Bft · %2$s"</string>
+    <string name="ui_value_dbz_be53f7a7">" · %1$s dBZ"</string>
+    <string name="ui_value_h_value_min_49a3b581">"%1$s h %2$s min"</string>
+    <string name="ui_value_km_d66a9de4">"%1$s km"</string>
+    <string name="ui_value_km_na_value_bf0f0787">"%1$s km na %2$s"</string>
+    <string name="ui_value_min_value_246677fa">"+%1$s min: %2$s"</string>
+    <string name="ui_value_value_bft_8f127059">"%1$s (%2$s Bft)"</string>
+    <string name="ui_value_value_km_h_47ef61f2">"%1$s – %2$s km/h"</string>
+    <string name="ui_vanok_565e5344" formatted="false">"Vánok"</string>
+    <string name="ui_velmi_nebezpecne_pocasie_f539aaf7" formatted="false">"Veľmi nebezpečné počasie."</string>
+    <string name="ui_velmi_nezdrava_06e7390c" formatted="false">"Veľmi nezdravá"</string>
+    <string name="ui_velmi_slabe_zrazky_3cd2f435" formatted="false">"Veľmi slabé zrážky"</string>
+    <string name="ui_velmi_slabe_zrazky_aa3f54f0" formatted="false">"veľmi slabé zrážky"</string>
+    <string name="ui_velmi_vysoka_810_4fcf7a45" formatted="false">"Veľmi vysoká · 8–10"</string>
+    <string name="ui_velmi_vysoka_dd415a6d" formatted="false">"Veľmi vysoká"</string>
+    <string name="ui_velmi_zla_ec30c594" formatted="false">"Veľmi zlá"</string>
+    <string name="ui_viac_66c91b9a" formatted="false">"Viac"</string>
+    <string name="ui_viac_ako_87_5_105ed338" formatted="false">"viac ako 87,5 %"</string>
+    <string name="ui_vichrica_c95b9839" formatted="false">"Víchrica"</string>
+    <string name="ui_viditelnost_7f90db41" formatted="false">"Viditeľnosť"</string>
+    <string name="ui_vietor_8a3ebf26" formatted="false">"Vietor"</string>
+    <string name="ui_vietor_a_narazy_vo_vyske_10_m_farby_a_slovny_stupen_su_pod_ffe78baa" formatted="false">"Vietor a nárazy vo výške 10 m. Farby a slovný stupeň sú podľa Beaufortovej stupnice 0 až 12, nie oficiálne výstrahy. Ružica ukazuje, kam vietor fúka."</string>
+    <string name="ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4">"Vietor fúka zo smeru %1$s; šípka ukazuje, kam fúka; sever je hore"</string>
+    <string name="ui_vietor_fuka_zo_smeru_value_value_sipka_ukazuje_kam_fuka_se_f9fef730">"Vietor fúka zo smeru %1$s, %2$s; šípka ukazuje, kam fúka; sever je hore"</string>
+    <string name="ui_vietor_vo_vyske_10_m_ab4342ae" formatted="false">"Vietor vo výške 10 m."</string>
+    <string name="ui_vietor_vo_vyske_10_m_ruzica_ukazuje_kam_vietor_fuka_nie_od_6acbaeff" formatted="false">"Vietor vo výške 10 m. Ružica ukazuje, kam vietor fúka, nie odkiaľ. Farba hodnoty: žltá od 50 km/h, oranžová od 62 km/h, červená od 89 km/h. Nejde o oficiálnu výstrahu."</string>
+    <string name="ui_vietor_vo_vyske_10_m_sipky_nad_grafom_ukazuju_kam_vietor_f_c7fac450" formatted="false">"Vietor vo výške 10 m. Šípky nad grafom ukazujú, kam vietor fúka (každých 12 hodín), nie odkiaľ."</string>
+    <string name="ui_vlastne_grafy_22c14bc5" formatted="false">"Vlastné grafy"</string>
+    <string name="ui_vlastne_morske_grafy_6a19042b" formatted="false">"Vlastné morské grafy"</string>
+    <string name="ui_vlastne_value_3_2f94d9c4">"Vlastné (%1$s/3)"</string>
+    <string name="ui_vlhka_8c3aea38" formatted="false">"Vlhká"</string>
+    <string name="ui_vlhkost_e06c751e" formatted="false">"Vlhkosť"</string>
+    <string name="ui_vlhkost_pod_30_moze_vysusat_pokozku_a_sliznice_cc5559eb" formatted="false">"vlhkosť pod 30 %; môže vysúšať pokožku a sliznice"</string>
+    <string name="ui_volba_plati_iba_pre_tuto_lokalitu_meteoalarm_a_lokalne_odh_37d8d15a" formatted="false">"Voľba platí iba pre túto lokalitu. MeteoAlarm a lokálne odhady zostávajú zachované; mení sa doplnkový zdroj výstrah. Jednotky a vzhľad sú vo Viac → Nastavenia."</string>
+    <string name="ui_vrstvy_5ad3c03c" formatted="false">"Vrstvy"</string>
+    <string name="ui_vsetky_dostupne_snimky_9f6a695d" formatted="false">"Všetky dostupné snímky"</string>
+    <string name="ui_vyber_aspon_jeden_graf_b3265ee1" formatted="false">"Vyber aspoň jeden graf."</string>
+    <string name="ui_vyber_lokality_b65cfb4d" formatted="false">"výber lokality"</string>
+    <string name="ui_vybrana_lokalita_c1fe9cc3" formatted="false">"Vybraná lokalita"</string>
+    <string name="ui_vybrat_99496f1e" formatted="false">"Vybrať"</string>
+    <string name="ui_vybrat_datum_767dda06" formatted="false">"Vybrať dátum"</string>
+    <string name="ui_vychod_a_zapad_mesiaca_sa_pocitaju_v_zariadeni_ak_mesiac_n_47d5af50" formatted="false">"Východ a západ Mesiaca sa počítajú v zariadení. Ak Mesiac nevychádza alebo nezapadá, zobrazí sa --. Dotyk na bodku ukáže fázu a osvetlenú časť."</string>
+    <string name="ui_vychod_a_zapad_mesiaca_sa_pocitaju_v_zariadeni_s_krokom_10_8e726efc" formatted="false">"Východ a západ Mesiaca sa počítajú v zariadení s krokom 10 minút, takže sú orientačné. Pomlčka znamená, že prechod cez obzor v danom miestnom dni nenastal."</string>
+    <string name="ui_vychod_a_zapad_slnka_v_miestnom_case_lokality_grafika_ukaz_76ec5c97" formatted="false">"Východ a západ Slnka v miestnom čase lokality. Grafika ukazuje ilustračnú výšku Slnka: nad čiarou je deň, pod ňou noc."</string>
+    <string name="ui_vychod_mesiaca_a17e2d3c" formatted="false">"Východ Mesiaca"</string>
+    <string name="ui_vychod_poludnie_zapad_a_dlzka_dna_slnka_8ab68e9b" formatted="false">"Východ, poludnie, západ a dĺžka dňa Slnka."</string>
+    <string name="ui_vychod_slnka_230bd00a" formatted="false">"Východ Slnka"</string>
+    <string name="ui_vychod_zapad_a_dlzka_dna_sa_pocitaju_v_zariadeni_pre_lokal_87ba3c62" formatted="false">"Východ, západ a dĺžka dňa sa počítajú v zariadení pre lokalitu a vybraný dátum. Časy sú v miestnom čase lokality a môžu sa líšiť o minútu-dve od tabuliek."</string>
+    <string name="ui_vychod_zapad_faza_a_trend_mesiaca_424a0465" formatted="false">"Východ, západ, fáza a trend Mesiaca."</string>
+    <string name="ui_vyhlad_na_24_hodin_62605462" formatted="false">"Výhľad na 24 hodín"</string>
+    <string name="ui_vyhlad_na_5_dni_90f1b8c5" formatted="false">"Výhľad na 5 dní"</string>
+    <string name="ui_vyhladavanie_zlyhalo_skontroluj_pripojenie_3fbe572d" formatted="false">"Vyhľadávanie zlyhalo. Skontroluj pripojenie."</string>
+    <string name="ui_vypnute_6eaf04b7" formatted="false">"Vypnuté"</string>
+    <string name="ui_vyska_na_oblohe_df779ae6" formatted="false">"Výška na oblohe"</string>
+    <string name="ui_vyska_slnka_a_mesiaca_nad_obzorom_v_stupnoch_38e23465" formatted="false">"Výška Slnka a Mesiaca nad obzorom v stupňoch."</string>
+    <string name="ui_vyska_snehu_je_v_cm_alebo_palcoch_c81b99fc" formatted="false">"Výška snehu je v cm alebo palcoch."</string>
+    <string name="ui_vyska_vln_4b75e096" formatted="false">"Výška vĺn"</string>
+    <string name="ui_vysoka_35517062" formatted="false">"Vysoká"</string>
+    <string name="ui_vysoka_67_61c69e71" formatted="false">"Vysoká · 6–7"</string>
+    <string name="ui_vysoka_a43ddc85" formatted="false">"vysoká"</string>
+    <string name="ui_vystraha_a0ff184b" formatted="false">"Výstraha"</string>
+    <string name="ui_vystrahy_d88f15ec" formatted="false">"Výstrahy"</string>
+    <string name="ui_vystrahy_dalsi_zdroj_foss_predvoleny_96081ceb" formatted="false">"Výstrahy – ďalší zdroj (FOSS, predvolený)"</string>
+    <string name="ui_vystrahy_dalsi_zdroj_volitelny_9b32d6b9" formatted="false">"Výstrahy – ďalší zdroj (voliteľný)"</string>
+    <string name="ui_vystrahy_doplnaju_aj_lokalne_odhady_z_predpovede_lokalny_o_cfa8a6ab" formatted="false">"Výstrahy dopĺňajú aj lokálne odhady z predpovede. Lokálny odhad nie je oficiálna výstraha."</string>
+    <string name="ui_vystrahy_sa_nepodarilo_nacitat_to_neznamena_ze_ziadne_nie_a87aa611" formatted="false">"Výstrahy sa nepodarilo načítať. To neznamená, že žiadne nie sú. Potiahni nadol a skús znova."</string>
+    <string name="ui_vyznamna_vyska_je_priemer_najvyssej_tretiny_vln_jednotlive_07397e56" formatted="false">"Významná výška je priemer najvyššej tretiny vĺn; jednotlivé vlny môžu byť vyššie. Smer v dátach je odkiaľ vlny prichádzajú, šípka ukazuje opačný smer – kam sa šíria."</string>
+    <string name="ui_vyznamna_vyska_vln_opisuje_priemer_najvyssej_tretiny_vln_j_0f032819" formatted="false">"Významná výška vĺn opisuje priemer najvyššej tretiny vĺn. Jednotlivé vlny môžu byť vyššie. Šípky ukazujú, kam sa vlny šíria; sever je hore."</string>
+    <string name="ui_vyznamna_vyska_vln_sipka_ukazuje_smer_sirenia_sever_je_hor_07286d2b" formatted="false">"Významná výška vĺn. Šípka ukazuje smer šírenia, sever je hore."</string>
+    <string name="ui_vyznamna_vyska_vln_sipky_ukazuju_kam_sa_vlny_siria_cba86ed0" formatted="false">"Významná výška vĺn; šípky ukazujú, kam sa vlny šíria."</string>
+    <string name="ui_z_bbeebd87" formatted="false">"Z"</string>
+    <string name="ui_za_value_min_ce9a8163">"za %1$s min"</string>
+    <string name="ui_zaciatok_nie_je_uvedeny_3c3b11e6" formatted="false">" (začiatok nie je uvedený)"</string>
+    <string name="ui_zadaj_dve_cisla_od_0_do_100_v_rastucom_poradi_79646f92" formatted="false">"Zadaj dve čísla od 0 do 100 v rastúcom poradí."</string>
+    <string name="ui_zajtra_c3e86eb2" formatted="false">"Zajtra"</string>
+    <string name="ui_zaloha_vybrany_zdroj_nebol_dostupny_58663d88" formatted="false">" · Záloha: vybraný zdroj nebol dostupný."</string>
+    <string name="ui_zamracene_829159bb" formatted="false">"Zamračené"</string>
+    <string name="ui_zapad_mesiaca_c401b9f3" formatted="false">"Západ Mesiaca"</string>
+    <string name="ui_zapad_slnka_5426053b" formatted="false">"Západ Slnka"</string>
+    <string name="ui_zapni_morske_udaje_pre_zvolenu_lokalitu_pri_vypnuti_sa_mar_cd3f4af5" formatted="false">"Zapni morské údaje pre zvolenú lokalitu. Pri vypnutí sa Marine API nenačítava."</string>
+    <string name="ui_zapnute_4b796e4a" formatted="false">"Zapnuté"</string>
+    <string name="ui_zavaznost_69005d4e" formatted="false">"Závažnosť: "</string>
+    <string name="ui_zavriet_7c32fd0b" formatted="false">"Zavrieť"</string>
+    <string name="ui_zbalit_7f5c0896" formatted="false">"Zbaliť"</string>
+    <string name="ui_zbalit_den_f8207c5b" formatted="false">"Zbaliť deň"</string>
+    <string name="ui_zdroj_librewxr_odhad_nie_oficialna_vystraha_3c713275" formatted="false">"Zdroj: LibreWXR · odhad, nie oficiálna výstraha"</string>
+    <string name="ui_zdroj_open_meteo_marine_api_5566e207" formatted="false">". Zdroj: Open-Meteo Marine API."</string>
+    <string name="ui_zdroje_072dfba9" formatted="false">" · Zdroje:"</string>
+    <string name="ui_zdroje_2f1b3da1" formatted="false">" · Zdroje: "</string>
+    <string name="ui_zdroje_35dc0f31" formatted="false">"Zdroje · "</string>
+    <string name="ui_zdroje_udajov_dbbe1dcb" formatted="false">"Zdroje údajov"</string>
+    <string name="ui_ziadne_aa1757a8" formatted="false">"Žiadne"</string>
+    <string name="ui_ziadne_aktivne_vystrahy_4252fcf1" formatted="false">"Žiadne aktívne výstrahy."</string>
+    <string name="ui_ziadny_pel_d712b212" formatted="false">"Žiadny peľ"</string>
+    <string name="ui_ziadny_pel_v_dostupnych_udajoch_3edaedc5" formatted="false">"Žiadny peľ v dostupných údajoch"</string>
+    <string name="ui_ziadny_pel_v_udajoch_061b5fd7" formatted="false">"Žiadny peľ v údajoch."</string>
+    <string name="ui_zistujem_polohu_1fc6be8c" formatted="false">"Zisťujem polohu…"</string>
+    <string name="ui_zla_258323d1" formatted="false">"Zlá"</string>
+    <string name="ui_zlta_64273c3a" formatted="false">"Žltá"</string>
+    <string name="ui_zlta_f4e40449" formatted="false">"ŽLTÁ"</string>
+    <string name="ui_zmena_3_hpa_a_viac_ca71accc" formatted="false">"zmena -3 hPa a viac"</string>
+    <string name="ui_zmena_3_hpa_a_viac_za_3_hodiny_9ab7197c" formatted="false">"zmena +3 hPa a viac za 3 hodiny"</string>
+    <string name="ui_zmena_do_1_hpa_2c7301b8" formatted="false">"zmena do 1 hPa"</string>
+    <string name="ui_zmena_od_1_do_3_hpa_dfe2dd9f" formatted="false">"zmena od +1 do +3 hPa"</string>
+    <string name="ui_zmena_od_1_do_3_hpa_ec84e4fe" formatted="false">"zmena od -1 do -3 hPa"</string>
+    <string name="ui_zmiesane_zrazky_0c420ad6" formatted="false">"Zmiešané zrážky."</string>
+    <string name="ui_znizena_7bb856e1" formatted="false">"Znížená"</string>
+    <string name="ui_zobrazia_sa_iba_pri_zapnutych_morskych_udajoch_a_pouziteln_c57e496a" formatted="false">"Zobrazia sa iba pri zapnutých morských údajoch a použiteľnej morskej bunke do 30 km od lokality. Skrytie všetkých zastaví načítanie morských údajov na Teraz."</string>
+    <string name="ui_zobrazit_vsetky_dlazdice_2f2260c3" formatted="false">"Zobraziť všetky dlaždice"</string>
+    <string name="ui_zrazky_66d17319" formatted="false">"Zrážky"</string>
+    <string name="ui_zrazky_value_vodny_ekvivalent_sneh_pri_kurzore_value_c076cdec">"Zrážky · %1$s (vodný ekvivalent). Sneh pri kurzore · %2$s."</string>
+    <string name="ui_zrn_m3_2736b71a" formatted="false">"zŕn/m³"</string>
+    <string name="ui_zrusit_520e257a" formatted="false">"Zrušiť"</string>
+    <string name="ui_zvoleny_model_niektore_udaje_neposkytuje_chybajuce_hodiny_0b2774fd" formatted="false">"Zvolený model niektoré údaje neposkytuje, chýbajúce hodiny sú doplnené z iného zdroja: "</string>
+    <string name="ui_zvysena_2944aa11" formatted="false">"Zvýšená"</string>
+    <string name="ui_zvysena_efd7af63" formatted="false">"zvýšená"</string>
+    <plurals name="model_verification_failed">
+        <item quantity="one">"%1$s model sa nepodarilo overiť pre chybu pripojenia alebo servera. Neznamená to, že nemá pokrytie. Skús overenie znova."</item>
+        <item quantity="few">"%1$s modely sa nepodarilo overiť pre chybu pripojenia alebo servera. Neznamená to, že nemajú pokrytie. Skús overenie znova."</item>
+        <item quantity="other">"%1$s modelov sa nepodarilo overiť pre chybu pripojenia alebo servera. Neznamená to, že nemajú pokrytie. Skús overenie znova."</item>
+    </plurals>
+    <plurals name="unmatched_alert_count">
+        <item quantity="one">"Kanál obsahuje %1$s výstrahu, žiadna nezodpovedá oblasti „%2$s“."</item>
+        <item quantity="few">"Kanál obsahuje %1$s výstrahy, žiadna nezodpovedá oblasti „%2$s“."</item>
+        <item quantity="other">"Kanál obsahuje %1$s výstrah, žiadna nezodpovedá oblasti „%2$s“."</item>
+    </plurals>
+    <string name="model_unavailable_note">%1$s nemá údaje pre túto lokalitu. Ponechaný je pôvodný výber.</string>
+    <string name="model_check_failed_note">%1$s sa nepodarilo overiť (sieť). Ponechaný je pôvodný výber.</string>
+    <string name="map_alert_count_label">Zobrazené výstrahy:</string>
+    <string name="alert_source_local" formatted="false">"Lokálne (v aplikácii)"</string>
+    <string name="alert_source_meteo" formatted="false">"MeteoAlarm (Európa)"</string>
+    <string name="alert_source_libre" formatted="false">"LibreWXR (svet)"</string>
+    <string name="alert_source_kde" formatted="false">"FOSS Public Alert Server (svet)"</string>
+    <string name="alert_source_local_short" formatted="false">"Lokálne"</string>
+    <string name="alert_sources_off" formatted="false">"Žiadny zdroj"</string>
+    <string name="alert_sources_note" formatted="false">"V Európe svetové zdroje opakujú výstrahy MeteoAlarmu, často po anglicky. Zdroje sa navzájom nezlučujú."</string>
+    <string name="alert_sources_none" formatted="false">"Nie je zapnutý žiadny zdroj výstrah. Zapni ho cez ceruzku."</string>
+    <string name="alert_cursor_none" formatted="false">"Bez výstrahy"</string>
+    <string name="alert_source_libre_info" formatted="false">"Úradné meteorologické výstrahy z celého sveta. LibreWXR ich preberá z uzla Svetovej meteorologickej organizácie (WMO) a z americkej NWS."</string>
+    <string name="alert_source_kde_info" formatted="false">"Úradné výstrahy z národných kanálov CAP z celého sveta, ktoré zhromažďuje server projektu KDE. Aplikácia z nich zobrazuje meteorologické výstrahy."</string>
+    <string name="forecast_prob_filled" formatted="false">" Chýbajúca pravdepodobnosť zrážok je doplnená z modelu Best match."</string>
+    <string name="nc_headline_lasting" formatted="false">"Dážď potrvá aspoň %1$d min"</string>
+    <string name="nc_headline_breaks" formatted="false">"Dážď s prestávkami"</string>
+</resources>

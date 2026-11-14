@@ -1,0 +1,311 @@
+<!doctype html>
+<html lang="sk"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com; img-src data: https://tile.openstreetmap.org https://api.librewxr.net https://unpkg.com; connect-src https://api.librewxr.net">
+<title>{{pw:ui_mapy_c9e02d67}}</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" onerror="window.__leafletFailed=true"></script>
+<style>
+html,body{margin:0;height:100%;background:#202833;color:#E8EAF0;font:14px/1.35 system-ui,sans-serif;-webkit-tap-highlight-color:transparent;overflow:hidden}
+button,input,select{font:inherit;color:inherit}
+[hidden]{display:none!important}
+#app{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;flex-direction:column}
+#stage{position:relative;flex:1 1 auto;min-height:160px;overflow:hidden}
+#map{position:absolute;left:0;top:0;right:0;bottom:0;background:#1A1D24}
+.bubble{width:48px;height:48px;border:1px solid #4B586C;border-radius:50%;background:rgba(32,40,51,.92);box-shadow:0 2px 6px rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:0}
+.bubble svg{width:22px;height:22px;fill:none;stroke:#E8EAF0;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.bubble[aria-expanded=true]{border-color:#4FC3F7;background:#254459}
+.bubble:focus-visible,.chip:focus-visible,.seg button:focus-visible,select:focus-visible{outline:2px solid #4FC3F7}
+#tools{position:absolute;z-index:1000;top:8px;right:8px;display:flex;flex-direction:column;gap:8px}
+#quick{position:absolute;z-index:1000;right:8px;bottom:34px;display:flex;flex-direction:column;gap:8px}
+#panel{position:absolute;z-index:1001;top:8px;right:64px;width:min(300px,calc(100% - 76px));max-height:calc(100% - 16px);overflow:auto;box-sizing:border-box;padding:10px 12px;background:rgba(32,40,51,.97);border:1px solid #4B586C;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#ptitle{font-weight:700;margin:0 0 8px}
+.seg{display:flex;border:1px solid #4B586C;border-radius:20px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:9px 6px;min-height:44px}
+.seg button[aria-pressed=true]{background:#4FC3F7;color:#10131A;font-weight:600}
+.chips{display:flex;flex-direction:column;gap:8px}
+.chip{min-height:44px;padding:0 14px;border:1px solid #4B586C;border-radius:22px;background:#323E4F;text-align:left}
+.chip[aria-pressed=true]{background:#254459;border-color:#4FC3F7;color:#BCECFF}
+.chip:disabled{opacity:.4}
+.fld{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+.fld label{font-size:13px;color:#BBC4D2}
+select{min-height:44px;border:1px solid #4B586C;border-radius:12px;background:#323E4F;padding:0 10px}
+#dock{flex:none;padding:8px 10px 10px;background:#323E4F;border-top:1px solid #4B586C;display:flex;flex-direction:column;gap:4px}
+.row{display:flex;gap:8px;align-items:center}
+#dock input[type=range],#panel input[type=range]{flex:1;min-width:0;accent-color:#4FC3F7;height:32px}
+#play{min-width:48px;min-height:44px;border:1px solid #4B586C;border-radius:22px;background:#4FC3F7;color:#10131A;font-weight:700}
+#play:disabled{opacity:.5}
+#lbl{font-weight:600}
+#msg{position:absolute;z-index:1000;top:8px;left:8px;max-width:calc(100% - 80px);width:max-content;box-sizing:border-box;padding:6px 10px;border-radius:10px;background:rgba(32,40,51,.92);border:1px solid #4B586C;color:#BBC4D2;font-size:13px}
+#msg.err{color:#FFB74D}
+#bar{height:14px;border-radius:7px;border:1px solid #4B586C}
+#ticks{position:relative;height:18px;font-size:11px;color:#BBC4D2}
+#ticks span{position:absolute;transform:translateX(-50%)}
+.small{font-size:12px;color:#BBC4D2;margin:4px 0 0}
+.leaflet-container{font:12px system-ui,sans-serif}
+.pin{background:none;border:0}
+</style></head><body>
+<div id="app">
+<div id="stage">
+<div id="map" role="application" aria-label="{{pw:ui_mapa_s_radarom_e59e75af}}"></div>
+<div id="msg" role="status" aria-live="polite" hidden></div>
+<div id="tools" role="group" aria-label="{{pw:ui_ovladanie_mapy_45588feb}}">
+ <button class="bubble" data-panel="layer" aria-label="{{pw:ui_radar_a_satelit_dea02d0a}}" title="{{pw:ui_radar_a_satelit_dea02d0a}}" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 12l6-6"/></svg></button>
+ <button class="bubble" data-panel="overlays" aria-label="{{pw:ui_vrstvy_5ad3c03c}}" title="{{pw:ui_vrstvy_5ad3c03c}}" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 12l9 5 9-5"/><path d="M3 16l9 5 9-5"/></svg></button>
+ <button class="bubble" data-panel="options" aria-label="{{pw:ui_moznosti_0fec1c16}}" title="{{pw:ui_moznosti_0fec1c16}}" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg></button>
+ <button class="bubble" data-panel="legend" aria-label="{{pw:ui_legenda_61154f2a}}" title="{{pw:ui_legenda_61154f2a}}" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8h.01"/></svg></button>
+</div>
+<div id="quick">
+ <button class="bubble" id="bLoc" aria-label="{{pw:ui_spat_na_lokalitu_f2fe9805}}" title="{{pw:ui_spat_na_lokalitu_f2fe9805}}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></button>
+ <button class="bubble" id="bRef" aria-label="{{pw:ui_obnovit_snimky_55c17851}}" title="{{pw:ui_obnovit_snimky_55c17851}}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7"/><path d="M20 4v5h-5"/></svg></button>
+</div>
+<section id="panel" hidden>
+ <div id="ptitle"></div>
+ <div data-body="layer" hidden><div class="seg" role="group" aria-label="{{pw:ui_typ_vrstvy_55f95de0}}"><button id="bRadar" aria-pressed="true">{{pw:ui_radar_524f8327}}</button><button id="bSat" aria-pressed="false">{{pw:ui_satelit_4a02d9f5}}</button></div></div>
+ <div data-body="overlays" hidden><div class="chips" role="group" aria-label="{{pw:ui_prekrytia_8b855b5d}}"><button class="chip" id="oArrows" aria-pressed="false">{{pw:ui_sipky_pohybu_10b141be}}</button><button class="chip" id="oCells" aria-pressed="false">{{pw:ui_burkove_bunky_02324dfe}}</button><button class="chip" id="oLightning" aria-pressed="false">{{pw:ui_blesky_bcc2d8d0}}</button><button class="chip" id="oAlerts" aria-pressed="false">{{pw:ui_vystrahy_d88f15ec}}</button></div></div>
+ <div data-body="options" hidden>
+  <div class="fld"><label for="opa">{{pw:ui_priehladnost_vrstvy_7515278a}}</label><div class="row"><input id="opa" type="range" min="20" max="100" step="5" value="75"><span id="opaV" style="min-width:3.2em;text-align:right">75 %</span></div></div>
+  <div class="fld"><label for="history">{{pw:ui_casovy_interval_historia_e76ab9b1}}</label><select id="history"><option value="all">{{pw:ui_cela_dostupna_historia_24c2ee99}}</option><option value="60">{{pw:ui_poslednych_60_minut_e647f479}}</option><option value="120">{{pw:ui_poslednych_120_minut_7a0b6f9e}}</option></select></div>
+  <div class="fld"><label for="step">{{pw:ui_krok_medzi_snimkami_e093aa89}}</label><select id="step"><option value="0">{{pw:ui_vsetky_dostupne_snimky_9f6a695d}}</option><option value="20">{{pw:ui_kazdych_20_minut_8c036649}}</option><option value="30">{{pw:ui_kazdych_30_minut_c0d1867e}}</option></select></div>
+  <div class="fld"><label for="speed">{{pw:ui_rychlost_animacie_fc172f06}}</label><select id="speed"><option value="900">{{pw:ui_pomala_7b30c785}}</option><option value="450">{{pw:ui_normalna_b50a82f9}}</option><option value="225">{{pw:ui_rychla_b8d46a57}}</option></select></div>
+  <p class="small">{{pw:ui_interval_a_krok_vyberaju_len_existujuce_snimky_nic_sa_nein_872feabc}}</p>
+ </div>
+ <div data-body="legend" hidden><div id="legend"></div></div>
+</section>
+</div>
+<div id="dock">
+ <div class="row"><button id="play" aria-label="{{pw:ui_prehrat_9b880ad3}}">&#9654;</button><input id="slider" type="range" min="0" max="0" step="1" value="0" aria-label="{{pw:ui_cas_snimky_87293daa}}" disabled></div>
+ <div id="lbl">–</div>
+</div>
+</div>
+<script>
+(function(){
+'use strict';
+const I18N=__PERUN_I18N_JSON__;
+function tr(key,...args){
+  const value=I18N[key];
+  if(typeof value!=='string')throw new Error('Missing map string: '+key);
+  return args.length?value.replace(/%([0-9]+)\$s/g,(_,n)=>String(args[Number(n)-1])).replace(/%%/g,'%'):value;
+}
+const BASE='https://api.librewxr.net',COLOR=7;
+const PAL='009f9f 009e9e 009d99 009a8c 009573 008c4b 008c4a 009047 009b40 00b031 00d319 00d319 02d519 07dc1a 10e81d 21fd22 22fd21 2ffd21 50fd20 92fd1e fffd1b fffc1a fffa19 fff415 ffe80d ffd400 ffd300 ffd100 ffcb00 ffbf00 ffab00 ffaa00 ffa700 ff9d00 ff8b00 ff6e00 fe6d00 fe6700 fb5900 f73d01 f01002 ef0f02 ed0f04 e90d09 df0a12 d00523 d00424 d1042c d40341 da026b e400b1 e400b1 e503b5 e90bc1 f11ad8 ff33ff ff33ff ff36ff ff3eff ff4dff ff66ff ff66ff ff69ff ff71ff ff80ff ff99ff ff99ff ff9aff ff9cff ffa1ff ffaaff'.split(' ').map(h=>[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]);
+const $=id=>document.getElementById(id);
+const store={get(k,d){try{const v=localStorage.getItem('pwLibre.'+k);return v===null?d:v}catch(e){return d}},set(k,v){try{localStorage.setItem('pwLibre.'+k,v)}catch(e){}}};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const S={map:null,meta:null,frames:[],now:0,index:0,layers:{},layer:null,playing:false,token:0,timer:0,marker:null,alerts:null,alertToken:0,loading:false,failAt:0,loc:null,kind:store.get('layer','radar')==='satellite'?'satellite':'radar',opacity:Math.min(1,Math.max(.2,Number(store.get('opacity','75'))/100||.75)),history:store.get('history','all'),step:Number(store.get('step','0')),speed:Number(store.get('speed','450')),alertNote:'',alertErr:false,tileErr:false,osmErr:false};
+if(!['all','60','120'].includes(S.history))S.history='all';
+if(![0,20,30].includes(S.step))S.step=0;
+if(![225,450,900].includes(S.speed))S.speed=450;
+const opt=k=>store.get('opt.'+k,'0')==='1';
+let fid=0;const waits={};
+window.__pwFetchDone=(id,ok,text)=>{const w=waits[id];if(!w)return;delete waits[id];ok?w.res(text):w.rej(new Error(text||tr('ui_chyba_b9f17311')))};
+function getJson(url){
+  if(window.PerunBridge&&window.PerunBridge.fetchText){
+    return new Promise((res,rej)=>{const id=++fid;waits[id]={res,rej};setTimeout(()=>{if(waits[id]){delete waits[id];rej(new Error(tr('ui_casovy_limit_2687ec9f')))}},20000);window.PerunBridge.fetchText(id,url)}).then(t=>JSON.parse(t));
+  }
+  return fetch(url,{cache:'no-store'}).then(r=>{if(!r.ok)throw new Error('HTTP '+r.status);return r.json()});
+}
+function setMsg(t,err,html){const m=$('msg');if(html)m.innerHTML=t||'';else m.textContent=t||'';m.className=err?'err':'';m.hidden=!t}
+function status(){
+  if(S.msgErr)return setMsg(S.msgErr,true);
+  const parts=[];if(S.info)parts.push(esc(S.info));if(S.osmErr)parts.push(esc(tr('ui_podkladove_dlazdice_openstreetmap_sa_nenacitali_77cb8583')));if(S.tileErr)parts.push(esc(tr('ui_niektore_dlazdice_sa_nenacitali_mimo_pokrytia_alebo_chyba_61fdbc23')));if(S.alertNote)parts.push(S.alertNote);
+  setMsg(parts.join(' '),!!S.osmErr||!!S.tileErr||S.alertErr,true);
+}
+function fit(){if(S.map)S.map.invalidateSize()}
+let activePanel=null;
+const TITLES={layer:tr('ui_radar_a_satelit_dea02d0a'),overlays:tr('ui_vrstvy_5ad3c03c'),options:tr('ui_moznosti_0fec1c16'),legend:tr('ui_legenda_61154f2a')};
+function closePanel(){
+  activePanel=null;$('panel').hidden=true;
+  document.querySelectorAll('[data-panel]').forEach(b=>b.setAttribute('aria-expanded','false'));
+}
+function openPanel(id){
+  if(activePanel===id){closePanel();return}
+  activePanel=id;$('ptitle').textContent=TITLES[id];
+  document.querySelectorAll('[data-body]').forEach(el=>{el.hidden=el.dataset.body!==id});
+  document.querySelectorAll('[data-panel]').forEach(b=>b.setAttribute('aria-expanded',b.dataset.panel===id?'true':'false'));
+  $('panel').hidden=false;
+}
+document.querySelectorAll('[data-panel]').forEach(b=>b.addEventListener('click',()=>openPanel(b.dataset.panel)));
+document.addEventListener('pointerdown',e=>{if(activePanel&&!e.target.closest('#panel,#tools'))closePanel()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&activePanel)closePanel()});
+function thin(a){
+  if(!S.step)return a;
+  const out=[];let last=Infinity;
+  for(let i=a.length-1;i>=0;i--){const t=Number(a[i].time);if(last-t>=S.step*60){out.push(a[i]);last=t}}
+  return out.reverse();
+}
+function frames(){
+  const m=S.meta;if(!m)return [];
+  const mk=(x,kind,fc)=>({kind,time:Number(x.time)*1000,path:x.path,forecast:fc});
+  const raw=S.kind==='satellite'?m.sat:m.past;
+  const base=raw.length?Number(raw[raw.length-1].time):0;
+  const past=thin(raw.filter(x=>S.history==='all'||base-Number(x.time)<=Number(S.history)*60));
+  S.now=Math.max(0,past.length-1);
+  if(S.kind==='satellite')return past.map(x=>mk(x,'satellite',false));
+  let lastF=base;
+  const future=m.nowcast.filter(x=>{const t=Number(x.time);if(!S.step||t-lastF>=S.step*60){lastF=t;return true}return false});
+  return past.map(x=>mk(x,'radar',false)).concat(future.map(x=>mk(x,'radar',true)));
+}
+function tileUrl(fr){
+  if(fr.kind==='satellite')return BASE+fr.path+'/256/{z}/{x}/{y}/0/0_0.png';
+  const q=[];if(opt('arrows'))q.push('arrows=light');if(opt('cells'))q.push('cells=light');if(opt('lightning'))q.push('lightning=dots');
+  return BASE+fr.path+'/256/{z}/{x}/{y}/'+COLOR+'/1_0.png'+(q.length?'?'+q.join('&'):'');
+}
+const attr=fr=>'Weather data via <a href="https://librewxr.net/">LibreWXR</a> (librewxr.net)'+(fr.kind==='satellite'?' · NOAA GMGSI':'');
+function label(i){
+  const fr=S.frames[i];if(!fr)return '–';
+  const clock=new Date(fr.time).toLocaleTimeString('sk-SK',{hour:'2-digit',minute:'2-digit'});
+  const ref=S.frames[S.now];const d=ref?Math.round((fr.time-ref.time)/600000)*10:0;
+  if(i===S.now)return tr('map_now_time',clock);
+  return (d>0?tr('map_forecast_time','+'+d,clock):tr('map_history_time',d,clock)).replace('-','−');
+}
+function clearLayers(){
+  Object.values(S.layers).forEach(l=>{try{S.map&&S.map.removeLayer(l)}catch(e){}});S.layers={};S.layer=null;
+}
+function showFrame(i){
+  if(!S.map||!S.frames.length)return;
+  i=Math.max(0,Math.min(S.frames.length-1,Number(i)||0));const fr=S.frames[i];let layer=S.layers[i];
+  if(!layer){
+    layer=L.tileLayer(tileUrl(fr),{opacity:S.opacity,maxZoom:10,attribution:attr(fr)});
+    layer.on('tileerror',()=>{if(S.layers[S.index]===layer){S.tileErr=true;status()}});
+    layer.on('load',()=>{if(S.layers[S.index]===layer&&S.tileErr){S.tileErr=false;status()}});
+    S.layers[i]=layer;
+  }
+  const prev=S.layer;
+  if(prev!==layer){
+    layer.addTo(S.map);S.layer=layer;
+    if(prev){let gone=false;const drop=()=>{if(gone)return;gone=true;if(prev!==S.layer&&S.map.hasLayer(prev))S.map.removeLayer(prev)};layer.once('load',drop);setTimeout(drop,2500)}
+  }
+  S.index=i;S.tileErr=false;$('slider').value=String(i);$('lbl').textContent=label(i);status();
+  Object.keys(S.layers).map(Number).sort((a,b)=>Math.abs(a-i)-Math.abs(b-i)).slice(8).forEach(k=>{const old=S.layers[k];if(old!==S.layer){try{S.map.removeLayer(old)}catch(e){}delete S.layers[k]}});
+}
+function setPlayLabel(){const p=$('play');p.innerHTML=S.playing?'&#10074;&#10074;':'&#9654;';p.setAttribute('aria-label',S.playing?tr('ui_pozastavit_f7ac504e'):tr('ui_prehrat_9b880ad3'))}
+function stopPlay(){S.playing=false;S.token++;clearTimeout(S.timer);setPlayLabel()}
+function startPlay(from){
+  if(!S.map||S.frames.length<2)return;
+  stopPlay();const token=S.token;S.playing=true;setPlayLabel();
+  const step=i=>{
+    if(token!==S.token||!S.playing)return;
+    showFrame(i);const layer=S.layer;let done=false;
+    const next=()=>{
+      if(done)return;done=true;if(token!==S.token||!S.playing)return;
+      if(i>=S.frames.length-1){S.timer=setTimeout(()=>{if(token!==S.token)return;stopPlay();showFrame(S.now)},Math.max(600,S.speed*2));return}
+      S.timer=setTimeout(()=>step(i+1),S.frames[i+1].forecast&&!S.frames[i].forecast?S.speed*2:S.speed);
+    };
+    layer.once('load',next);if(!layer.isLoading())setTimeout(next,0);setTimeout(next,2500);
+  };
+  step(Number.isInteger(from)?Math.min(from,S.frames.length-1):0);
+}
+function rebuild(keepTime){
+  const old=keepTime&&S.frames[S.index]?S.frames[S.index].time:null,oldKind=S.frames[0]&&S.frames[0].kind;
+  stopPlay();clearLayers();S.frames=frames();S.msgErr='';S.info='';
+  const sl=$('slider');sl.max=String(Math.max(0,S.frames.length-1));sl.disabled=S.frames.length<2;$('play').disabled=S.frames.length<2;
+  if(!S.frames.length){$('lbl').textContent='–';S.msgErr=tr('ui_librewxr_nevratil_ziadne_snimky_pre_tuto_vrstvu_89c7d6cc');status();return}
+  if(S.kind==='radar'&&!S.meta.nowcast.length)S.info=tr('ui_nowcast_nie_je_na_serveri_dostupny_zobrazena_je_len_histor_76b4d741');
+  let idx=S.now;if(old!==null&&oldKind===S.frames[0].kind){const j=S.frames.findIndex(f=>f.time===old);if(j>=0)idx=j}
+  showFrame(idx);buildLegend();syncUi();
+}
+function loadMeta(force){
+  if(S.loading||!S.map)return;
+  if(!force&&S.failAt&&Date.now()-S.failAt<30000)return;
+  S.loading=true;setMsg(tr('ui_nacitavam_snimky_librewxr_265b09ca'));
+  getJson(BASE+'/public/weather-maps.json').then(d=>{
+    const list=a=>(Array.isArray(a)?a:[]).filter(x=>x&&Number.isFinite(Number(x.time))&&typeof x.path==='string'&&x.path.startsWith('/v2/')&&!/[.]{2}|[?#]/.test(x.path)).sort((a,b)=>Number(a.time)-Number(b.time));
+    S.meta={past:list(d&&d.radar&&d.radar.past),nowcast:list(d&&d.radar&&d.radar.nowcast),sat:list(d&&d.satellite&&d.satellite.infrared)};
+    S.failAt=0;rebuild(!force||S.frames.length>0);
+  }).catch(e=>{
+    S.meta=null;S.failAt=Date.now();stopPlay();clearLayers();S.frames=[];$('slider').disabled=true;$('play').disabled=true;$('lbl').textContent='–';
+    S.msgErr=tr('map_frames_load_error',e&&e.message?e.message:tr('ui_chyba_b9f17311'));status();
+  }).then(()=>{S.loading=false});
+}
+function buildLegend(){
+  const el=$('legend');
+  if(S.kind==='satellite'){el.innerHTML='<p class="small">'+esc(tr('ui_infracerveny_satelit_noaa_gmgsi_stupnica_pre_satelit_zatia_a998f52f'))+'</p>';return}
+  const stops=PAL.map((c,i)=>'rgb('+c[0]+','+c[1]+','+c[2]+') '+(i/(PAL.length-1)*100).toFixed(1)+'%').join(',');
+  let t='';for(let d=10;d<=80;d+=10)t+='<span style="left:'+((d-10)/70*100)+'%">'+d+'</span>';
+  el.innerHTML='<div id="bar" style="background:linear-gradient(90deg,'+stops+')" role="img" aria-label="'+esc(tr('ui_odrazivost_radaru_od_10_do_80_dbz_7d801db2'))+'"></div><div id="ticks">'+t+'</div><p class="small">'+esc(tr('ui_odrazivost_radaru_v_dbz_10_az_80_je_to_orientacna_velicina_9c205545'))+'</p>';
+}
+const sevColor=s=>s==='Extreme'?'#ff00ff':s==='Severe'?'#ff0000':s==='Moderate'?'#ff8800':s==='Minor'?'#ffcc00':'#aaaaaa';
+function refreshAlerts(){
+  if(!S.map)return;
+  if(S.alerts){try{S.map.removeLayer(S.alerts)}catch(e){}S.alerts=null}
+  const token=++S.alertToken;
+  if(!opt('alerts')){S.alertNote='';S.alertErr=false;status();return}
+  const b=S.map.getBounds(),bbox=[b.getWest(),b.getSouth(),b.getEast(),b.getNorth()].map(n=>n.toFixed(3)).join(',');
+  S.alertErr=false;S.alertNote=esc(tr('ui_nacitavam_vystrahy_5e685bde'));status();
+  getJson(BASE+'/v2/alerts?bbox='+bbox+'&simplify=2000').then(g=>{
+    if(token!==S.alertToken||!opt('alerts'))return;
+    if(!g||!Array.isArray(g.features))throw new Error(tr('ui_neocakavany_format_8c464e2c'));
+    S.alerts=L.geoJSON(g,{
+      style:f=>({color:sevColor((f.properties||{}).severity),weight:2,fillOpacity:.15}),
+      onEachFeature:(f,layer)=>{
+        const p=f.properties||{};let h='<strong>'+esc(p.title||tr('ui_vystraha_a0ff184b'))+'</strong>';
+        if(Array.isArray(p.regions)&&p.regions.length)h+='<br><em>'+esc(p.regions.join(', '))+'</em>';
+        if(p.severity)h+='<br>'+esc(tr('ui_zavaznost_69005d4e'))+esc(p.severity);
+        if(typeof p.uri==='string'&&/^https:[/][/]/.test(p.uri))h+='<br><a href="'+esc(p.uri)+'">'+esc(tr('ui_podrobnosti_4a928310'))+'</a>';
+        layer.bindPopup(h);
+      }}).addTo(S.map);
+    const counts={};g.features.forEach(f=>{const s=(f.properties||{}).severity;const k=['Extreme','Severe','Moderate','Minor'].includes(s)?s:'other';counts[k]=(counts[k]||0)+1});
+    const dot=c=>'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+c+';vertical-align:middle;margin:0 3px 1px 0"></span>';
+    const bits=['Extreme','Severe','Moderate','Minor','other'].filter(k=>counts[k]).map(k=>dot(sevColor(k==='other'?'':k))+'\u00d7 '+counts[k]);
+    S.alertErr=false;
+    S.alertNote=g.features.length?esc(tr('map_alert_count_label'))+' '+bits.join(', '):esc(tr('ui_v_zobrazenej_oblasti_librewxr_nevratil_ziadne_vystrahy_pok_025fb013'));
+    status();
+  }).catch(e=>{if(token===S.alertToken){S.alertErr=true;S.alertNote=esc(tr('map_alerts_load_error',e&&e.message?e.message:tr('ui_chyba_b9f17311')));status()}});
+}
+function syncUi(){
+  $('bRadar').setAttribute('aria-pressed',S.kind==='radar');$('bSat').setAttribute('aria-pressed',S.kind==='satellite');
+  [['oArrows','arrows'],['oCells','cells'],['oLightning','lightning'],['oAlerts','alerts']].forEach(([id,k])=>{
+    const b=$(id);b.setAttribute('aria-pressed',opt(k));b.disabled=S.kind==='satellite'&&k!=='alerts';
+  });
+}
+function setLocation(l){
+  S.loc=l;if(!S.map)return;
+  S.map.setView([l.lat,l.lon],Math.max(S.map.getZoom(),6));
+  if(S.marker)S.marker.setLatLng([l.lat,l.lon]);
+}
+function fatal(){
+  setMsg(tr('ui_kniznicu_mapy_leaflet_sa_nepodarilo_nacitat_skontroluj_pri_a323dd2e'),true);
+  const b=document.createElement('button');b.className='chip';b.textContent=tr('ui_skusit_znova_69d3c884');b.onclick=()=>location.reload();$('msg').appendChild(b);
+}
+function init(l){
+  if(!window.L||window.__leafletFailed){fatal();return}
+  if(S.map){setLocation(l);return}
+  S.loc=l;
+  const map=L.map('map',{center:[l.lat,l.lon],zoom:6,minZoom:4,maxZoom:10});
+  S.map=map;map.attributionControl.setPrefix('Leaflet');
+  const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:10,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'});
+  osm.on('tileerror',()=>{if(!S.osmErr){S.osmErr=true;status()}});
+  osm.on('tileload',()=>{if(S.osmErr){S.osmErr=false;status()}});
+  osm.addTo(map);
+  L.control.scale({position:'bottomleft',metric:true,imperial:false}).addTo(map);
+  const icon=L.divIcon({className:'pin',iconSize:[36,48],iconAnchor:[18,46],popupAnchor:[0,-42],html:'<svg xmlns="http://www.w3.org/2000/svg" width="36" height="48" viewBox="0 0 36 48" aria-hidden="true" style="display:block;overflow:visible;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))"><path d="M18 46C15 42 2 28 2 18a16 16 0 0 1 32 0c0 10-13 24-16 28Z" fill="#e53935" stroke="#fff" stroke-width="2" stroke-linejoin="round"/><circle cx="18" cy="18" r="6" fill="#fff"/></svg>'});
+  S.marker=L.marker([l.lat,l.lon],{icon,title:l.name||tr('ui_vybrana_lokalita_c1fe9cc3'),keyboard:true,zIndexOffset:1000}).addTo(map);
+  let t=0;map.on('moveend',()=>{clearTimeout(t);t=setTimeout(()=>{if(opt('alerts'))refreshAlerts()},700)});
+  syncUi();buildLegend();loadMeta(true);if(opt('alerts'))refreshAlerts();
+  setInterval(()=>{if(!S.playing&&!document.hidden)loadMeta(false)},300000);
+  [0,150,500,1200].forEach(ms=>setTimeout(fit,ms));
+}
+$('bRadar').onclick=()=>{if(S.kind!=='radar'){stopPlay();S.kind='radar';store.set('layer','radar');if(S.meta)rebuild(false);else syncUi()}closePanel()};
+$('bSat').onclick=()=>{if(S.kind!=='satellite'){stopPlay();S.kind='satellite';store.set('layer','satellite');if(S.meta)rebuild(false);else syncUi()}closePanel()};
+[['oArrows','arrows'],['oCells','cells'],['oLightning','lightning'],['oAlerts','alerts']].forEach(([id,k])=>{
+  $(id).onclick=()=>{store.set('opt.'+k,opt(k)?'0':'1');syncUi();if(k==='alerts')refreshAlerts();else if(S.meta)rebuild(true)};
+});
+$('bLoc').onclick=()=>{if(S.loc&&S.map)S.map.setView([S.loc.lat,S.loc.lon],6)};
+$('bRef').onclick=()=>loadMeta(true);
+$('play').onclick=()=>{S.playing?stopPlay():startPlay()};
+$('slider').addEventListener('input',e=>{$('lbl').textContent=label(Number(e.target.value))});
+$('slider').addEventListener('change',e=>{stopPlay();showFrame(Number(e.target.value))});
+$('opa').value=String(Math.round(S.opacity*100));$('opaV').textContent=Math.round(S.opacity*100)+' %';
+$('opa').addEventListener('input',e=>{S.opacity=Number(e.target.value)/100;$('opaV').textContent=e.target.value+' %';store.set('opacity',e.target.value);Object.values(S.layers).forEach(l=>l.setOpacity(S.opacity))});
+$('history').value=S.history;$('step').value=String(S.step);$('speed').value=String(S.speed);
+$('history').onchange=e=>{S.history=e.target.value;store.set('history',S.history);if(S.meta)rebuild(true)};
+$('step').onchange=e=>{S.step=Number(e.target.value);store.set('step',e.target.value);if(S.meta)rebuild(true)};
+$('speed').onchange=e=>{const resume=S.playing,at=S.index;stopPlay();S.speed=Number(e.target.value);store.set('speed',e.target.value);if(resume)startPlay(at)};
+$('play').disabled=true;syncUi();setPlayLabel();
+window.addEventListener('resize',fit);
+if(window.ResizeObserver){new ResizeObserver(fit).observe($('stage'))}
+window.PerunMap={init:init,setLocation:setLocation};
+if(window.PerunBridge&&window.PerunBridge.ready)window.PerunBridge.ready();
+})();
+</script></body></html>

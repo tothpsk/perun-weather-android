@@ -1,0 +1,72 @@
+﻿kind,original,resource
+html_text,Mapy,ui_mapy_c9e02d67
+html_text,Radar,ui_radar_524f8327
+html_text,Satelit,ui_satelit_4a02d9f5
+html_text,Šípky pohybu,ui_sipky_pohybu_10b141be
+html_text,Búrkové bunky,ui_burkove_bunky_02324dfe
+html_text,Blesky,ui_blesky_bcc2d8d0
+html_text,Výstrahy,ui_vystrahy_d88f15ec
+html_text,Priehľadnosť vrstvy,ui_priehladnost_vrstvy_7515278a
+html_text,Časový interval (história),ui_casovy_interval_historia_e76ab9b1
+html_text,Celá dostupná história,ui_cela_dostupna_historia_24c2ee99
+html_text,Posledných 60 minút,ui_poslednych_60_minut_e647f479
+html_text,Posledných 120 minút,ui_poslednych_120_minut_7a0b6f9e
+html_text,Krok medzi snímkami,ui_krok_medzi_snimkami_e093aa89
+html_text,Všetky dostupné snímky,ui_vsetky_dostupne_snimky_9f6a695d
+html_text,Každých 20 minút,ui_kazdych_20_minut_8c036649
+html_text,Každých 30 minút,ui_kazdych_30_minut_c0d1867e
+html_text,Rýchlosť animácie,ui_rychlost_animacie_fc172f06
+html_text,Pomalá,ui_pomala_7b30c785
+html_text,Normálna,ui_normalna_b50a82f9
+html_text,Rýchla,ui_rychla_b8d46a57
+html_text,"Interval a krok vyberajú len existujúce snímky, nič sa neinterpoluje. Predpoveď (nowcast) zostáva zahrnutá.",ui_interval_a_krok_vyberaju_len_existujuce_snimky_nic_sa_nein_872feabc
+html_attribute,Mapa s radarom,ui_mapa_s_radarom_e59e75af
+html_attribute,Ovládanie mapy,ui_ovladanie_mapy_45588feb
+html_attribute,Radar a satelit,ui_radar_a_satelit_dea02d0a
+html_attribute,Radar a satelit,ui_radar_a_satelit_dea02d0a
+html_attribute,Vrstvy,ui_vrstvy_5ad3c03c
+html_attribute,Vrstvy,ui_vrstvy_5ad3c03c
+html_attribute,Možnosti,ui_moznosti_0fec1c16
+html_attribute,Možnosti,ui_moznosti_0fec1c16
+html_attribute,Legenda,ui_legenda_61154f2a
+html_attribute,Legenda,ui_legenda_61154f2a
+html_attribute,Späť na lokalitu,ui_spat_na_lokalitu_f2fe9805
+html_attribute,Späť na lokalitu,ui_spat_na_lokalitu_f2fe9805
+html_attribute,Obnoviť snímky,ui_obnovit_snimky_55c17851
+html_attribute,Obnoviť snímky,ui_obnovit_snimky_55c17851
+html_attribute,Typ vrstvy,ui_typ_vrstvy_55f95de0
+html_attribute,Prekrytia,ui_prekrytia_8b855b5d
+html_attribute,Prehrať,ui_prehrat_9b880ad3
+html_attribute,Čas snímky,ui_cas_snimky_87293daa
+javascript,chyba,ui_chyba_b9f17311
+javascript,časový limit,ui_casovy_limit_2687ec9f
+javascript,Podkladové dlaždice OpenStreetMap sa nenačítali.,ui_podkladove_dlazdice_openstreetmap_sa_nenacitali_77cb8583
+javascript,Niektoré dlaždice sa nenačítali (mimo pokrytia alebo chyba siete).,ui_niektore_dlazdice_sa_nenacitali_mimo_pokrytia_alebo_chyba_61fdbc23
+javascript,Radar a satelit,ui_radar_a_satelit_dea02d0a
+javascript,Vrstvy,ui_vrstvy_5ad3c03c
+javascript,Možnosti,ui_moznosti_0fec1c16
+javascript,Legenda,ui_legenda_61154f2a
+javascript,Teraz · ,ui_teraz_de986614
+javascript, · predpoveď,ui_predpoved_dbfcccd1
+javascript,Pozastaviť,ui_pozastavit_f7ac504e
+javascript,Prehrať,ui_prehrat_9b880ad3
+javascript,LibreWXR nevrátil žiadne snímky pre túto vrstvu.,ui_librewxr_nevratil_ziadne_snimky_pre_tuto_vrstvu_89c7d6cc
+javascript,"Nowcast nie je na serveri dostupný, zobrazená je len história.",ui_nowcast_nie_je_na_serveri_dostupny_zobrazena_je_len_histor_76b4d741
+javascript,Načítavam snímky LibreWXR…,ui_nacitavam_snimky_librewxr_265b09ca
+javascript,Snímky LibreWXR sa nepodarilo načítať (,ui_snimky_librewxr_sa_nepodarilo_nacitat_db8c564a
+javascript,). Nejde o „žiadne zrážky“. Skús obnoviť.,ui_nejde_o_ziadne_zrazky_skus_obnovit_eea3c91e
+javascript,Načítavam výstrahy…,ui_nacitavam_vystrahy_5e685bde
+javascript,neočakávaný formát,ui_neocakavany_format_8c464e2c
+javascript,Výstraha,ui_vystraha_a0ff184b
+javascript,Výstrahy v zobrazenej oblasti: ,ui_vystrahy_v_zobrazenej_oblasti_29f88d85
+javascript,V zobrazenej oblasti LibreWXR nevrátil žiadne výstrahy (pokrytie nemusí byť úplné; oficiálne výstrahy sú na karte Výstrahy).,ui_v_zobrazenej_oblasti_librewxr_nevratil_ziadne_vystrahy_pok_025fb013
+javascript,Výstrahy sa nepodarilo načítať (,ui_vystrahy_sa_nepodarilo_nacitat_6eaca365
+javascript,"). To neznamená, že žiadne nie sú.",ui_to_neznamena_ze_ziadne_nie_su_39ded74e
+javascript,Knižnicu mapy (Leaflet) sa nepodarilo načítať. Skontroluj pripojenie.,ui_kniznicu_mapy_leaflet_sa_nepodarilo_nacitat_skontroluj_pri_a323dd2e
+javascript,Skúsiť znova,ui_skusit_znova_69d3c884
+javascript,Vybraná lokalita,ui_vybrana_lokalita_c1fe9cc3
+javascript_html_text,"Infračervený satelit (NOAA GMGSI). Stupnica pre satelit zatiaľ nie je doplnená, lebo nie je overená podľa linuxovej aplikácie.",ui_infracerveny_satelit_noaa_gmgsi_stupnica_pre_satelit_zatia_a998f52f
+javascript_html_text,"Odrazivosť radaru v dBZ (10 až 80). Je to orientačná veličina, nie množstvo zrážok v mm/h. Snímky označené „predpoveď“ sú nowcast, teda extrapolácia radaru, nie pozorovanie.",ui_odrazivost_radaru_v_dbz_10_az_80_je_to_orientacna_velicina_9c205545
+javascript_html_attribute,Odrazivosť radaru od 10 do 80 dBZ,ui_odrazivost_radaru_od_10_do_80_dbz_7d801db2
+javascript_html_text,Závažnosť: ,ui_zavaznost_69005d4e
+javascript_html_text,Podrobnosti,ui_podrobnosti_4a928310
