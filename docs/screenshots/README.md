@@ -13,5 +13,5 @@ Images used by the main [README](../../README.md). The file names are fixed:
 | `air-quality-day.png` | Air quality, hourly detail of one day |
 | `marine.png` | Sea data |
 | `maps.png` | Maps |
+| `sun-moon.png` | Sun and Moon |
 | `settings.png` | Settings |
-| `sun-moon.png` | Sun & Moon |

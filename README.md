@@ -9,9 +9,9 @@ It is the Android version of [Perun Weather for Linux and Windows](https://githu
 **Current version:** 1.0.3 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 <p align="center">
-  <img src="docs/screenshots/now.jpeg" alt="Now screen with current conditions, an alert badge, the day summary and tiles" width="260">
-  <img src="docs/screenshots/forecast-day.jpeg" alt="Hourly detail of one forecast day with a row for every parameter" width="260">
-  <img src="docs/screenshots/charts.jpeg" alt="Temperature and precipitation charts with an uncertainty band" width="260">
+  <img src="docs/screenshots/now.png" alt="Now screen with current conditions, an alert badge, the day summary and tiles" width="260">
+  <img src="docs/screenshots/forecast-day.png" alt="Hourly detail of one forecast day with a row for every parameter" width="260">
+  <img src="docs/screenshots/charts.png" alt="Temperature and precipitation charts with an uncertainty band" width="260">
 </p>
 
 ## A tour of the app
@@ -27,8 +27,8 @@ Swipe left or right to move between your saved locations. Every location can hav
 The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time.
 
 <p>
-  <img src="docs/screenshots/forecast-days.jpeg" alt="Forecast by day for temperature" width="260">
-  <img src="docs/screenshots/forecast-day.jpeg" alt="Hourly detail of one forecast day" width="260">
+  <img src="docs/screenshots/forecast-days.png" alt="Forecast by day for temperature" width="260">
+  <img src="docs/screenshots/forecast-day.png" alt="Hourly detail of one forecast day" width="260">
 </p>
 
 ### Charts and uncertainty
@@ -36,7 +36,7 @@ The forecast lists the coming days for one parameter at a time. The bar at the t
 The charts show several days at once. With the uncertainty band switched on, each curve is drawn together with the range of an ensemble forecast (percentiles P10 to P90 by default), so you can see how sure the forecast is, not only what it says. The touch cursor shows the values at the chosen time and the alerts active at that moment. When the selected weather model has no precipitation probability, the app fills it in from the Best match model and says so.
 
 <p>
-  <img src="docs/screenshots/charts.jpeg" alt="Temperature and precipitation charts with an uncertainty band" width="260">
+  <img src="docs/screenshots/charts.png" alt="Temperature and precipitation charts with an uncertainty band" width="260">
 </p>
 
 ### Alerts
@@ -49,7 +49,7 @@ Active alerts are drawn on a timeline and listed with their severity, issuer and
 - FOSS Public Alert Server for the world (meteorological alerts only).
 
 <p>
-  <img src="docs/screenshots/alerts.jpeg" alt="Alert timeline and alert cards" width="260">
+  <img src="docs/screenshots/alerts.png" alt="Alert timeline and alert cards" width="260">
 </p>
 
 ### Air quality and pollen
@@ -57,8 +57,8 @@ Active alerts are drawn on a timeline and listed with their severity, issuer and
 The air quality index on the European or the US scale, particulate matter, gases and pollen, with the same two views as the forecast: the coming days for one parameter, and the hourly detail of a day.
 
 <p>
-  <img src="docs/screenshots/air-quality.jpeg" alt="Air quality index by day" width="260">
-  <img src="docs/screenshots/air-quality-day.jpeg" alt="Hourly detail of air quality for one day" width="260">
+  <img src="docs/screenshots/air-quality.png" alt="Air quality index by day" width="260">
+  <img src="docs/screenshots/air-quality-day.png" alt="Hourly detail of air quality for one day" width="260">
 </p>
 
 ### Sea data
@@ -66,7 +66,7 @@ The air quality index on the European or the US scale, particulate matter, gases
 For places by the sea, charts of sea temperature, sea level and other marine data. The section can be switched off when you do not need it.
 
 <p>
-  <img src="docs/screenshots/marine.jpeg" alt="Sea temperature and sea level charts" width="260">
+  <img src="docs/screenshots/marine.png" alt="Sea temperature and sea level charts" width="260">
 </p>
 
 ### Maps
@@ -74,12 +74,16 @@ For places by the sea, charts of sea temperature, sea level and other marine dat
 A weather map with radar, including its short-term forecast, and other LibreWXR layers, with animation and a time slider. Maps supplement the forecast and official warnings; they do not replace them.
 
 <p>
-  <img src="docs/screenshots/maps.jpeg" alt="Weather map with radar and a time slider" width="260">
+  <img src="docs/screenshots/maps.png" alt="Weather map with radar and a time slider" width="260">
 </p>
 
 ### Sun and Moon
 
 Sunrise and sunset, the length of the day, moonrise and moonset and the phase of the Moon.
+
+<p>
+  <img src="docs/screenshots/sun-moon.png" alt="Sun and Moon screen" width="260">
+</p>
 
 ### Notifications
 
@@ -99,7 +103,7 @@ Three home-screen widgets are available: compact, current conditions and a meteo
 Background refresh with battery and network rules, language, units and the air quality scale, the choice of tiles, chart and forecast options, notifications, widgets, and backup and restore of the whole configuration.
 
 <p>
-  <img src="docs/screenshots/settings.jpeg" alt="Settings" width="260">
+  <img src="docs/screenshots/settings.png" alt="Settings" width="260">
 </p>
 
 ## Why another weather app
