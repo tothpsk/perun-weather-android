@@ -47,7 +47,7 @@ internal fun feelsSummary(apparent:Double,u:WeatherUnits):String {
 /** Feels-like row on Now. A tap on the dot shows the value with its band, a tap on the value opens the forecast, a long press on either opens the help sheet. */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable internal fun FeelsRow(apparent:Double,temperature:Double,u:WeatherUnits,onOpen:()->Unit,onHelp:(HelpSpec)->Unit) {
-    val help={ onHelp(HelpSpec(uiText(R.string.ui_pocitova_teplota_a08f2e01)) { FeelsHelp(apparent,temperature,u);HelpText(uiText(R.string.ui_teplota_a_pocitova_teplota_su_modelove_veliciny_jednotku_z_7351638f)) }) }
+    val help={ onHelp(HelpSpec(uiText(R.string.ui_pocitova_teplota_a08f2e01)) { FeelsHelp(apparent,temperature,u) }) }
     Row(verticalAlignment=Alignment.CenterVertically) {
         TileDot(tempDotColor(apparent),uiText(R.string.ui_pocitova_teplota_a08f2e01),false,feelsSummary(apparent,u),help)
         Text(uiText(R.string.ui_pocitovo_e11312e3)+overviewNumber(u.temperature.fromCelsius(apparent),"°"),Modifier.combinedClickable(onLongClick=help,onClick=onOpen),color=tempDotColor(apparent))
