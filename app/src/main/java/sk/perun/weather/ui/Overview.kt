@@ -37,7 +37,9 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -51,6 +53,10 @@ private val TileBorder=Color(0xFF4B586C)
 private val OverviewText=Color(0xFFE8EAF0)
 private val Grey=Color(0xFF5B6577)
 private val SK=appLocale()
+// Returning to the app reloads the screen when the shown data is older than this; the background worker has usually refreshed the cache by then.
+private const val ResumeRefreshMillis=5*60_000L
+// Sea tiles get this long to arrive, so that the first view of a location appears at once.
+private const val MarineWaitMillis=3000L
 private val AlertColors=mapOf("neutral" to Grey,"yellow" to Color(0xFFFDD835),"orange" to Color(0xFFFB8C00),"red" to Color(0xFFE53935))
 private val AlertRank=mapOf("neutral" to 0,"yellow" to 1,"orange" to 2,"red" to 3)
 private val AlertLevels=listOf("neutral","yellow","orange","red")
@@ -98,7 +104,12 @@ private fun moonPhase(date:Instant):String {
     var failed by remember(location,model,alertSource) { mutableStateOf(false) }
     var refresh by rememberSaveable { mutableIntStateOf(0) }
     var help by remember(location,model,alertSource) { mutableStateOf<HelpSpec?>(null) }
-    val marine=rememberMarineOverview(location,refresh)
+    var loadedAt by remember(location,model,alertSource) { mutableLongStateOf(0L) }
+    val marineState=rememberMarineOverviewState(location,refresh)
+    val marine=marineState.data
+    val marinePending by rememberUpdatedState(marineState.pending)
+    val resumedAt=rememberOnResume { System.currentTimeMillis() }
+    LaunchedEffect(resumedAt) { if(!loading && loadedAt>0L && resumedAt-loadedAt>ResumeRefreshMillis) refresh++ }
     LaunchedEffect(location,refresh,alertSource,model) {
         loading=true
         failed=false
@@ -107,8 +118,10 @@ private fun moonPhase(date:Instant):String {
                 val more=async { loadOverviewExtra(location,model=model) }
                 val weather=loadOverview(location,alertSource=alertSource,model=model)
                 val details=more.await()
+                if(data==null) withTimeoutOrNull(MarineWaitMillis) { snapshotFlow { marinePending }.first { !it } }
                 data=weather
                 extra=details
+                loadedAt=System.currentTimeMillis()
                 failed=false
             }
         } catch(e:CancellationException) { throw e } catch(e:Exception) { failed=true }
@@ -143,7 +156,7 @@ private fun moonPhase(date:Instant):String {
                     if(n!=null && n.storm.active) StormTile(n.storm) { help=it }
                     Tiles(w,extra,units,selected,marineCells) { help=it }
                 }
-                if(data==null) TileRows(marineCells)
+                if(data==null && !loading) TileRows(marineCells)
                 if(data!=null || marine!=null) AttributionFooter(fallbackNote(data,extra))
             }
         }
@@ -532,3 +545,4 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
     }
     TkTile(s.title,s.dot,s.ring,s.tooltip,modifier,{ onHelp(HelpSpec(s.title) { TileHelp(s.id) }) },open) { s.content(this) }
 }
+
