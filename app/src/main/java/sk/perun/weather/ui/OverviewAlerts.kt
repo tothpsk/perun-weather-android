@@ -40,6 +40,8 @@ private val FEEDS = mapOf(
     "ES" to "spain", "SE" to "sweden", "CH" to "switzerland", "UA" to "ukraine", "GB" to "united-kingdom",
 )
 internal fun hasMeteoAlarm(countryCode: String) = countryCode.uppercase() in FEEDS
+// Region used to pick the MeteoAlarm entries of a place. A place saved without a region falls back to its district or name, so that it never gets the alerts of the whole country.
+internal fun alertRegion(l: Location): String? = listOf(l.region, l.admin, l.name).firstOrNull { it.isNotBlank() }
 private val REGION_FROM_TITLE = Regex("issued for [^-]+-\\s*(.+)$", RegexOption.IGNORE_CASE)
 private fun parseXml(bytes: ByteArray): Document {
     val f = DocumentBuilderFactory.newInstance(); f.isNamespaceAware = true
@@ -224,14 +226,14 @@ private fun extraOfficialAlerts(location: Location,source: String): OfficialAler
 // Same sources as the Alerts screen: MeteoAlarm (where available) plus the selected extra source.
 internal fun fetchOfficialAlertsStrict(location: Location,source: String="kde"): OfficialAlerts {
     val set=alertSourceSet(source)
-    val meteo=if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,location.region.takeIf { it.isNotBlank() }) else emptyList()
+    val meteo=if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,alertRegion(location)) else emptyList()
     val extras=listOf("libre","kde").filter { it in set }.map { extraOfficialAlerts(location,it) }
     return OfficialAlerts(meteo+extras.flatMap { it.items },extras.any { it.incomplete })
 }
 internal fun fetchOfficialAlerts(location: Location,source: String="kde"): List<AlertItem> {
     val now=Instant.now()
     val set=alertSourceSet(source)
-    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,location.region.takeIf { it.isNotBlank() }) else emptyList() } catch (e: Exception) { emptyList() }
+    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,alertRegion(location)) else emptyList() } catch (e: Exception) { emptyList() }
     val extra=listOf("libre","kde").filter { it in set }.flatMap { id -> try { extraOfficialAlerts(location,id).items } catch (e: Exception) { emptyList() } }
     return (meteo+extra).filter { it.end?.isAfter(now)!=false }
 }

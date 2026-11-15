@@ -3,12 +3,15 @@ package sk.perun.weather.ui
 import sk.perun.weather.R
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
@@ -33,12 +36,29 @@ private val FeelsBands=listOf(
     FeelsBand(26.0,32.0,29.0,R.string.feels_warm),
     FeelsBand(32.0,Double.POSITIVE_INFINITY,36.0,R.string.feels_hot),
 )
+private fun feelsBand(apparent:Double):FeelsBand? = if(apparent.isFinite()) FeelsBands.firstOrNull { apparent>=it.from && apparent<it.to } else null
+
+/** Short text for the dot of the feels-like row, for example 0° · Cold. */
+internal fun feelsSummary(apparent:Double,u:WeatherUnits):String {
+    val band=feelsBand(apparent) ?: return uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61)
+    return overviewNumber(u.temperature.fromCelsius(apparent),"°")+" · "+uiText(band.name)
+}
+
+/** Feels-like row on Now. A tap on the dot shows the value with its band, a tap on the value opens the forecast, a long press on either opens the help sheet. */
+@OptIn(ExperimentalFoundationApi::class)
+@Composable internal fun FeelsRow(apparent:Double,temperature:Double,u:WeatherUnits,onOpen:()->Unit,onHelp:(HelpSpec)->Unit) {
+    val help={ onHelp(HelpSpec(uiText(R.string.ui_pocitova_teplota_a08f2e01)) { FeelsHelp(apparent,temperature,u);HelpText(uiText(R.string.ui_teplota_a_pocitova_teplota_su_modelove_veliciny_jednotku_z_7351638f)) }) }
+    Row(verticalAlignment=Alignment.CenterVertically) {
+        TileDot(tempDotColor(apparent),uiText(R.string.ui_pocitova_teplota_a08f2e01),false,feelsSummary(apparent,u),help)
+        Text(uiText(R.string.ui_pocitovo_e11312e3)+overviewNumber(u.temperature.fromCelsius(apparent),"°"),Modifier.combinedClickable(onLongClick=help,onClick=onOpen),color=tempDotColor(apparent))
+    }
+}
 
 /** Body of the feels-like help sheet on Now: explanation, the current value on a colour scale and the bands. */
 @Composable internal fun FeelsHelp(apparent:Double,temperature:Double,u:WeatherUnits) {
     fun degrees(c:Double)=overviewNumber(u.temperature.fromCelsius(c),"°")
     HelpText(uiText(R.string.ui_pocitova_teplota_zohladnuje_vietor_vlhkost_a_slnecne_ziare_1f74486b))
-    val current=if(apparent.isFinite()) FeelsBands.firstOrNull { apparent>=it.from && apparent<it.to } else null
+    val current=feelsBand(apparent)
     if(current!=null) {
         Text(uiText(R.string.feels_now,degrees(apparent),uiText(current.name)),color=tempDotColor(apparent),fontSize=16.sp,fontWeight=FontWeight.SemiBold)
         if(temperature.isFinite()) HelpText(uiText(R.string.feels_air,degrees(temperature)))

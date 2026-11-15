@@ -246,7 +246,6 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
     } else HeroArt(w,0f,.5f,false)
 }
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable private fun Hero(w:OverviewData,u:WeatherUnits,showAlerts:Boolean,onHelp:(HelpSpec)->Unit) {
     val navigation=LocalOverviewNavigation.current
     val groups=remember(w.alerts) { groupAlertPresentation(w.alerts.sortedByDescending { AlertRank[it.level] ?: 0 }) }
@@ -260,12 +259,7 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
             }
             Column(Modifier.fillMaxWidth(.5f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
                 Text(overviewCondition(w.code),Modifier.clickable { navigation.openForecast("temperature") },style=MaterialTheme.typography.headlineSmall)
-                Row(verticalAlignment=Alignment.CenterVertically) {
-                    // Long press on the dot or on the value opens the feels-like scale; a tap on the value still opens the forecast.
-                    val feelsHelp={ onHelp(HelpSpec(uiText(R.string.ui_pocitova_teplota_a08f2e01)) { FeelsHelp(w.apparent,w.temperature,u);HelpText(uiText(R.string.ui_teplota_a_pocitova_teplota_su_modelove_veliciny_jednotku_z_7351638f)) }) }
-                    TileDot(tempDotColor(w.apparent),uiText(R.string.ui_teplota_4b720579),false,uiText(R.string.ui_farba_podla_teploty_c7e72e64),feelsHelp)
-                    Text(uiText(R.string.ui_pocitovo_e11312e3)+overviewNumber(u.temperature.fromCelsius(w.apparent),"°"),Modifier.combinedClickable(onLongClick=feelsHelp,onClick={ navigation.openForecast("temperature") }),color=tempDotColor(w.apparent))
-                }
+                FeelsRow(w.apparent,w.temperature,u,{ navigation.openForecast("temperature") },onHelp)
             }
         }
         if(showAlerts && groups.isNotEmpty()) AlertChips(groups,{ navigation.openAlerts() },Modifier.align(Alignment.BottomEnd).fillMaxWidth(.5f).padding(bottom=12.5.dp))
