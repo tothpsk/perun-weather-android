@@ -93,19 +93,25 @@ private fun marineTileSelection(p:SharedPreferences)=p.getStringSet(MarineTilesK
     }
     return state
 }
-@Composable internal fun rememberMarineOverview(location:Location,refreshKey:Int):MarineData? {
+/** Sea data for the Now screen; pending is true until the first load for the location has finished. */
+internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
+@Composable internal fun rememberMarineOverviewState(location:Location,refreshKey:Int):MarineOverviewState {
     val prefs=rememberMarineTilePreferences()
     val wanted=prefs.enabled && MarineTile.entries.any {it.key in prefs.selected}
     var data by remember(location) {mutableStateOf<MarineData?>(null)}
+    var pending by remember(location) {mutableStateOf(true)}
     LaunchedEffect(location,wanted,refreshKey) {
-        data=null
-        if(wanted) while(true) {
+        // A refresh keeps the tiles that are shown until the new data arrive.
+        if(!wanted) {data=null;pending=false;return@LaunchedEffect}
+        while(true) {
             data=try {loadMarine(location,2).takeIf {it.relevant}} catch(e:CancellationException) {throw e} catch(e:Exception) {null}
+            pending=false
             delay(600_000)
         }
     }
-    return if(wanted) data else null
+    return MarineOverviewState(if(wanted) data else null,wanted && pending)
 }
+@Composable internal fun rememberMarineOverview(location:Location,refreshKey:Int):MarineData? = rememberMarineOverviewState(location,refreshKey).data
 @Composable internal fun rememberMarineCells(data:MarineData?,u:WeatherUnits,onHelp:(HelpSpec)->Unit):List<OverviewCell> {
     val prefs=rememberMarineTilePreferences()
     val d=data ?: return emptyList()
