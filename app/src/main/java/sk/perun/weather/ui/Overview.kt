@@ -259,12 +259,7 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
             }
             Column(Modifier.fillMaxWidth(.5f),verticalArrangement=Arrangement.spacedBy(2.dp)) {
                 Text(overviewCondition(w.code),Modifier.clickable { navigation.openForecast("temperature") },style=MaterialTheme.typography.headlineSmall)
-                Row(verticalAlignment=Alignment.CenterVertically) {
-                    TileDot(tempDotColor(w.apparent),uiText(R.string.ui_teplota_4b720579),false,uiText(R.string.ui_farba_podla_teploty_c7e72e64)) {
-                        onHelp(HelpSpec(uiText(R.string.ui_teplota_a_pocitova_teplota_77eaa2b6)) { HelpText(uiText(R.string.ui_teplota_a_pocitova_teplota_su_modelove_veliciny_jednotku_z_7351638f)) })
-                    }
-                    Text(uiText(R.string.ui_pocitovo_e11312e3)+overviewNumber(u.temperature.fromCelsius(w.apparent),"°"),Modifier.clickable { navigation.openForecast("temperature") },color=tempDotColor(w.apparent))
-                }
+                FeelsRow(w.apparent,w.temperature,u,{ navigation.openForecast("temperature") },onHelp)
             }
         }
         if(showAlerts && groups.isNotEmpty()) AlertChips(groups,{ navigation.openAlerts() },Modifier.align(Alignment.BottomEnd).fillMaxWidth(.5f).padding(bottom=12.5.dp))
