@@ -109,16 +109,9 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
     if(help) ModalBottomSheet(onDismissRequest={help=false},containerColor=SeaPanel,contentColor=SeaText) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal=24.dp).padding(bottom=24.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(title,style=MaterialTheme.typography.titleLarge)
-            ms.forEach {m->HelpText(m.tip);when(m) {
-                SeaMetric.Temperature->HelpText(uiText(R.string.ui_povrchova_teplota_modelovej_bunky_nie_meranie_na_plazi_jed_dfd0e93b))
-                SeaMetric.Waves->HelpText(uiText(R.string.ui_vyznamna_vyska_vln_opisuje_priemer_najvyssej_tretiny_vln_j_0f032819))
-                SeaMetric.Period->HelpText(uiText(R.string.ui_perioda_je_v_sekundach_nie_rychlost_ani_vyska_vln_8376497d))
-                SeaMetric.Level->{HelpText(uiText(R.string.ui_msl_je_stredna_hladina_mora_nie_miestna_namorna_nula_zapor_40fcb415));HelpRow(SeaBlue,uiText(R.string.ui_modelove_maximum_cf189a4c));HelpRow(SeaOrange,uiText(R.string.ui_modelove_minimum_97d29dc6));HelpText(uiText(R.string.ui_lokalne_extremy_hodinoveho_modelu_nie_garantovane_casy_pri_dc84a8ea))}
-            }}
-            HelpText(uiText(R.string.ui_modelova_bunka_value_value_vzdialenost_value_km_zdroj_open_1032d7ec, d.latitude, d.longitude, seaNumber(d.distance)))
-            HelpText(uiText(R.string.ui_plynula_interpolacia_nemeni_hodinove_hodnoty_ani_polohu_ex_84f1971f))
-            HelpText(uiText(R.string.ui_podrz_prst_v_grafe_na_odcitanie_cas_posuvas_tahom_na_nadpi_22830073))
-            HelpText(uiText(R.string.ui_modelove_udaje_nie_su_urcene_na_navigaciu_ani_bezpecnostne_b26ce977))
+            ms.forEach {m->HelpText(m.tip);if(m==SeaMetric.Level) {HelpRow(SeaBlue,uiText(R.string.ui_modelove_maximum_cf189a4c));HelpRow(SeaOrange,uiText(R.string.ui_modelove_minimum_97d29dc6));HelpText(uiText(R.string.marine_help_legend))}}
+            HelpText(uiText(R.string.marine_help_model))
+            HelpText(uiText(R.string.marine_help_controls))
         }
     }
 }
@@ -168,7 +161,7 @@ private fun seaCurve(points:List<Offset>):Path {
     return path
 }
 @Composable private fun SeaChart(d:MarineData,metrics:List<SeaMetric>,title:String,u:WeatherUnits,start:Long,span:Long,now:Long,cursor:Long?,select:(Long?)->Unit,move:(Double)->Unit) {
-    val tm=rememberTextMeasurer();val density=LocalDensity.current;var hidden by remember(metrics) {mutableStateOf(emptySet<SeaMetric>())};val shown=metrics.filter {it !in hidden}
+    val tm=rememberTextMeasurer();val density=LocalDensity.current;var hidden by remember(metrics) {mutableStateOf(emptySet<SeaMetric>())};val shown=metrics.filter {it !in hidden};var hiddenExtremes by remember {mutableStateOf(emptySet<Boolean>())}
     val axes=shown.distinctBy {seaUnit(it,u)};val leftDp=if(axes.size>=3) 76.dp else 38.dp;val rightDp=38.dp
     var canvasWidth by remember {mutableFloatStateOf(800f)};val plotPixels=(canvasWidth-with(density) {(leftDp+rightDp).toPx()}).coerceAtLeast(1f)
     val currentMove by rememberUpdatedState(move);val currentStart by rememberUpdatedState(start);val scroll=rememberScrollableState {delta->currentMove(-delta.toDouble()*span/plotPixels);delta}
@@ -180,8 +173,8 @@ private fun seaCurve(points:List<Offset>):Path {
             Row(Modifier.fillMaxWidth().heightIn(min=28.dp).scrollable(scroll,Orientation.Horizontal),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
                 Text(title,Modifier.weight(1f),color=SeaText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                 if(metrics.size>1) Row(Modifier.weight(1.5f).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {metrics.forEach {m->Row(Modifier.heightIn(min=28.dp).alpha(if(m in shown) 1f else .4f).toggleable(value=m in shown,role=Role.Checkbox,onValueChange={on->if(on) hidden=hidden-m else if(shown.size>1) hidden=hidden+m}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {Canvas(Modifier.size(10.dp,8.dp)) {drawLine(m.color,Offset(0f,size.height/2),Offset(size.width,size.height/2),2.dp.toPx())};Text(m.title,color=m.color,fontSize=10.sp,maxLines=1,softWrap=false)}}}
-                // Legend for the sea level extremes: the same triangles and colours as in the chart.
-                if(SeaMetric.Level in shown) listOf(true to uiText(R.string.marine_high_tide),false to uiText(R.string.marine_low_tide)).forEach {(high,label)->Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {val c=if(high) SeaBlue else SeaOrange;Canvas(Modifier.size(8.dp)) {val p=Path().apply {if(high) {moveTo(size.width/2,0f);lineTo(0f,size.height);lineTo(size.width,size.height)} else {moveTo(size.width/2,size.height);lineTo(0f,0f);lineTo(size.width,0f)};close()};drawPath(p,c)};Text(label,color=c,fontSize=10.sp,maxLines=1,softWrap=false)}}
+                // Legend for the sea level extremes: the same triangles and colours as in the chart. A tap hides or shows the markers.
+                if(SeaMetric.Level in shown) listOf(true to uiText(R.string.marine_high_tide),false to uiText(R.string.marine_low_tide)).forEach {(high,label)->Row(Modifier.heightIn(min=28.dp).alpha(if(high in hiddenExtremes) .4f else 1f).toggleable(value=high !in hiddenExtremes,role=Role.Checkbox,onValueChange={on->hiddenExtremes=if(on) hiddenExtremes-high else hiddenExtremes+high}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {val c=if(high) SeaBlue else SeaOrange;Canvas(Modifier.size(8.dp)) {val p=Path().apply {if(high) {moveTo(size.width/2,0f);lineTo(0f,size.height);lineTo(size.width,size.height)} else {moveTo(size.width/2,size.height);lineTo(0f,0f);lineTo(size.width,0f)};close()};drawPath(p,c)};Text(label,color=c,fontSize=10.sp,maxLines=1,softWrap=false)}}
             }
             Box(Modifier.fillMaxWidth()) {
                 Canvas(Modifier.fillMaxWidth().height(234.dp).onSizeChanged {canvasWidth=it.width.toFloat()}.semantics {contentDescription=title+uiText(R.string.ui_odcitanie_v_grafe_posun_na_nadpise_a_okrajoch_6ae1a3d9)}.pointerInput(d,span,leftDp) {
@@ -198,7 +191,7 @@ private fun seaCurve(points:List<Offset>):Path {
                         shown.forEach {m->val segment=ArrayList<Offset>();var prev:Long?=null
                             fun flush() {drawPath(seaCurve(segment),m.color,style=Stroke(1.8.dp.toPx(),cap=StrokeCap.Round,join=StrokeJoin.Round));segment.clear()}
                             d.times.indices.forEach {i->val v=seaValue(m,d.at(m.key,i),u);val t=d.times[i];if(!v.isFinite()) {flush();prev=null} else {if(prev!=null && t-prev!!!=3600L) flush();segment.add(Offset(x(t),y(m,v)));prev=t}};flush()
-                            if(m==SeaMetric.Level) extremes.filter {d.times[it.index] in start..start+span}.forEach {e->val xx=x(d.times[e.index]);val yy=y(m,d.at(m.key,e.index));val r=4.dp.toPx();val sign=if(e.maximum) -1f else 1f;val triangle=Path().apply {moveTo(xx,yy+sign*r);lineTo(xx-r,yy-sign*r);lineTo(xx+r,yy-sign*r);close()};drawPath(triangle,if(e.maximum) SeaBlue else SeaOrange)}
+                            if(m==SeaMetric.Level) extremes.filter {d.times[it.index] in start..start+span && it.maximum !in hiddenExtremes}.forEach {e->val xx=x(d.times[e.index]);val yy=y(m,d.at(m.key,e.index));val r=4.dp.toPx();val sign=if(e.maximum) -1f else 1f;val triangle=Path().apply {moveTo(xx,yy+sign*r);lineTo(xx-r,yy-sign*r);lineTo(xx+r,yy-sign*r);close()};drawPath(triangle,if(e.maximum) SeaBlue else SeaOrange)}
                         }
                     }
                     axes.forEachIndexed {a,m->val xx=if(a%2==0) left-38.dp.toPx()*(a/2+1) else right+3.dp.toPx();val ax=if(a%2==0) left-38.dp.toPx()*(a/2) else right;text(seaUnit(m,u),xx,top-22.dp.toPx(),m.color);drawLine(m.color.copy(alpha=.7f),Offset(ax,top),Offset(ax,bottom),.7.dp.toPx());val (lo,hi)=scales.getValue(seaUnit(m,u));for(k in 0..4) text(seaNumber(hi-(hi-lo)*k/4),xx,top+(bottom-top)*k/4-5.dp.toPx(),m.color)}
