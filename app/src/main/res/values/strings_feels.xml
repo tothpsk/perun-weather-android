@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Feels-like help on Now. The bands are a guide of this app, not an official standard. -->
+    <string name="feels_now">"Teraz: %1$s · %2$s"</string>
+    <string name="feels_air">"Teplota vzduchu: %1$s"</string>
+    <string name="feels_scale_note" formatted="false">"Pásma sú orientačné a platia pre pocitovú teplotu."</string>
+    <string name="feels_freezing" formatted="false">"Mrazivo"</string>
+    <string name="feels_very_cold" formatted="false">"Veľmi chladno"</string>
+    <string name="feels_cold" formatted="false">"Chladno"</string>
+    <string name="feels_cool" formatted="false">"Sviežo"</string>
+    <string name="feels_pleasant" formatted="false">"Príjemne"</string>
+    <string name="feels_warm" formatted="false">"Teplo"</string>
+    <string name="feels_hot" formatted="false">"Horúco"</string>
+    <string name="feels_range_below">"pod %1$s"</string>
+    <string name="feels_range_between">"%1$s až %2$s"</string>
+    <string name="feels_range_above">"%1$s a viac"</string>
+</resources>

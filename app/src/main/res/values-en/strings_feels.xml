@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="feels_now">"Now: %1$s · %2$s"</string>
+    <string name="feels_air">"Air temperature: %1$s"</string>
+    <string name="feels_scale_note" formatted="false">"The bands are a guide and apply to the feels-like temperature."</string>
+    <string name="feels_freezing" formatted="false">"Freezing"</string>
+    <string name="feels_very_cold" formatted="false">"Very cold"</string>
+    <string name="feels_cold" formatted="false">"Cold"</string>
+    <string name="feels_cool" formatted="false">"Cool"</string>
+    <string name="feels_pleasant" formatted="false">"Pleasant"</string>
+    <string name="feels_warm" formatted="false">"Warm"</string>
+    <string name="feels_hot" formatted="false">"Hot"</string>
+    <string name="feels_range_below">"below %1$s"</string>
+    <string name="feels_range_between">"%1$s to %2$s"</string>
+    <string name="feels_range_above">"%1$s and above"</string>
+</resources>
