@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.0.4 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.0.5 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -15,6 +15,8 @@ It is the Android version of [Perun Weather for Linux and Windows](https://githu
 The current conditions for the selected location: temperature and what it feels like, the most serious active alert, a summary of the day and a grid of tiles for precipitation, wind, cloud cover, UV, humidity, air pressure and more. You choose which tiles are shown. When rain is expected within the next hour, a precipitation nowcast appears, and when there are storm cells or lightning nearby, a storms card shows their distance and direction.
 
 Swipe left or right to move between your saved locations. Every location can have its own weather model and alert sources.
+
+A long press on the feels-like temperature opens a colour scale with its bands, from freezing to hot.
 
 A long press on the app icon offers shortcuts to Now, Forecast, Maps and Alerts.
 
@@ -63,7 +65,7 @@ The air quality index on the European or the US scale, particulate matter, gases
 
 ### Sea data
 
-For places by the sea, charts of sea temperature, sea level and other marine data. The sea level chart marks the model maximum and minimum. The section can be switched off when you do not need it.
+For places by the sea, charts of sea temperature, sea level and other marine data. The sea level chart marks the model maximum and minimum, and a tap on the legend hides or shows the markers. The section can be switched off when you do not need it.
 
 <p align="center">
   <img src="docs/screenshots/marine.png" alt="Sea temperature and sea level charts" width="260">

@@ -2,6 +2,26 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.0.5] - 2026-11-15
+
+### Added
+
+- Now: a long press on the feels-like temperature, or on the dot in front of it, opens a help sheet with the current value on a colour scale and seven bands from freezing to hot. A tap on the dot shows the value with its band. The bands are a guide of this app, not an official standard.
+- Sea level chart: a tap on a legend item hides or shows the markers of the model maximum or minimum.
+
+### Changed
+
+- Sea charts: the help sheet is shorter. It says that the values are modelled and explains the controls, including the Now button.
+- Charts: the help of the visibility chart no longer lists bands that the chart does not show.
+- Sun and Moon: a new solar noon icon, an arc above the horizon with the Sun at its top, which no longer resembles the UV icon.
+- Moon help sheets on Now and on Sun and Moon: the four main phases are drawn next to their names instead of a text list. On Now they are drawn for the northern hemisphere.
+
+### Fixed
+
+- Now reloads after returning to the app when the shown data is older than 5 minutes. It used to keep the old values although the background refresh had already downloaded new ones.
+- With sea data switched on, the sea tiles on Now appear together with the rest of the screen and no longer disappear for a moment during a refresh.
+- MeteoAlarm: a location saved without a region, which could happen when it was added from the current position, received the alerts of the whole country. Such a location is now matched by its district or name.
+
 ## [1.0.4] - 2026-11-14
 
 ### Added
