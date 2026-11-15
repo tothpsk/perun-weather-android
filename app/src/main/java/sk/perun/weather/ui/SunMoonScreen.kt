@@ -116,7 +116,7 @@ private enum class SkyIcon { Noon,DayLength,TrendUp,TrendDown }
         scale(k,k,Offset.Zero) {
             val s=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)
             when(icon) {
-                SkyIcon.Noon->{ drawCircle(color,3.8f,Offset(12f,12f),style=s);drawPath(skyPath("M12 2.5v2.7 M12 18.8v2.7 M2.5 12h2.7 M18.8 12h2.7 M5.3 5.3l1.9 1.9 M16.8 16.8l1.9 1.9 M5.3 18.7l1.9-1.9 M16.8 7.2l1.9-1.9"),color,style=s) }
+                SkyIcon.Noon->{ drawPath(skyPath("M2.5 19h19 M4 19a8 8 0 0 1 16 0 M12 3.5v2.5"),color,style=s);drawCircle(color,3f,Offset(12f,11f)) }
                 SkyIcon.DayLength->{ drawCircle(color,9f,Offset(12f,12f),style=s);drawPath(skyPath("M12 7v5l3 2"),color,style=s) }
                 SkyIcon.TrendUp->drawPath(skyPath("M3 17l6-6 4 4 8-8 M15 7h6v6"),color,style=s)
                 SkyIcon.TrendDown->drawPath(skyPath("M3 7l6 6 4-4 8 8 M15 17h6v-6"),color,style=s)
@@ -216,6 +216,7 @@ private val SkyTipPosition=object:PopupPositionProvider {
         SkyTile(uiText(R.string.ui_mesiac_3ca578fb)+suffix,uiText(R.string.ui_vychod_zapad_faza_a_trend_mesiaca_424a0465),uiText(R.string.ui_mesiac_3ca578fb),Modifier.weight(1f).fillMaxHeight(),{
             HelpText(uiText(R.string.ui_vychod_a_zapad_mesiaca_sa_pocitaju_v_zariadeni_s_krokom_10_8e726efc))
             HelpText(uiText(R.string.ui_faza_vychadza_z_uhlovej_vzdialenosti_mesiaca_od_slnka_v_po_6a6b7ba7))
+            MoonPhaseHelp(l.latitude<0)
             HelpText(uiText(R.string.ui_trend_ukazuje_ci_osvetlenie_mesiaca_v_priebehu_24_hodin_ok_4b1eaa5d))
         }) {
             SkyTileRow(uiText(R.string.ui_vychod_mesiaca_a17e2d3c)) { SkyIconBox { TkRiseArrow(true,SkyRise) };SkyValue(clock(events.first)) }
@@ -386,3 +387,4 @@ private val SkyTipPosition=object:PopupPositionProvider {
         }
     }
 }
+

@@ -2,12 +2,36 @@ package sk.perun.weather.ui
 
 import sk.perun.weather.R
 
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 
 private fun bftRange(i:Int):String {
     fun f(v:Double)=weatherUnitNumber(v,if(v%1.0==0.0) 0 else 1)
     return if(i==BeaufortLimits.lastIndex) uiText(R.string.ui_od_value_km_h_a1ba8bc3, f(BeaufortLimits[i])) else uiText(R.string.ui_value_value_km_h_47ef61f2, f(BeaufortLimits[i]), f(BeaufortLimits[i+1]))
+}
+
+/** The four main Moon phases drawn next to their names; used in the Moon help sheets instead of a text list. */
+@Composable internal fun MoonPhaseHelp(southern:Boolean=false) {
+    listOf(
+        Triple(0,true,uiText(R.string.ui_nov_3e630d29)),
+        Triple(50,true,uiText(R.string.ui_prva_stvrt_4ecd8721)),
+        Triple(100,true,uiText(R.string.ui_spln_cc87a236)),
+        Triple(50,false,uiText(R.string.ui_posledna_stvrt_7a12e0f9)),
+    ).forEach { (illumination,waxing,name) ->
+        Row(verticalAlignment=Alignment.CenterVertically) {
+            MoonGraphic(illumination,waxing,southern,Modifier.size(26.dp))
+            Text(name,Modifier.padding(start=10.dp),fontWeight=FontWeight.SemiBold,fontSize=15.sp)
+        }
+    }
 }
 
 @Composable internal fun TileHelp(id:OverviewTileId) {
@@ -71,7 +95,7 @@ private fun bftRange(i:Int):String {
         }
         OverviewTileId.Moon -> {
             HelpText(uiText(R.string.ui_vychod_a_zapad_mesiaca_sa_pocitaju_v_zariadeni_ak_mesiac_n_47d5af50))
-            HelpText(uiText(R.string.ui_fazy_nov_dorastajuci_kosacik_prva_stvrt_dorastajuci_mesiac_8ef47325))
+            MoonPhaseHelp()
         }
         OverviewTileId.Air -> {
             HelpText(uiText(R.string.ui_europsky_aqi_z_cams_copernicus_cez_open_meteo_nie_je_to_am_dba1f246))
