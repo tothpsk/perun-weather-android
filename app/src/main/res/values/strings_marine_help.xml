@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Help sheet of the sea charts: what the values are and how the chart is operated. -->
+    <string name="marine_help_model" formatted="false">"Hodnoty sú modelované, nie merané. Nie sú určené na navigáciu ani na rozhodnutia o bezpečnosti."</string>
+    <string name="marine_help_controls" formatted="false">"Podrž prst v grafe a odčítaš hodnoty. Čas posunieš ťahom po nadpise alebo po okrajoch grafu. Tlačidlo Teraz vráti graf na aktuálny čas."</string>
+    <string name="marine_help_legend" formatted="false">"Ťuknutím na položku legendy ju v grafe skryješ alebo zobrazíš."</string>
+</resources>

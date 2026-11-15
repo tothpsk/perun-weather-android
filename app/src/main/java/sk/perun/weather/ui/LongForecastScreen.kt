@@ -124,13 +124,7 @@ private val LongTipPosition=object:PopupPositionProvider {
         }
         LongMetric.Humidity->HelpText(uiText(R.string.ui_relativna_vlhkost_vzduchu_v_pod_30_je_vzduch_suchy_525c9825))
         LongMetric.Dew->HelpText(uiText(R.string.ui_rosny_bod_je_teplota_pri_ktorej_by_sa_vzduch_nasytil_vodno_ad206731))
-        LongMetric.Visibility->{
-            HelpText(uiText(R.string.ui_modelova_horizontalna_viditelnost_v_km_d7a2ed32))
-            HelpRow(Color(0xFF66D17A),uiText(R.string.ui_dobra_19daeeb7),uiText(R.string.ui_10_km_a_viac_265d0ceb))
-            HelpRow(Color(0xFFFFD166),uiText(R.string.ui_znizena_7bb856e1),uiText(R.string.ui_4_10_km_916c65ea))
-            HelpRow(Color(0xFFFB8C00),uiText(R.string.ui_zla_258323d1),uiText(R.string.ui_1_4_km_42694d48))
-            HelpRow(Color(0xFFE53935),uiText(R.string.ui_hmla_386a47cf),uiText(R.string.ui_menej_ako_1_km_06843312))
-        }
+        LongMetric.Visibility->HelpText(uiText(R.string.ui_modelova_horizontalna_viditelnost_v_km_d7a2ed32))
         LongMetric.Pressure->HelpText(uiText(R.string.ui_tlak_vzduchu_prepocitany_na_hladinu_mora_rychly_pokles_tla_9b07cb62))
     }
 }
@@ -375,3 +369,4 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
         }
     }
 }
+

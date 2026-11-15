@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="marine_help_model" formatted="false">"The values are modelled, not measured. They are not intended for navigation or safety decisions."</string>
+    <string name="marine_help_controls" formatted="false">"Hold a finger on the chart to read the values. Drag the title or the edges of the chart to move in time. The Now button returns the chart to the current time."</string>
+    <string name="marine_help_legend" formatted="false">"Tap a legend item to hide or show it on the chart."</string>
+</resources>
