@@ -8,7 +8,7 @@ import java.util.Locale
 
 internal data class SourceReport(val name: String,val items: List<AlertItem>,val error: String?,val note: String?=null,val incomplete: Boolean=false)
 internal fun meteoReport(l: Location): SourceReport = try {
-    val stats=IntArray(1); val region=alertRegion(l); val items=meteoAlarm(l.countryCode,region,stats)
+    val stats=IntArray(1); val region=alertRegion(l); val items=meteoAlarm(l,stats)
     val note=if (items.isEmpty() && stats[0]>0) uiQuantityText(R.plurals.unmatched_alert_count, stats[0], stats[0], region ?: "–") else null
     SourceReport("MeteoAlarm",items,null,note)
 } catch (e: CancellationException) { throw e } catch (e: Exception) { SourceReport("MeteoAlarm",emptyList(),e.message ?: uiText(R.string.ui_chyba_b9f17311)) }

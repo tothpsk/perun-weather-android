@@ -157,7 +157,7 @@ private fun moonPhase(date:Instant):String {
                     Tiles(w,extra,units,selected,marineCells) { help=it }
                 }
                 if(data==null && !loading) TileRows(marineCells)
-                if(data!=null || marine!=null) AttributionFooter(fallbackNote(data,extra))
+                if(data!=null || marine!=null) AttributionFooter(fallbackNote(data,extra),"meteo" in alertSourceSet(alertSource) && hasMeteoAlarm(location.countryCode))
             }
         }
     }

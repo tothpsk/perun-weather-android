@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Data sources dialog: MeteoAlarm terms and the origin of the warning area outlines. The disclaimer is required word for word. -->
+    <string name="sources_meteoalarm_delay" formatted="false">"MeteoAlarm alerts are used under terms equivalent to CC BY 4.0 with additional requirements.\n\nTime delays between this website and the www.meteoalarm.org website are possible. For the most up-to-date awareness information as published by the participating National Meteorological and Hydrological Services, please refer to www.meteoalarm.org."</string>
+    <string name="sources_alert_areas" formatted="false">"Warning area outlines"</string>
+    <string name="sources_alert_areas_credit" formatted="false">"EUMETNET – MeteoAlarm · from the meteoalarm Python package (Niklas Jordan, MIT License) · simplified"</string>
+</resources>
