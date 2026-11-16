@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sun and Moon screen: change of the day length and the time of the Moon above the horizon. -->
+    <string name="sky_min_s">"%1$d min %2$d s"</string>
+    <string name="sky_day_longer">"Deň je o %1$s dlhší než predchádzajúci deň."</string>
+    <string name="sky_day_shorter">"Deň je o %1$s kratší než predchádzajúci deň."</string>
+    <string name="sky_day_same" formatted="false">"Deň je rovnako dlhý ako predchádzajúci deň."</string>
+    <string name="sky_day_change_unknown" formatted="false">"Zmena dĺžky dňa sa pre tento deň nedá určiť."</string>
+    <string name="sky_moon_up">"Mesiac nad obzorom: %1$s, od polnoci do polnoci."</string>
+    <string name="sky_help_day_change" formatted="false">"Zmena dĺžky dňa porovnáva deň s predchádzajúcim dňom. Je približná, s presnosťou na niekoľko sekúnd."</string>
+    <string name="sky_help_moon_up" formatted="false">"Čas nad obzorom sa počíta od polnoci do polnoci miestneho času. Keď Mesiac vychádza večer a zapadá až ráno, sčítajú sa oba úseky dňa."</string>
+</resources>
