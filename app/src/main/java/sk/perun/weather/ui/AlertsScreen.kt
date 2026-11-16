@@ -154,7 +154,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             if (failed) Text(uiText(R.string.ui_vystrahy_sa_nepodarilo_nacitat_to_neznamena_ze_ziadne_nie_a87aa611),color=WarnText)
             if (alertSourceSet(source).isEmpty()) Text(uiText(R.string.alert_sources_none),color=MainText,fontSize=16.sp,fontWeight=FontWeight.SemiBold) else data?.let { AlertsContent(it) }
-            AttributionFooter()
+            AttributionFooter(meteoAlarm="meteo" in alertSourceSet(source) && hasMeteoAlarm(location.countryCode))
         }
     }
 }

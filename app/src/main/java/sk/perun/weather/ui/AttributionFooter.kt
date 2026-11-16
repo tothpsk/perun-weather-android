@@ -19,7 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.time.LocalDate
 
-@Composable internal fun AttributionFooter(note:String?=null) {
+// meteoAlarm: the screen shows MeteoAlarm alerts for this place, so their source is named next to Open-Meteo.
+@Composable internal fun AttributionFooter(note:String?=null,meteoAlarm:Boolean=false) {
     val uri=LocalUriHandler.current
     var open by remember { mutableStateOf(false) }
     if(note!=null) Text(note,Modifier.fillMaxWidth().padding(top=8.dp),color=ForecastMuted,fontSize=12.sp,textAlign=TextAlign.Center)
@@ -28,6 +29,7 @@ import java.time.LocalDate
         Text(" · ",color=ForecastMuted,fontSize=12.sp)
         Text(uiText(R.string.ui_viac_66c91b9a),Modifier.clickable { open=true }.padding(vertical=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
     }
+    if(meteoAlarm) Text("EUMETNET – MeteoAlarm",Modifier.fillMaxWidth().clickable { uri.openUri("https://meteoalarm.org/en/live/") }.padding(bottom=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center)
     if(open) AlertDialog(
         onDismissRequest={open=false},
         containerColor=Color(0xFF202833),
@@ -41,7 +43,9 @@ import java.time.LocalDate
             SourceEntry(uiText(R.string.ui_pel_ca4a713f),"Open-Meteo · CAMS/Copernicus","https://open-meteo.com/en/docs/air-quality-api")
             SourceEntry(uiText(R.string.ui_nowcast_zrazok_753057c8),uiText(R.string.ui_librewxr_zaloha_open_meteo_91902c11),"https://librewxr.net/")
             SourceEntry(uiText(R.string.ui_burkove_bunky_a_blesky_cc129d3b),"LibreWXR","https://librewxr.net/")
-            SourceEntry(uiText(R.string.ui_vystrahy_d88f15ec),"MeteoAlarm","https://meteoalarm.org/")
+            SourceEntry(uiText(R.string.ui_vystrahy_d88f15ec),"EUMETNET – MeteoAlarm","https://meteoalarm.org/en/live/")
+            Text(uiText(R.string.sources_meteoalarm_delay),fontSize=12.sp)
+            SourceEntry(uiText(R.string.sources_alert_areas),uiText(R.string.sources_alert_areas_credit),"https://github.com/NiklasJordan/meteoalarm")
             SourceEntry(uiText(R.string.ui_vystrahy_dalsi_zdroj_foss_predvoleny_96081ceb),"KDE FOSS Public Alert Server","https://alerts.kde.org/")
             SourceEntry(uiText(R.string.ui_vystrahy_dalsi_zdroj_volitelny_9b32d6b9),"LibreWXR","https://librewxr.net/")
             Text(uiText(R.string.ui_vystrahy_doplnaju_aj_lokalne_odhady_z_predpovede_lokalny_o_cfa8a6ab),fontSize=12.sp)

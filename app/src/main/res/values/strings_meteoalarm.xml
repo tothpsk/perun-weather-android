@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Data sources dialog: MeteoAlarm terms and the origin of the warning area outlines. The English disclaimer is required word for word. -->
+    <string name="sources_meteoalarm_delay" formatted="false">"Výstrahy MeteoAlarm sa používajú za podmienok zodpovedajúcich licencii CC BY 4.0 s dodatočnými požiadavkami. Medzi touto aplikáciou a stránkou www.meteoalarm.org môže byť časové oneskorenie. Najaktuálnejšie výstrahy národných meteorologických a hydrologických služieb nájdeš na www.meteoalarm.org.\n\nTime delays between this website and the www.meteoalarm.org website are possible. For the most up-to-date awareness information as published by the participating National Meteorological and Hydrological Services, please refer to www.meteoalarm.org."</string>
+    <string name="sources_alert_areas" formatted="false">"Obrysy výstražných oblastí"</string>
+    <string name="sources_alert_areas_credit" formatted="false">"EUMETNET – MeteoAlarm · zo súboru balíčka meteoalarm (Niklas Jordan, licencia MIT) · zjednodušené"</string>
+</resources>
