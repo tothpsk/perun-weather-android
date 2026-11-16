@@ -8,7 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalUriHandler
@@ -24,12 +24,15 @@ import java.time.LocalDate
     val uri=LocalUriHandler.current
     var open by remember { mutableStateOf(false) }
     if(note!=null) Text(note,Modifier.fillMaxWidth().padding(top=8.dp),color=ForecastMuted,fontSize=12.sp,textAlign=TextAlign.Center)
-    Row(Modifier.fillMaxWidth().padding(vertical=8.dp),horizontalArrangement=Arrangement.Center,verticalAlignment=Alignment.CenterVertically) {
+    FooterLine(Modifier.fillMaxWidth().padding(vertical=8.dp)) {
         Text("Open-Meteo (CC BY 4.0)",Modifier.clickable { uri.openUri("https://open-meteo.com/") }.padding(vertical=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
         Text(" · ",color=ForecastMuted,fontSize=12.sp)
+        if(meteoAlarm) {
+            Text("EUMETNET – MeteoAlarm",Modifier.clickable { uri.openUri("https://meteoalarm.org/en/live/") }.padding(vertical=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
+            Text(" · ",color=ForecastMuted,fontSize=12.sp)
+        }
         Text(uiText(R.string.ui_viac_66c91b9a),Modifier.clickable { open=true }.padding(vertical=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold)
     }
-    if(meteoAlarm) Text("EUMETNET – MeteoAlarm",Modifier.fillMaxWidth().clickable { uri.openUri("https://meteoalarm.org/en/live/") }.padding(bottom=8.dp),color=ForecastMuted,fontSize=12.sp,fontWeight=FontWeight.SemiBold,textAlign=TextAlign.Center)
     if(open) AlertDialog(
         onDismissRequest={open=false},
         containerColor=Color(0xFF202833),
@@ -55,6 +58,26 @@ import java.time.LocalDate
         }},
         confirmButton={TextButton(onClick={open=false}) {Text(uiText(R.string.ui_zavriet_7c32fd0b),color=Color(0xFF4FC3F7))}},
     )
+}
+
+// One centred line. When it does not fit, the last item moves to a second line and the separator before it is left out.
+@Composable private fun FooterLine(modifier:Modifier,content:@Composable ()->Unit) {
+    Layout(content=content,modifier=modifier) { measurables,constraints->
+        val items=measurables.map { it.measure(constraints.copy(minWidth=0,minHeight=0)) }
+        val total=items.sumOf { it.width }
+        val width=if(constraints.hasBoundedWidth) constraints.maxWidth else total
+        if(items.size<3 || total<=width) {
+            val height=items.maxOfOrNull { it.height } ?: 0
+            layout(width,height) { var x=(width-total)/2;items.forEach { it.placeRelative(x,(height-it.height)/2);x+=it.width } }
+        } else {
+            val head=items.dropLast(2);val last=items.last()
+            val headWidth=head.sumOf { it.width };val headHeight=head.maxOf { it.height }
+            layout(width,headHeight+last.height) {
+                var x=((width-headWidth)/2).coerceAtLeast(0);head.forEach { it.placeRelative(x,(headHeight-it.height)/2);x+=it.width }
+                last.placeRelative((width-last.width)/2,headHeight)
+            }
+        }
+    }
 }
 
 @Composable private fun SourceEntry(title:String,label:String,url:String) {
