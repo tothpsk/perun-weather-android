@@ -251,8 +251,8 @@ private val SkyTipPosition=object:PopupPositionProvider {
             HelpText(uiText(R.string.ui_trend_ukazuje_ci_osvetlenie_mesiaca_v_priebehu_24_hodin_ok_4b1eaa5d))
         }) {
             SkyTileRow(uiText(R.string.ui_vychod_mesiaca_a17e2d3c)) { SkyIconBox { TkRiseArrow(true,SkyRise) };SkyValue(clock(events.first)) }
-            SkyTileRow(uiText(R.string.ui_zapad_mesiaca_c401b9f3)) { SkyIconBox { TkRiseArrow(false,SkySet) };SkyValue(clock(events.second)) }
             SkyTileRow(uiText(R.string.sky_moon_up, moonUpText)) { SkyIconBox { SkyGlyph(SkyIcon.MoonUp,SkyMoon) };SkyValue(moonUpText) }
+            SkyTileRow(uiText(R.string.ui_zapad_mesiaca_c401b9f3)) { SkyIconBox { TkRiseArrow(false,SkySet) };SkyValue(clock(events.second)) }
             SkyTileRow(SunMoonMath.phaseName(phasePoint.phase)+uiText(R.string.ui_osvetlenie_38b6bd7b)+skyNumber(phasePoint.illumination)+" %") { SkyIconBox { MoonGraphic(illumination,waxing,l.latitude<0,Modifier.size(24.dp)) };SkyValue("$illumination %") }
             SkyTileRow(if(waxing) uiText(R.string.ui_mesiac_dorasta_osvetlenie_rastie_a5ae864c) else uiText(R.string.ui_mesiac_cuva_osvetlenie_klesa_d31ace13)) { SkyIconBox { SkyGlyph(if(waxing) SkyIcon.TrendUp else SkyIcon.TrendDown,if(waxing) SkyRise else SkySet) };SkyValue(if(waxing) uiText(R.string.ui_rastie_a5341d12) else uiText(R.string.ui_cuva_c55fd1d0),if(waxing) SkyRise else SkySet) }
         }
