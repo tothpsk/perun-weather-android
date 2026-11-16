@@ -41,7 +41,7 @@ private val FEEDS = mapOf(
 )
 internal fun hasMeteoAlarm(countryCode: String) = countryCode.uppercase() in FEEDS
 // Region used to pick the MeteoAlarm entries of a place. A place saved without a region falls back to its district or name, so that it never gets the alerts of the whole country.
-internal fun alertRegion(l: Location): String? = listOf(l.region, l.admin, l.name).firstOrNull { it.isNotBlank() }
+internal fun alertRegion(l: Location): String? = listOf(l.admin, l.admin3, l.region, l.name).firstOrNull { it.isNotBlank() }
 private val REGION_FROM_TITLE = Regex("issued for [^-]+-\\s*(.+)$", RegexOption.IGNORE_CASE)
 private fun parseXml(bytes: ByteArray): Document {
     val f = DocumentBuilderFactory.newInstance(); f.isNamespaceAware = true
@@ -60,10 +60,29 @@ private fun Element.children(ns: String, name: String): List<Element> {
 private fun Element.childText(name: String) = children(CAP_NS, name).firstOrNull()?.textContent?.trim()?.takeIf { it.isNotEmpty() }
 private fun Element.capParameter(name: String): String? = children(CAP_NS, "parameter").firstOrNull { it.childText("valueName") == name }?.childText("value")
 private fun cleanRegion(v: String) = v.replace(Regex("^\\s*okres\\s+", RegexOption.IGNORE_CASE), "").replace(Regex("\\s+[IVX]+$"), "").trim().lowercase()
-private fun regionMatches(a: String?, wanted: String): Boolean {
-    if (a.isNullOrEmpty()) return false
-    val x = cleanRegion(a); val y = cleanRegion(wanted)
-    return x == y || x in y || y in x
+private fun Element.childNamed(name: String): String? {
+    var n: Node? = firstChild
+    while (n != null) {
+        if (n is Element && (n.localName ?: n.nodeName.substringAfter(':')) == name) return n.textContent?.trim()
+        n = n.nextSibling
+    }
+    return null
+}
+private val EMMA_IN_LINK = Regex("EMMA_ID(?::|%3A)([A-Za-z0-9_]+)", RegexOption.IGNORE_CASE)
+// EMMA_ID of a feed entry: from cap:geocode, or from the entry link when the geocode carries another code (France uses NUTS3).
+private fun entryEmmaId(e: Element): String? {
+    val geocodes = e.getElementsByTagNameNS(CAP_NS, "geocode")
+    for (i in 0 until geocodes.length) {
+        val g = geocodes.item(i) as? Element ?: continue
+        val value = g.childNamed("value")
+        if (g.childNamed("valueName") == "EMMA_ID" && !value.isNullOrEmpty()) return value
+    }
+    val links = e.getElementsByTagNameNS(ATOM_NS, "link")
+    for (i in 0 until links.length) {
+        val href = (links.item(i) as? Element)?.getAttribute("href") ?: continue
+        EMMA_IN_LINK.find(href)?.let { return it.groupValues[1] }
+    }
+    return null
 }
 private fun capInstant(v: String?): Instant? = v?.let { runCatching { OffsetDateTime.parse(it).toInstant() }.getOrNull() }
 private fun codes(info: Element): String = info.children(CAP_NS, "eventCode").mapNotNull {
@@ -82,8 +101,13 @@ private fun areaIdentity(areas: List<Element>): String = areas.map { a ->
     }
 }.filter { it.isNotBlank() }.sorted().joinToString("|")
 
-internal fun meteoAlarm(country: String, wantedRegion: String?, stats: IntArray? = null): List<AlertItem> {
+// A place gets the entries of the warning areas it lies in. Names decide only when the position cannot:
+// no outlines for the country, a point outside all outlines, or an entry whose code the outlines do not know.
+internal fun meteoAlarm(l: Location, stats: IntArray? = null): List<AlertItem> {
+    val country = l.countryCode
     val slug = FEEDS[country.uppercase()] ?: return emptyList()
+    val placeCodes = MeteoAlarmAreas.codes(country, l.latitude, l.longitude)
+    val placeNames = alertAreaNames(l)
     val doc = parseXml(fetchBytes("https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-$slug"))
     val entries = doc.getElementsByTagNameNS(ATOM_NS, "entry"); val result = mutableListOf<AlertItem>()
     for (i in 0 until entries.length) {
@@ -94,7 +118,11 @@ internal fun meteoAlarm(country: String, wantedRegion: String?, stats: IntArray?
         val text = (title + " " + (e.text(ATOM_NS, "summary") ?: "")).lowercase()
         val level = when { "red" in text -> "red"; "orange" in text -> "orange"; "yellow" in text -> "yellow"; else -> "neutral" }
         val region = REGION_FROM_TITLE.find(title)?.groupValues?.get(1)?.trim()
-        if (wantedRegion != null && !regionMatches(region, wantedRegion)) continue
+        val area = e.text(CAP_NS, "areaDesc")?.takeIf { it.isNotBlank() } ?: region
+        val code = entryEmmaId(e)
+        val matches = if (placeCodes.isNotEmpty() && code != null && MeteoAlarmAreas.knows(country, code)) code in placeCodes
+            else area != null && areaCore(area).let { it.isNotEmpty() && it in placeNames }
+        if (!matches) continue
         val id = e.text(CAP_NS, "identifier")?.takeIf { it.isNotBlank() } ?: e.text(ATOM_NS, "id")?.let { "atom:$it" }.orEmpty()
         result += AlertItem(
             event = e.text(CAP_NS, "event")?.takeIf { it.isNotBlank() } ?: title, level = level, local = false,
@@ -226,14 +254,14 @@ private fun extraOfficialAlerts(location: Location,source: String): OfficialAler
 // Same sources as the Alerts screen: MeteoAlarm (where available) plus the selected extra source.
 internal fun fetchOfficialAlertsStrict(location: Location,source: String="kde"): OfficialAlerts {
     val set=alertSourceSet(source)
-    val meteo=if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,alertRegion(location)) else emptyList()
+    val meteo=if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location) else emptyList()
     val extras=listOf("libre","kde").filter { it in set }.map { extraOfficialAlerts(location,it) }
     return OfficialAlerts(meteo+extras.flatMap { it.items },extras.any { it.incomplete })
 }
 internal fun fetchOfficialAlerts(location: Location,source: String="kde"): List<AlertItem> {
     val now=Instant.now()
     val set=alertSourceSet(source)
-    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location.countryCode,alertRegion(location)) else emptyList() } catch (e: Exception) { emptyList() }
+    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location) else emptyList() } catch (e: Exception) { emptyList() }
     val extra=listOf("libre","kde").filter { it in set }.flatMap { id -> try { extraOfficialAlerts(location,id).items } catch (e: Exception) { emptyList() } }
     return (meteo+extra).filter { it.end?.isAfter(now)!=false }
 }

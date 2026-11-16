@@ -73,7 +73,7 @@ internal fun searchPlaces(query: String): List<Location> {
         Location(
             r.str("name"), r.str("country"), r.getDouble("latitude"), r.getDouble("longitude"),
             if (r.has("elevation") && !r.isNull("elevation")) r.getDouble("elevation") else null,
-            r.str("timezone").ifEmpty { "auto" }, r.str("country_code").uppercase(), r.str("admin1"), r.str("admin2"),
+            r.str("timezone").ifEmpty { "auto" }, r.str("country_code").uppercase(), r.str("admin1"), r.str("admin2"), r.str("admin3"),
         )
     }
 }

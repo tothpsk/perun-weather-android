@@ -21,6 +21,7 @@ internal data class Location(
     val countryCode: String = "",
     val region: String = "",
     val admin: String = "",
+    val admin3: String = "",
 )
 
 internal class LocationStore(context: Context) {
@@ -36,7 +37,7 @@ internal class LocationStore(context: Context) {
                 Location(
                     o.getString("name"), o.optString("country", ""), o.getDouble("latitude"), o.getDouble("longitude"),
                     if (o.has("elevation") && !o.isNull("elevation")) o.getDouble("elevation") else null,
-                    o.optString("timezone", "auto"), o.optString("countryCode", ""), o.optString("region", ""), o.optString("admin", ""),
+                    o.optString("timezone", "auto"), o.optString("countryCode", ""), o.optString("region", ""), o.optString("admin", ""), o.optString("admin3", ""),
                 )
             }
         } catch (e: Exception) {
@@ -59,6 +60,7 @@ internal class LocationStore(context: Context) {
             o.put("countryCode", l.countryCode)
             o.put("region", l.region)
             o.put("admin", l.admin)
+            o.put("admin3", l.admin3)
             array.put(o)
         }
         prefs.edit().putString("locations", array.toString()).putInt("selected", selected).apply()
