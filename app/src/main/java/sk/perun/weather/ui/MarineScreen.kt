@@ -119,7 +119,8 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
     if(help) ModalBottomSheet(onDismissRequest={help=false},containerColor=SeaPanel,contentColor=SeaText) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal=24.dp).padding(bottom=24.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(title,style=MaterialTheme.typography.titleLarge)
-            ms.forEach {m->HelpText(m.tip);if(m==SeaMetric.Level) {SeaExtremeHelpRow(true,uiText(R.string.ui_modelove_maximum_cf189a4c));SeaExtremeHelpRow(false,uiText(R.string.ui_modelove_minimum_97d29dc6));HelpText(uiText(R.string.marine_help_legend))}}
+            // The legend labels are used here as well: the older help labels carry a text triangle, which would double the drawn marker.
+            ms.forEach {m->HelpText(m.tip);if(m==SeaMetric.Level) {SeaExtremeHelpRow(true,uiText(R.string.marine_high_tide));SeaExtremeHelpRow(false,uiText(R.string.marine_low_tide));HelpText(uiText(R.string.marine_help_legend))}}
             HelpText(uiText(R.string.marine_help_model))
             HelpText(uiText(R.string.marine_help_controls))
         }
