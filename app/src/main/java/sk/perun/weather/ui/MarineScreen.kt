@@ -35,6 +35,7 @@ import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.CancellationException
@@ -84,6 +85,15 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
         SeaMetric.Level->Canvas(Modifier.size(24.dp)) {val p=Path().apply {moveTo(size.width*.15f,size.height*.65f);cubicTo(size.width*.4f,size.height*.35f,size.width*.6f,size.height*.95f,size.width*.85f,size.height*.65f)};drawPath(p,color,style=Stroke(1.7.dp.toPx()));drawLine(color,Offset(size.width*.5f,size.height*.15f),Offset(size.width*.5f,size.height*.45f),1.7.dp.toPx(),StrokeCap.Round);drawLine(color,Offset(size.width*.35f,size.height*.3f),Offset(size.width*.5f,size.height*.15f),1.7.dp.toPx());drawLine(color,Offset(size.width*.65f,size.height*.3f),Offset(size.width*.5f,size.height*.15f),1.7.dp.toPx())}
     }
 }
+// One drawing of the sea level extremes, shared by the chart legend and the help sheet: a blue triangle pointing up for the model maximum, an orange one pointing down for the model minimum.
+@Composable private fun SeaExtremeMark(high:Boolean,dimension:Dp=8.dp,modifier:Modifier=Modifier) {
+    val c=if(high) SeaBlue else SeaOrange
+    Canvas(modifier.size(dimension)) {val p=Path().apply {if(high) {moveTo(size.width/2,0f);lineTo(0f,size.height);lineTo(size.width,size.height)} else {moveTo(size.width/2,size.height);lineTo(0f,0f);lineTo(size.width,0f)};close()};drawPath(p,c)}
+}
+// Same layout as HelpRow, with the legend marker in place of the colour dot.
+@Composable private fun SeaExtremeHelpRow(high:Boolean,title:String) {
+    Row(verticalAlignment=Alignment.Top) {SeaExtremeMark(high,12.dp,Modifier.padding(top=5.dp));Text(title,Modifier.padding(start=10.dp),fontWeight=FontWeight.SemiBold,fontSize=15.sp)}
+}
 @Composable private fun SeaCustomControls(graphs:List<SeaCustom>,save:(List<SeaCustom>)->Unit) {
     var open by remember {mutableStateOf(false)};var edit by remember {mutableStateOf<SeaCustom?>(null)};var deleting by remember {mutableStateOf<SeaCustom?>(null)}
     val shape=RoundedCornerShape(50)
@@ -109,7 +119,7 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
     if(help) ModalBottomSheet(onDismissRequest={help=false},containerColor=SeaPanel,contentColor=SeaText) {
         Column(Modifier.verticalScroll(rememberScrollState()).padding(horizontal=24.dp).padding(bottom=24.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             Text(title,style=MaterialTheme.typography.titleLarge)
-            ms.forEach {m->HelpText(m.tip);if(m==SeaMetric.Level) {HelpRow(SeaBlue,uiText(R.string.ui_modelove_maximum_cf189a4c));HelpRow(SeaOrange,uiText(R.string.ui_modelove_minimum_97d29dc6));HelpText(uiText(R.string.marine_help_legend))}}
+            ms.forEach {m->HelpText(m.tip);if(m==SeaMetric.Level) {SeaExtremeHelpRow(true,uiText(R.string.ui_modelove_maximum_cf189a4c));SeaExtremeHelpRow(false,uiText(R.string.ui_modelove_minimum_97d29dc6));HelpText(uiText(R.string.marine_help_legend))}}
             HelpText(uiText(R.string.marine_help_model))
             HelpText(uiText(R.string.marine_help_controls))
         }
@@ -174,7 +184,7 @@ private fun seaCurve(points:List<Offset>):Path {
                 Text(title,Modifier.weight(1f),color=SeaText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                 if(metrics.size>1) Row(Modifier.weight(1.5f).horizontalScroll(rememberScrollState()),horizontalArrangement=Arrangement.spacedBy(8.dp)) {metrics.forEach {m->Row(Modifier.heightIn(min=28.dp).alpha(if(m in shown) 1f else .4f).toggleable(value=m in shown,role=Role.Checkbox,onValueChange={on->if(on) hidden=hidden-m else if(shown.size>1) hidden=hidden+m}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {Canvas(Modifier.size(10.dp,8.dp)) {drawLine(m.color,Offset(0f,size.height/2),Offset(size.width,size.height/2),2.dp.toPx())};Text(m.title,color=m.color,fontSize=10.sp,maxLines=1,softWrap=false)}}}
                 // Legend for the sea level extremes: the same triangles and colours as in the chart. A tap hides or shows the markers.
-                if(SeaMetric.Level in shown) listOf(true to uiText(R.string.marine_high_tide),false to uiText(R.string.marine_low_tide)).forEach {(high,label)->Row(Modifier.heightIn(min=28.dp).alpha(if(high in hiddenExtremes) .4f else 1f).toggleable(value=high !in hiddenExtremes,role=Role.Checkbox,onValueChange={on->hiddenExtremes=if(on) hiddenExtremes-high else hiddenExtremes+high}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {val c=if(high) SeaBlue else SeaOrange;Canvas(Modifier.size(8.dp)) {val p=Path().apply {if(high) {moveTo(size.width/2,0f);lineTo(0f,size.height);lineTo(size.width,size.height)} else {moveTo(size.width/2,size.height);lineTo(0f,0f);lineTo(size.width,0f)};close()};drawPath(p,c)};Text(label,color=c,fontSize=10.sp,maxLines=1,softWrap=false)}}
+                if(SeaMetric.Level in shown) listOf(true to uiText(R.string.marine_high_tide),false to uiText(R.string.marine_low_tide)).forEach {(high,label)->Row(Modifier.heightIn(min=28.dp).alpha(if(high in hiddenExtremes) .4f else 1f).toggleable(value=high !in hiddenExtremes,role=Role.Checkbox,onValueChange={on->hiddenExtremes=if(on) hiddenExtremes-high else hiddenExtremes+high}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(3.dp)) {SeaExtremeMark(high);Text(label,color=if(high) SeaBlue else SeaOrange,fontSize=10.sp,maxLines=1,softWrap=false)}}
             }
             Box(Modifier.fillMaxWidth()) {
                 Canvas(Modifier.fillMaxWidth().height(234.dp).onSizeChanged {canvasWidth=it.width.toFloat()}.semantics {contentDescription=title+uiText(R.string.ui_odcitanie_v_grafe_posun_na_nadpise_a_okrajoch_6ae1a3d9)}.pointerInput(d,span,leftDp) {
