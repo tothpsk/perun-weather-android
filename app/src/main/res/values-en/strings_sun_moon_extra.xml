@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Sun and Moon screen: change of the day length and the time of the Moon above the horizon. -->
+    <string name="sky_min_s">"%1$d min %2$d s"</string>
+    <string name="sky_day_longer">"The day is %1$s longer than the day before."</string>
+    <string name="sky_day_shorter">"The day is %1$s shorter than the day before."</string>
+    <string name="sky_day_same" formatted="false">"The day is as long as the day before."</string>
+    <string name="sky_day_change_unknown" formatted="false">"The change of the day length cannot be determined for this day."</string>
+    <string name="sky_moon_up">"Moon above the horizon: %1$s, from midnight to midnight."</string>
+    <string name="sky_help_day_change" formatted="false">"The change of the day length compares the day with the day before. It is approximate, to within a few seconds."</string>
+    <string name="sky_help_moon_up" formatted="false">"The time above the horizon is counted from midnight to midnight local time. When the Moon rises in the evening and sets in the morning, both parts of the day are added together."</string>
+</resources>
