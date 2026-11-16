@@ -84,6 +84,25 @@ internal class LocationState(private val store: LocationStore) {
 
     fun select(index: Int) = commit(locations, index)
 
+    // Fills in what a failed lookup left out (country, country code, region, district) once the lookup succeeds.
+    // The position, and everything keyed by it, stays the same; the name is replaced only while it is still the coordinate label.
+    fun enrich(old: Location, fresh: Location) {
+        if (fresh.countryCode.isBlank()) return
+        val i = locations.indexOfFirst { abs(it.latitude - old.latitude) < 1e-9 && abs(it.longitude - old.longitude) < 1e-9 }
+        if (i < 0) return
+        val current = locations[i]
+        if (current.countryCode.isNotBlank()) return
+        val merged = current.copy(
+            name = if (current.name == coordinateLabel(current.latitude, current.longitude)) fresh.name else current.name,
+            country = current.country.ifBlank { fresh.country },
+            countryCode = fresh.countryCode,
+            region = current.region.ifBlank { fresh.region },
+            admin = current.admin.ifBlank { fresh.admin },
+            admin3 = current.admin3.ifBlank { fresh.admin3 },
+        )
+        commit(locations.toMutableList().also { it[i] = merged }, selected)
+    }
+
     // A place within about 100 m of a saved one just selects the saved one.
     fun add(location: Location) {
         val same = locations.indexOfFirst { abs(it.latitude - location.latitude) < 0.001 && abs(it.longitude - location.longitude) < 0.001 }

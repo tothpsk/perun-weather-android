@@ -53,6 +53,18 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
             catch(e:CancellationException) { throw e } catch(e:Exception) { }
         }
     }
+    // A place saved while the lookup failed has no country and so gets no MeteoAlarm alerts. The lookup is repeated once per place and run of the app.
+    val retried=remember { mutableSetOf<String>() }
+    LaunchedEffect(locations.locations) {
+        for(place in locations.locations.filter { it.countryCode.isBlank() }) {
+            val key=BackgroundRefresh.locationKey(place)
+            if(key in retried) continue
+            val fresh=try { withContext(Dispatchers.IO) { reversePlace(place.latitude,place.longitude) } } catch(e:CancellationException) { throw e } catch(e:Exception) { null }
+            retried.add(key)
+            if(fresh!=null) locations.enrich(place,fresh)
+            delay(1100)
+        }
+    }
     val sources=rememberLocationSourcePreferences(locations.current)
     CompositionLocalProvider(LocalLocationSourcePreferences provides sources) {
         if(sheet) LocationsSheet(locations) {sheet=false}
