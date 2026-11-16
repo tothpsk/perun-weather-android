@@ -57,8 +57,8 @@ private val SK=appLocale()
 private const val ResumeRefreshMillis=5*60_000L
 // Sea tiles get this long to arrive, so that the first view of a location appears at once.
 private const val MarineWaitMillis=3000L
-private val AlertColors=mapOf("neutral" to Grey,"yellow" to Color(0xFFFDD835),"orange" to Color(0xFFFB8C00),"red" to Color(0xFFE53935))
-private val AlertRank=mapOf("neutral" to 0,"yellow" to 1,"orange" to 2,"red" to 3)
+internal val AlertColors=mapOf("neutral" to Grey,"yellow" to Color(0xFFFDD835),"orange" to Color(0xFFFB8C00),"red" to Color(0xFFE53935))
+internal val AlertRank=mapOf("neutral" to 0,"yellow" to 1,"orange" to 2,"red" to 3)
 private val AlertLevels=listOf("neutral","yellow","orange","red")
 private val AlertSurface=mapOf("yellow" to (Color(0xFF302C25) to Color(0xFF806C42)),"orange" to (Color(0xFF33271C) to Color(0xFFA0622A)),"red" to (Color(0xFF341F22) to Color(0xFFA8393D)))
 private val AlertLocalNames=mapOf("Thunderstorm risk" to uiText(R.string.ui_riziko_burok_8fa6514a),"Strong wind gusts" to uiText(R.string.ui_silne_narazy_vetra_7b7b006f),"Heavy precipitation" to uiText(R.string.ui_silne_zrazky_2630cc03),"Extreme heat" to uiText(R.string.ui_extremne_teplo_cdcd5041),"Extreme cold" to uiText(R.string.ui_extremny_chlad_d4aeb237))
