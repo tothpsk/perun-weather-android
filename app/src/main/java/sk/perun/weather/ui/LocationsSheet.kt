@@ -34,6 +34,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
@@ -80,6 +81,11 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
     var results by remember { mutableStateOf<List<Location>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
+    // Official alerts of the saved places, loaded when the list opens and shown as a mark before the remove button.
+    var alertMarks by remember { mutableStateOf<Map<String, List<AlertItem>>>(emptyMap()) }
+    LaunchedEffect(state.locations) {
+        loadLocationAlerts(context, state.locations) { key, items -> alertMarks = alertMarks + (key to items) }
+    }
 
     // Drag state: a working copy of the order exists only while a handle is being dragged.
     var order by remember { mutableStateOf<List<Location>?>(null) }
@@ -160,6 +166,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                             canDelete = shown.size > 1,
                             dragging = dragging,
                             dragOffset = if (dragging) dragOffset else 0f,
+                            alerts = alertMarks[BackgroundRefresh.locationKey(location)],
                             onSelect = { state.select(state.locations.indexOf(location)); onDismiss() },
                             onMoveUp = { state.move(state.locations.indexOf(location), -1) },
                             onMoveDown = { state.move(state.locations.indexOf(location), 1) },
@@ -254,7 +261,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
 
 @Composable
 private fun LocationRow(
-    location: Location, selected: Boolean, canDelete: Boolean, dragging: Boolean, dragOffset: Float,
+    location: Location, selected: Boolean, canDelete: Boolean, dragging: Boolean, dragOffset: Float, alerts: List<AlertItem>?,
     onSelect: () -> Unit, onMoveUp: () -> Unit, onMoveDown: () -> Unit, onDelete: () -> Unit,
     onHeight: (Float) -> Unit, handle: Modifier,
 ) {
@@ -284,6 +291,7 @@ private fun LocationRow(
             Text(location.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
             Text(subtitle(location), fontSize = 13.sp, color = ForecastMuted)
         }
+        if (!alerts.isNullOrEmpty()) LocationAlertMark(alerts)
         IconButton(onClick = onDelete, enabled = canDelete) { Icon(PerunIcons.Close, uiText(R.string.ui_odstranit_lokalitu_7ed2d74e)) }
     }
 }
