@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.0.5 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.0.6 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -14,7 +14,7 @@ It is the Android version of [Perun Weather for Linux and Windows](https://githu
 
 The current conditions for the selected location: temperature and what it feels like, the most serious active alert, a summary of the day and a grid of tiles for precipitation, wind, cloud cover, UV, humidity, air pressure and more. You choose which tiles are shown. When rain is expected within the next hour, a precipitation nowcast appears, and when there are storm cells or lightning nearby, a storms card shows their distance and direction.
 
-Swipe left or right to move between your saved locations. Every location can have its own weather model and alert sources.
+Swipe left or right to move between your saved locations. Every location can have its own weather model and alert sources. The list of saved locations marks every place that has an official alert.
 
 A long press on the feels-like temperature opens a colour scale with its bands, from freezing to hot.
 
@@ -46,9 +46,11 @@ The charts show several days at once. With the uncertainty band switched on, eac
 Active alerts are drawn on a timeline and listed with their severity, issuer and period of validity. Four independent sources can be combined freely, and each is shown under its own heading without merging duplicates:
 
 - Local alerts computed in the app from the forecast.
-- MeteoAlarm for Europe.
+- MeteoAlarm for Europe. A place gets the alerts of the warning areas it lies in, by its position.
 - LibreWXR for the world.
 - FOSS Public Alert Server for the world (meteorological alerts only).
+
+The text of an alert is shown in the language of the issuing service; the app does not translate it.
 
 <p align="center">
   <img src="docs/screenshots/alerts.png" alt="Alert timeline and alert cards" width="260">
@@ -81,7 +83,7 @@ A weather map with radar, including its short-term forecast, and other LibreWXR 
 
 ### Sun and Moon
 
-Sunrise and sunset, the length of the day, moonrise and moonset and the phase of the Moon.
+Sunrise and sunset, the length of the day and its change, moonrise and moonset, the time the Moon is above the horizon and the phase of the Moon.
 
 <p align="center">
   <img src="docs/screenshots/sun-moon.png" alt="Sun and Moon screen" width="260">
