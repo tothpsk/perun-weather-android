@@ -5,8 +5,6 @@
 - KDE FOSS Public Alert Server: CAP alerts, meteorological category only, matched to a place by their polygons.
 - LibreWXR: precipitation nowcast, storm cells, lightning, map layers and alerts. Alerts come from the WMO alert hub and the NWS API; the text is in the first language of the issuing service.
 - OpenStreetMap / Nominatim: place names and search. ODbL.
-- WeatherAPI.com weather map tiles (no key): temperature, precipitation, pressure, wind; 3 days, hourly; time in UTC as yyyyMMddHH. Label as forecast, not radar.
-- Xweather: radar, optional, user-supplied key (ID_SECRET).
 
 Map layers must be transparent enough for the basemap; scale bar bottom-right; WeatherAPI legend hidden.
 
