@@ -7,18 +7,19 @@ import java.util.Locale
 import kotlin.math.abs
 
 private fun languageKey(s: String)=s.trim().replace('_','-').lowercase(Locale.ROOT)
-private fun languageRank(s: String,preferred: String="sk-SK"): Int {
-    val key=languageKey(s); val wanted=languageKey(preferred)
-    return when {
-        key==wanted -> 0
-        key.isNotBlank() && key.substringBefore('-')==wanted.substringBefore('-') -> 1
-        key.substringBefore('-')=="en" -> 2
-        key.isBlank() || key=="und" -> 4
-        else -> 3
+// Order: the languages of the phone, each as the exact locale and then as the language alone; English; any other; unknown.
+private fun languageRank(s: String,preferred: List<String>): Int {
+    val key=languageKey(s); val n=preferred.size
+    if (key.isBlank() || key=="und") return 2*n+2
+    preferred.forEachIndexed { i,p ->
+        val wanted=languageKey(p)
+        if (key==wanted) return 2*i
+        if (key.substringBefore('-')==wanted.substringBefore('-')) return 2*i+1
     }
+    return if (key.substringBefore('-')=="en") 2*n else 2*n+1
 }
 private data class LanguageBucket(val id: String,val sender: String,val level: String,val start: Instant,val end: Instant,val area: String,val code: String)
-internal fun selectAlertLanguages(items: List<AlertItem>,preferred: String="sk-SK"): List<AlertItem> {
+internal fun selectAlertLanguages(items: List<AlertItem>,preferred: List<String>=AppLocale.alertLanguages()): List<AlertItem> {
     val groups=linkedMapOf<LanguageBucket,List<AlertItem>>(); val unknown=mutableListOf<AlertItem>()
     for (a in items) {
         val start=a.start; val end=a.end
@@ -41,7 +42,7 @@ private fun sameRecord(a: AlertItem,b: AlertItem): Boolean {
     return if (a.eventCode.isNotBlank() || b.eventCode.isNotBlank()) a.eventCode.isNotBlank() && a.eventCode==b.eventCode else textKey(a.event)==textKey(b.event)
 }
 private fun prefer(a: AlertItem,b: AlertItem): AlertItem {
-    val ar=languageRank(a.language); val br=languageRank(b.language)
+    val wanted=AppLocale.alertLanguages(); val ar=languageRank(a.language,wanted); val br=languageRank(b.language,wanted)
     if (ar!=br) return if (ar<br) a else b
     return if (a.title.isBlank() && b.title.isNotBlank()) b else a
 }

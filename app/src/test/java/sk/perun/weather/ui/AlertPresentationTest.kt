@@ -23,11 +23,35 @@ class AlertPresentationTest : ResourceStringsTestBase() {
         assertEquals(listOf(preferred),selectAlertLanguages(listOf(item(language="de-DE"),item(language="sk-CZ"),preferred)))
         assertEquals("en",selectAlertLanguages(listOf(item(language="fr"),item())).single().language)
     }
+    @Test fun phoneLanguagesDecideInTheirOrder() {
+        val de=item(language="de-DE"); val en=item(language="en-GB"); val sk=item(language="sk-SK")
+        assertEquals(listOf(en),selectAlertLanguages(listOf(sk,de,en),listOf("en-US")))
+        assertEquals(listOf(de),selectAlertLanguages(listOf(sk,de,en),listOf("de-AT","en-US")))
+        assertEquals(listOf(en),selectAlertLanguages(listOf(sk,en),listOf("fr-FR")))
+    }
     @Test fun frenchAndEnglishWindGroupWithoutDeletingMembers() {
         val a=item(); val b=item("Vigilance jaune vent-violent","fr").copy(identifier="cap-2",via=setOf("LibreWXR"))
         val g=groupAlertPresentation(listOf(a,b)).single()
         assertEquals("Vietor",g.label); assertEquals(listOf(a,b),g.items)
         assertEquals(2,mergeAlertRecords(listOf(a,b)).size)
+    }
+    @Test fun fogInThreeWordingsIsOneGroupWithTheFogIcon() {
+        val texts=listOf("Moderate fog warning","Očakávame hmlu so zníženou dohľadnosťou do 50 metrov","Výstraha pred hmlou")
+        texts.forEach { assertEquals(it,AlertKind.Fog,alertKind(it)) }
+        val items=texts.mapIndexed { i,t ->item(t,level="yellow").copy(identifier="cap-$i",via=setOf("source-$i")) }
+        val g=groupAlertPresentation(items).single()
+        assertEquals("Hmla",g.label); assertEquals(items,g.items)
+    }
+    @Test fun stemsCountOnlyAtTheStartOfAWord() {
+        assertEquals(AlertKind.Other,alertKind("Znížená dohľadnosť"))
+        assertEquals(AlertKind.Other,alertKind("Coastal event"))
+        assertEquals(AlertKind.Ice,alertKind("Moderate icing warning"))
+        assertEquals(AlertKind.Heat,alertKind("Yellow High-temperature Warning"))
+        assertEquals(AlertKind.Storm,alertKind("Thunderstorm risk"))
+        assertEquals(AlertKind.Wind,alertKind("Strong wind gusts"))
+        assertEquals(AlertKind.Rain,alertKind("Heavy precipitation"))
+        assertEquals(AlertKind.Cold,alertKind("Extreme cold"))
+        assertEquals(listOf(AlertKind.Snow,AlertKind.Ice),alertKinds("Yellow Snow-ice Warning"))
     }
     @Test fun severitiesAndLocalEstimateStaySeparate() {
         assertEquals(3,groupAlertPresentation(listOf(item(),item(level="red"),item(local=true))).size)

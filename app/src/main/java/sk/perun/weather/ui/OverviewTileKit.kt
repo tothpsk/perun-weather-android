@@ -65,29 +65,12 @@ private val TkHeat=tkPath("M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z")
 private val TkFog=tkPath("M4 8h16M2 12h16M6 16h14")
 private val TkOther=tkPath("M12 3L2 21h20ZM12 10v5M12 18v.5")
 
-internal enum class AlertKind { Wind, Storm, Rain, Snow, Heat, Fog, Other }
-
-internal fun alertKind(text:String):AlertKind {
-    val t=text.lowercase()
-    fun has(vararg words:String)=words.any { it in t }
-    return when {
-        has("thunder","búrk","orage","gewitter") -> AlertKind.Storm
-        has("wind","gust","vietor","vent","sturm") -> AlertKind.Wind
-        has("rain","precip","flood","dážď","zrážk","pluie","regen") -> AlertKind.Rain
-        has("snow","ice","sneh","poľadov","ľad","neige","schnee","glatteis","cold","frost","low temp","chlad","mráz","froid") -> AlertKind.Snow
-        has("heat","high temp","horúč","hitze","canicule") -> AlertKind.Heat
-        has("fog","hmla","mist","brouillard","nebel") -> AlertKind.Fog
-        has("storm") -> AlertKind.Storm
-        else -> AlertKind.Other
-    }
-}
-
 @Composable internal fun AlertGlyph(kind:AlertKind,color:Color,dimension:Dp=18.dp) {
     val path=when(kind) {
         AlertKind.Wind -> TkWind
         AlertKind.Storm -> TkStorm
-        AlertKind.Rain -> TkRain
-        AlertKind.Snow -> TkSnow
+        AlertKind.Rain, AlertKind.Flood -> TkRain
+        AlertKind.Snow, AlertKind.Ice, AlertKind.Cold -> TkSnow
         AlertKind.Heat -> TkHeat
         AlertKind.Fog -> TkFog
         AlertKind.Other -> TkOther
