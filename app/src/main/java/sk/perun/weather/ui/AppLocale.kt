@@ -32,7 +32,7 @@ internal object AppLocale {
     }
     fun language():String=current
     /** Languages of the system or per-app list in their order, also those the app has no texts for. The texts of alerts follow them. */
-    fun alertLanguages():List<String>=wanted
+    fun alertLanguages():List<String> = wanted
     fun locale():Locale=if(current=="en") Locale.forLanguageTag("en-GB") else Locale.forLanguageTag("sk-SK")
     /** Empty string means follow the system. */
     fun chosen(context:Context):String {

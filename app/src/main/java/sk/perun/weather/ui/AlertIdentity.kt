@@ -19,7 +19,7 @@ private fun languageRank(s: String,preferred: List<String>): Int {
     return if (key.substringBefore('-')=="en") 2*n else 2*n+1
 }
 private data class LanguageBucket(val id: String,val sender: String,val level: String,val start: Instant,val end: Instant,val area: String,val code: String)
-internal fun selectAlertLanguages(items: List<AlertItem>,preferred: List<String>=AppLocale.alertLanguages()): List<AlertItem> {
+internal fun selectAlertLanguages(items: List<AlertItem>,preferred: List<String> = AppLocale.alertLanguages()): List<AlertItem> {
     val groups=linkedMapOf<LanguageBucket,List<AlertItem>>(); val unknown=mutableListOf<AlertItem>()
     for (a in items) {
         val start=a.start; val end=a.end
