@@ -53,6 +53,13 @@ class AlertPresentationTest : ResourceStringsTestBase() {
         assertEquals(AlertKind.Cold,alertKind("Extreme cold"))
         assertEquals(listOf(AlertKind.Snow,AlertKind.Ice),alertKinds("Yellow Snow-ice Warning"))
     }
+    @Test fun textIsComparedWithoutDiacritics() {
+        assertEquals(AlertKind.Storm,alertKind("Výstraha pred búrkami"))
+        assertEquals(AlertKind.Storm,alertKind("Vystraha pred burkami"))
+        assertEquals(AlertKind.Wind,alertKind("Na horách očakávame nárazy vetra s rýchlosťou až 37 m/s"))
+        assertEquals(AlertKind.Flood,alertKind("Povodňová výstraha"))
+        assertEquals(AlertKind.Other,alertKind("Pôvodné znenie"))
+    }
     @Test fun severitiesAndLocalEstimateStaySeparate() {
         assertEquals(3,groupAlertPresentation(listOf(item(),item(level="red"),item(local=true))).size)
     }
