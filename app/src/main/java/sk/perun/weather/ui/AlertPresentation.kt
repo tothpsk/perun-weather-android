@@ -6,7 +6,6 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.Instant
 import java.time.OffsetDateTime
-import java.util.Locale
 
 // Independent CAP/REST adapter; no Breezy Weather source code is incorporated.
 internal fun parseAlertTimestamp(raw: String?): Instant? {
@@ -22,18 +21,17 @@ internal fun parseAlertTimestamp(raw: String?): Instant? {
 internal data class AlertDisplayGroup(val label: String,val items: List<AlertItem>)
 
 // These labels are presentation categories, NEVER proof that two CAP messages are identical.
-private fun presentationKind(a: AlertItem): String? {
-    val words=a.event.lowercase(Locale.ROOT).split(Regex("[^a-z]+")).toSet()
-    val kinds=listOf(
-        uiText(R.string.ui_vietor_8a3ebf26) to setOf("wind","winds","gust","gusts","vent","vents","rafales","sturm","sturmb","orkan"),
-        uiText(R.string.ui_dazd_8eda180e) to setOf("rain","rainfall","pluie","pluies","regen","dauerregen"),
-        uiText(R.string.ui_burky_a079c974) to setOf("thunderstorm","thunderstorms","orage","orages","gewitter"),
-        uiText(R.string.ui_sneh_27400f08) to setOf("snow","snowfall","neige","schnee"),
-        uiText(R.string.ui_poladovica_459cceb0) to setOf("ice","icing","verglas","glatteis"),
-        uiText(R.string.ui_horucava_d2c7a7d1) to setOf("heat","heatwave","canicule","hitze"),
-        uiText(R.string.ui_chlad_7284d347) to setOf("cold","frost","gel","froid"),
-    ).filter { (_,terms)->words.any { it in terms } }.map { it.first }
-    return kinds.singleOrNull()
+// An alert that names no kind, or more than one, stays on its own; so does a flood, which has no label here.
+private fun presentationKind(a: AlertItem): String? = when (alertKinds(a.event).singleOrNull()) {
+    AlertKind.Wind -> uiText(R.string.ui_vietor_8a3ebf26)
+    AlertKind.Rain -> uiText(R.string.ui_dazd_8eda180e)
+    AlertKind.Storm -> uiText(R.string.ui_burky_a079c974)
+    AlertKind.Snow -> uiText(R.string.ui_sneh_27400f08)
+    AlertKind.Ice -> uiText(R.string.ui_poladovica_459cceb0)
+    AlertKind.Heat -> uiText(R.string.ui_horucava_d2c7a7d1)
+    AlertKind.Cold -> uiText(R.string.ui_chlad_7284d347)
+    AlertKind.Fog -> uiText(R.string.ui_hmla_386a47cf)
+    else -> null
 }
 internal fun groupAlertPresentation(items: List<AlertItem>): List<AlertDisplayGroup> {
     val groups=linkedMapOf<String,AlertDisplayGroup>()
