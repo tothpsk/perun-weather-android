@@ -2,6 +2,25 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.0.6] - 2026-11-17
+
+### Added
+
+- Locations: the list of saved places shows a mark in front of the remove button for every place that has an official alert. It uses the icon and the colour of the alert on Now, and shows +N when the place has more alerts. The list loads the alerts of the sources chosen for each place when it opens, without local estimates; when a source fails, the place has no mark.
+- Sun and Moon: the change of the day length and the time the Moon is above the horizon.
+- MeteoAlarm: a note that the alerts can be delayed against www.meteoalarm.org, and the origin of the warning area outlines in the data sources.
+
+### Changed
+
+- MeteoAlarm: a place gets the alerts of the warning areas it lies in. The position is checked against simplified outlines of the areas that are bundled with the app; names decide only where the position cannot, for example for a country without outlines. See NOTICE.txt in the app assets for the origin of the outlines.
+- Sun and Moon: the Moon tile lists moonrise, time above the horizon, moonset, phase and trend, in this order.
+- Sea level help: the same extreme markers as in the legend, and labels without the text triangles.
+- The data sources line shows MeteoAlarm on the same line as Open-Meteo.
+
+### Fixed
+
+- A place that was saved without a country, for example when the coordinates were entered without a connection, gets its name and country when the lookup is repeated after the connection returns.
+
 ## [1.0.5] - 2026-11-15
 
 ### Added
