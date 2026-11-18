@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_sky">Sun and Moon</string>
+    <string name="wg_desc_sky">Sunrise, sunset, moonrise, moonset and the phase of the Moon. A small widget shows one value, a larger one the details.</string>
+    <string name="wg_sky_main">Main value</string>
+</resources>
