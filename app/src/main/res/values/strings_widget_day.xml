@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_day">Deň po hodinách</string>
+    <string name="wg_desc_day">Hodinový graf jedného dňa ako na obrazovke Predpoveď. Šípky menia deň.</string>
+    <string name="wg_day_prev">Predchádzajúci deň</string>
+    <string name="wg_day_next">Nasledujúci deň</string>
+    <string name="wg_day_rows">Riadky grafu</string>
+    <string name="wg_day_rows_note">Zobrazí sa toľko riadkov, koľko sa zmestí na výšku widgetu, v tomto poradí.</string>
+</resources>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_day">Day by hours</string>
+    <string name="wg_desc_day">Hourly chart of one day, as on the Forecast screen. The arrows change the day.</string>
+    <string name="wg_day_prev">Previous day</string>
+    <string name="wg_day_next">Next day</string>
+    <string name="wg_day_rows">Chart rows</string>
+    <string name="wg_day_rows_note">As many rows are shown as fit the height of the widget, in this order.</string>
+</resources>
