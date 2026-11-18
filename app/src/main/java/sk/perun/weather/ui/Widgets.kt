@@ -8,11 +8,6 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.DashPathEffect
-import android.graphics.Paint
-import android.graphics.Path
 import android.os.Bundle
 import android.util.TypedValue
 import android.view.View
@@ -40,14 +35,9 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.CancellationException
 import sk.perun.weather.ui.theme.PerunTheme
-import java.time.Duration
-import java.time.Instant
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.time.temporal.ChronoUnit
 import java.util.Locale
-import kotlin.math.max
 import kotlin.math.roundToInt
 
 /** Per-widget settings; loc is "active" or a BackgroundRefresh.locationKey. */
@@ -154,8 +144,6 @@ private val DarkText=Palette(0xFF14161A.toInt(),0xFF4B586C.toInt(),0x44000000,0x
 
 internal object WidgetRender {
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
-    private val Hh:DateTimeFormatter=DateTimeFormatter.ofPattern("HH")
-    private val DayFormat:DateTimeFormatter=DateTimeFormatter.ofPattern(appPattern("EEE d."),appLocale())
     private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
     private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
     private val HourTime=intArrayOf(R.id.wg_h0t,R.id.wg_h1t,R.id.wg_h2t,R.id.wg_h3t,R.id.wg_h4t,R.id.wg_h5t)
@@ -262,6 +250,7 @@ internal object WidgetRender {
         alert(v,d,pal)
         return v
     }
+    /** The chart itself is drawn in MeteogramChart.kt, at the real size of the widget down to two cells. */
     private fun meteo(c:Context,w:WidgetConfig,l:Location,d:OverviewData,u:WeatherUnits,o:Bundle,pal:Palette):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_meteo)
         v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,84))
@@ -274,131 +263,9 @@ internal object WidgetRender {
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 160
         val cw=((wDp-20)*dn).roundToInt().coerceIn(200,1400)
-        val ch=((hDp-54)*dn).roundToInt().coerceIn((80*dn).roundToInt(),(420*dn).roundToInt())
-        v.setImageViewBitmap(R.id.wg_chart,chart(c,d,u,w,pal,cw,ch))
+        val ch=((hDp-54)*dn).roundToInt().coerceIn((40*dn).roundToInt(),(420*dn).roundToInt())
+        v.setImageViewBitmap(R.id.wg_chart,meteogramBitmap(c,d,u,w.hours,w.meteo,pal.muted,pal.dark,cw,ch))
         return v
-    }
-    /** Meteogram rows from top: day names, icons, cloud band, plot (temperature, wind, probability, precipitation), day-night strip, hours. */
-    private fun chart(c:Context,d:OverviewData,u:WeatherUnits,w:WidgetConfig,pal:Palette,wPx:Int,hPx:Int):Bitmap {
-        val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
-        val s=d.series.take(if(w.hours==48) 48 else 24)
-        if(s.size<2) return bmp
-        val show=w.meteo
-        val dn=c.resources.displayMetrics.density
-        val iconPx=(18*dn).roundToInt()
-        val dayBase=10*dn;val iconTop=dayBase+3*dn;val cloudTop=iconTop+iconPx+3*dn
-        val top=cloudTop+(if("cloud" in show) 7*dn else 2*dn)
-        val sunH=4*dn;val bottom=hPx-20*dn;val bandTop=bottom+3*dn
-        val left=4*dn;val right=wPx-4*dn
-        val plotH=max(bottom-top,10f)
-        val step=(right-left)/(s.size-1)
-        fun x(i:Int):Float = left+step*i
-        val p=Paint(Paint.ANTI_ALIAS_FLAG)
-        p.style=Paint.Style.FILL
-        class Tag(val key:String,val color:Int,val text:String,val cx:Float,val cy:Float)
-        val tags=ArrayList<Tag>();val used=ArrayList<android.graphics.RectF>();val busy=ArrayList<android.graphics.RectF>()
-        val t0=s[0].time.atZone(d.zone).toInstant()
-        fun xt(t:Instant):Float = left+step*(Duration.between(t0,t).seconds/3600f)
-        p.color=if(pal.dark) 0xFF5C6B8A.toInt() else 0xFF2E3A57.toInt()
-        cv.drawRoundRect(left,bandTop,right,bandTop+sunH,sunH/2,sunH/2,p)
-        p.color=0xFFFFC94D.toInt()
-        if(d.sunTimes.isEmpty()) s.forEachIndexed { i,h -> if(h.time.hour in 7..19) cv.drawRect(x(i)-step/2,bandTop,x(i)+step/2,bandTop+sunH,p) }
-        for((rise,set) in d.sunTimes) { val a=xt(rise).coerceIn(left,right);val b=xt(set).coerceIn(left,right);if(b-a>1f) cv.drawRoundRect(a,bandTop,b,bandTop+sunH,sunH/2,sunH/2,p) }
-        val today=d.time.toLocalDate()
-        fun dayName(date:LocalDate):String = when(ChronoUnit.DAYS.between(today,date)) { 0L->uiText(R.string.wg_today);1L->uiText(R.string.wg_tomorrow);else->date.format(DayFormat) }
-        val starts=s.indices.filter { it==0 || s[it].time.hour==0 }
-        p.textSize=10*dn;p.textAlign=Paint.Align.LEFT
-        starts.forEachIndexed { k,i ->
-            if(i>0) { p.color=pal.grid;cv.drawRect(x(i)-0.5f*dn,iconTop,x(i)+0.5f*dn,bandTop+sunH,p) }
-            val label=dayName(s[i].time.toLocalDate());val lw=p.measureText(label)
-            val next=starts.getOrNull(k+1)
-            if(next==null || x(next)-x(i)>lw+8*dn) { p.color=pal.muted;cv.drawText(label,(x(i)+3*dn).coerceAtMost(right-lw),dayBase,p) }
-        }
-        if("cloud" in show) s.forEachIndexed { i,h ->
-            if(h.cloud.isFinite()) {
-                p.color=android.graphics.Color.argb((25+h.cloud*1.9).toInt().coerceIn(0,255),android.graphics.Color.red(pal.cloud),android.graphics.Color.green(pal.cloud),android.graphics.Color.blue(pal.cloud))
-                cv.drawRect(x(i)-step/2,cloudTop,x(i)+step/2,cloudTop+4*dn,p)
-            }
-        }
-        if("precip" in show) {
-            val maxP=max(2.0,s.maxOf { if(it.precipitation.isFinite()) it.precipitation else 0.0 });val wet=s.indices.filter { s[it].precipitation.isFinite() }.maxByOrNull { s[it].precipitation };if(wet!=null && s[wet].precipitation>0.05) tags+=Tag("rain",0xFF4FC3F7.toInt(),weatherUnitNumber(u.precipitation.fromMillimetres(s[wet].precipitation),1)+" "+u.precipitation.liquidSymbol,x(wet),bottom-(s[wet].precipitation/maxP*plotH*0.4).toFloat()-13*dn)
-            s.forEachIndexed { i,h ->
-                val pr=if(h.precipitation.isFinite()) h.precipitation else 0.0
-                if(pr>0.05) {
-                    val bar=(pr/maxP*plotH*0.4).toFloat()
-                    val prob=if(h.probability.isFinite()) h.probability else 100.0
-                    p.color=android.graphics.Color.argb((90+prob*1.6).toInt().coerceIn(0,255),79,195,247)
-                    cv.drawRect(x(i)-step*0.35f,bottom-bar,x(i)+step*0.35f,bottom,p);busy+=android.graphics.RectF(x(i)-step*0.35f,bottom-bar,x(i)+step*0.35f,bottom)
-                }
-            }
-        }
-        fun line(values:List<Double>,y:(Double)->Float,color:Int,dashed:Boolean,width:Float) {
-            values.indices.forEach { i -> val v=values[i];if(v.isFinite()) { val n=values.getOrNull(i+1)?.takeIf { it.isFinite() } ?: v;busy+=android.graphics.RectF(x(i)-1*dn,kotlin.math.min(y(v),y(n))-0.5f*dn,x(i)+step+1*dn,max(y(v),y(n))+0.5f*dn) } }
-            val path=Path();var started=false
-            values.forEachIndexed { i,v -> if(v.isFinite()) { if(!started) { path.moveTo(x(i),y(v));started=true } else path.lineTo(x(i),y(v)) } }
-            p.style=Paint.Style.STROKE;p.strokeWidth=width;p.strokeJoin=Paint.Join.ROUND;p.strokeCap=Paint.Cap.ROUND;p.color=color
-            p.pathEffect=if(dashed) DashPathEffect(floatArrayOf(4*dn,3*dn),0f) else null
-            cv.drawPath(path,p);p.pathEffect=null;p.style=Paint.Style.FILL
-        }
-        if("prob" in show) { line(s.map { it.probability },{ v -> bottom-(v/100.0*plotH*0.9).toFloat() },0xCC4FC3F7.toInt(),true,1.3f*dn);val likely=s.indices.filter { s[it].probability.isFinite() }.maxByOrNull { s[it].probability };if(likely!=null && s[likely].probability>0.0) tags+=Tag("umbrella",0xFF4FC3F7.toInt(),weatherUnitNumber(s[likely].probability,0)+" %",x(likely),bottom-(s[likely].probability/100.0*plotH*0.9).toFloat()-13*dn) }
-        val windKeys=listOf("wind","gust").filter { it in show }
-        if(windKeys.isNotEmpty()) {
-            fun windSeries(k:String):List<Double> = s.map { u.wind.fromKmh(if(k=="wind") it.wind else it.gust) }
-            val all=windKeys.flatMap { windSeries(it) }.filter { it.isFinite() }
-            if(all.isNotEmpty()) {
-                val top3=all.maxOf { it };val hi=max(top3,u.wind.fromKmh(20.0))
-                val yw={ v:Double -> bottom-(v/hi*plotH*0.55).toFloat() }
-                windKeys.forEach { k -> line(windSeries(k),yw,0xFF80CBC4.toInt(),k=="gust",1.6f*dn) }
-                windKeys.forEach { k -> val ws=windSeries(k);val wi=ws.indices.filter { ws[it].isFinite() }.maxByOrNull { ws[it] };if(wi!=null) tags+=Tag(k,0xFF80CBC4.toInt(),weatherUnitNumber(ws[wi],0)+" "+u.wind.symbol,x(wi),yw(ws[wi])-13*dn) }
-            }
-        }
-        if("temp" in show) {
-            val temps=s.map { u.temperature.fromCelsius(it.temperature) }
-            val valid=temps.indices.filter { temps[it].isFinite() }
-            if(valid.isNotEmpty()) {
-                val lo=valid.minOf { temps[it] };val hi=max(valid.maxOf { temps[it] },lo+1.0)
-                val y={ v:Double -> top+18*dn+((plotH-18*dn)*0.58*(1.0-(v-lo)/(hi-lo))).toFloat() }
-                line(temps,y,0xFFEF5350.toInt(),false,2.2f*dn)
-                p.textSize=11*dn;p.textAlign=Paint.Align.CENTER;p.color=0xFFEF5350.toInt()
-                var iconDone=false
-                fun mark(i:Int,above:Boolean) {
-                    val text=weatherUnitNumber(temps[i],0)+"°";val tw=p.measureText(text);val lead=above && !iconDone
-                    val tx=x(i).coerceIn(left+(if(lead) 22*dn else 10*dn),right-10*dn);val ty=if(above) y(temps[i])-5*dn else y(temps[i])+14*dn
-                    val box=android.graphics.RectF(tx-tw/2-(if(lead) 12*dn else 0f),ty-11*dn,tx+tw/2,ty+2*dn)
-                    if(used.any { android.graphics.RectF.intersects(it,box) }) return
-                    cv.drawText(text,tx,ty,p)
-                    if(lead) { cv.drawBitmap(widgetGlyphBitmap("temp",0xFFEF5350.toInt(),(11*dn).roundToInt()),tx-tw/2-12*dn,ty-10*dn,null);iconDone=true }
-                    used+=box
-                }
-                valid.groupBy { s[it].time.toLocalDate() }.values.filter { it.size>=3 }.forEach { day ->
-                    val hiI=day.maxBy { temps[it] };val loI=day.minBy { temps[it] }
-                    mark(hiI,true);if(loI!=hiI) mark(loI,false)
-                }
-            }
-        }
-        val gs=(10*dn).roundToInt()
-        p.style=Paint.Style.FILL;p.textSize=9*dn;p.textAlign=Paint.Align.LEFT
-        for(tg in tags) {
-            val bw=gs+2*dn+p.measureText(tg.text);val bh=12*dn
-            val cands=ArrayList<android.graphics.RectF>()
-            for(kx in listOf(0f,-0.8f,0.8f,-1.6f,1.6f)) for(ky in -8..8) { val x0=(tg.cx-bw/2+kx*bw).coerceIn(left,(right-bw).coerceAtLeast(left));val y0=(tg.cy+ky*bh/2).coerceIn(top,(bottom-bh).coerceAtLeast(top));cands+=android.graphics.RectF(x0,y0,x0+bw,y0+bh) }
-            cands.sortBy { kotlin.math.abs(it.left-(tg.cx-bw/2))+kotlin.math.abs(it.top-tg.cy) }
-            fun clear(r:android.graphics.RectF,among:List<android.graphics.RectF>):Boolean = among.none { android.graphics.RectF.intersects(it,r) }
-            val spot=cands.firstOrNull { clear(it,used) && clear(it,busy) } ?: cands.firstOrNull { clear(it,used) } ?: continue
-            used+=spot
-            cv.drawBitmap(widgetGlyphBitmap(tg.key,tg.color,gs),spot.left,spot.top+1*dn,null)
-            p.color=tg.color;cv.drawText(tg.text,spot.left+gs+2*dn,spot.top+10*dn,p)
-        }
-        val every=if(s.size>30) 6 else 3
-        p.style=Paint.Style.FILL;p.textSize=10*dn;p.textAlign=Paint.Align.CENTER
-        s.forEachIndexed { i,h ->
-            if(h.time.hour%every==0) {
-                p.color=pal.muted
-                cv.drawText(h.time.format(Hh),x(i).coerceIn(left+7*dn,right-7*dn),hPx-3*dn,p)
-                cv.drawBitmap(widgetWeatherBitmap(h.code,dayAt(d,h.time),iconPx),(x(i)-iconPx/2f).coerceIn(0f,(wPx-iconPx).toFloat()),iconTop,null)
-            }
-        }
-        return bmp
     }
 }
 
