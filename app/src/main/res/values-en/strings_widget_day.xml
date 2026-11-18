@@ -6,4 +6,6 @@
     <string name="wg_day_next">Next day</string>
     <string name="wg_day_rows">Chart rows</string>
     <string name="wg_day_rows_note">As many rows are shown as fit the height of the widget, in this order.</string>
+    <string name="wg_name_days">6 days</string>
+    <string name="wg_desc_days">Current conditions and the forecast for six days.</string>
 </resources>

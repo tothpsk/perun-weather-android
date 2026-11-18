@@ -6,4 +6,6 @@
     <string name="wg_day_next">Nasledujúci deň</string>
     <string name="wg_day_rows">Riadky grafu</string>
     <string name="wg_day_rows_note">Zobrazí sa toľko riadkov, koľko sa zmestí na výšku widgetu, v tomto poradí.</string>
+    <string name="wg_name_days">6 dní</string>
+    <string name="wg_desc_days">Aktuálne podmienky a predpoveď na šesť dní.</string>
 </resources>
