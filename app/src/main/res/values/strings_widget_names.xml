@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_title_compact">Kompaktný</string>
+    <string name="wg_title_now">Najbližších 6 hodín</string>
+    <string name="wg_title_meteo">Meteogram</string>
+    <string name="wg_about_meteo">Graf na 24 alebo 48 hodín s veličinami podľa vlastného výberu</string>
+</resources>

@@ -8,8 +8,12 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import android.graphics.RectF
+import android.graphics.Typeface
 import android.os.Bundle
-import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import androidx.activity.ComponentActivity
@@ -38,6 +42,7 @@ import sk.perun.weather.ui.theme.PerunTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.min
 import kotlin.math.roundToInt
 
 /** Per-widget settings; loc is "active" or a BackgroundRefresh.locationKey. */
@@ -47,7 +52,7 @@ internal object PerunWidgets {
     private const val Prefs="perun_widgets"
     private const val Work="perun-widgets"
     const val ActionRefresh="sk.perun.weather.WIDGET_REFRESH"
-    /** Width from which the Current conditions and 6 days widgets show the fourth value; about five cells. */
+    /** Width from which the Next 6 hours and 6 days widgets show the fourth value; about five cells. */
     const val WideDp=320
     val Kinds:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java)
     /** Every widget of the app, for the settings page. The last three are drawn by their own workers. */
@@ -89,7 +94,7 @@ internal object PerunWidgets {
         val m=AppWidgetManager.getInstance(c)
         return m.isRequestPinAppWidgetSupported && m.requestPinAppWidget(ComponentName(c,kind),null,null)
     }
-    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_name_compact;NowWidget::class.java->R.string.wg_name_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;AirWidget::class.java->R.string.wg_name_air;else->R.string.wg_name_meteo })
+    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_title_compact;NowWidget::class.java->R.string.wg_title_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;AirWidget::class.java->R.string.wg_name_air;else->R.string.wg_title_meteo })
 }
 
 abstract class PerunWidgetProvider:AppWidgetProvider() {
@@ -207,29 +212,104 @@ internal object WidgetRender {
         v.setContentDescription(R.id.wg_alert,a.event)
     }
     private fun snowing(d:OverviewData):Boolean = (d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)
-    /** Very small: icon and temperature only; the place and the chosen value appear as the widget grows. */
+    /**
+     * Below 120 dp of width only the icon and the temperature. Otherwise the widget is one picture: a single row at one cell of height,
+     * the icon with the values beside it and the place below at two cells of width, and a wider form with the refresh button.
+     */
     private fun compact(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 180
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 110
-        val tiny=wDp<120
-        val v=RemoteViews(c.packageName,if(tiny) R.layout.wg_compact_tiny else R.layout.wg_compact)
-        v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,144))
-        v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
-        paint(v,pal.fg,R.id.wg_temp)
-        if(tiny) return v
-        val roomy=hDp>=100;val big=hDp>=130 && wDp>=170
-        val showPlace=hDp>=72
-        val showExtra=roomy && w.extra!="none" && w.extra in Notifier.CurrentOptions
-        v.setTextViewTextSize(R.id.wg_temp,TypedValue.COMPLEX_UNIT_SP,if(big) 40f else if(roomy) 32f else 26f)
-        val small=if(big) 16f else if(roomy) 14f else 13f
-        v.setTextViewTextSize(R.id.wg_place,TypedValue.COMPLEX_UNIT_SP,small)
-        v.setTextViewTextSize(R.id.wg_extra,TypedValue.COMPLEX_UNIT_SP,small)
-        v.setViewVisibility(R.id.wg_place,if(showPlace) View.VISIBLE else View.GONE)
-        v.setTextViewText(R.id.wg_place,l.name)
-        v.setViewVisibility(R.id.wg_extra,if(showExtra) View.VISIBLE else View.GONE)
-        if(showExtra) v.setTextViewText(R.id.wg_extra,param(w.extra,d,ex,u))
-        paint(v,pal.fg,R.id.wg_extra);paint(v,pal.muted,R.id.wg_place)
+        if(wDp<120) {
+            val v=RemoteViews(c.packageName,R.layout.wg_compact_tiny)
+            v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,144))
+            v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
+            paint(v,pal.fg,R.id.wg_temp)
+            return v
+        }
+        val v=RemoteViews(c.packageName,R.layout.wg_compact)
+        val dn=c.resources.displayMetrics.density
+        val row=hDp<100;val wide=!row && wDp>=200
+        val order=listOf("red","orange","yellow")
+        val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
+        val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
+        val temp=t(u,d.temperature)
+        v.setImageViewBitmap(R.id.wg_compact_img,compactBitmap(dn,((wDp-16)*dn).roundToInt().coerceIn(40,1400),((hDp-16)*dn).roundToInt().coerceIn(40,900),row,wide,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,pal))
+        v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
+        v.setViewVisibility(R.id.wg_refresh,if(wide) View.VISIBLE else View.GONE)
         return v
+    }
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,wide:Boolean,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,pal:Palette):Bitmap {
+        val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
+        val w=wPx.toFloat();val h=hPx.toFloat()
+        val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        fun font(size:Float,bold:Boolean) { p.textSize=size*dn;p.typeface=if(bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT }
+        fun width(s:String,size:Float,bold:Boolean):Float { font(size,bold);return p.measureText(s) }
+        fun text(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) { font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,y,p) }
+        fun fit(s:String,size:Float,bold:Boolean,room:Float):String {
+            font(size,bold)
+            if(p.measureText(s)<=room) return s
+            var t=s
+            while(t.length>1 && p.measureText(t+"\u2026")>room) t=t.dropLast(1)
+            return if(p.measureText(t+"\u2026")<=room) t+"\u2026" else ""
+        }
+        fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
+        fun weather(x:Float,y:Float,size:Float) = pic(widgetWeatherBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
+        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetGlyphBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
+        val hasAlert=alertEvent!=null && alertLevel!=null
+        fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
+        if(row) {
+            // One row: icon, temperature, place, warning, the chosen value.
+            val s=min(h,34*dn);weather(0f,(h-s)/2,s)
+            val ts=(h/dn*0.5f).coerceIn(13f,22f)
+            val x=s+6*dn+width(temp,ts,true)+8*dn
+            text(temp,s+6*dn,h/2+ts*dn*0.36f,ts,pal.fg,true)
+            var right=w
+            if(extra!=null && extraKey!=null) {
+                val ew=width(extra,13f,true)
+                text(extra,right,h/2+13*dn*0.36f,13f,pal.fg,true,Paint.Align.RIGHT)
+                glyph(extraKey,right-ew-17*dn,h/2-7*dn,14*dn)
+                right-=ew+25*dn
+            }
+            if(hasAlert) { warn(right-18*dn,h/2-9*dn,18*dn);right-=24*dn }
+            text(fit(place,13f,false,right-x),x,h/2+13*dn*0.36f,13f,pal.muted)
+        } else if(!wide) {
+            // Two cells: icon, the temperature and the chosen value beside it, the warning in the corner, the place below.
+            warn(w-20*dn,0f,20*dn)
+            text(fit(place,12f,false,w),w/2,h-4*dn,12f,pal.muted,false,Paint.Align.CENTER)
+            val area=h-20*dn
+            val s=min(area,w*0.45f);weather(0f,(area-s)/2,s)
+            val x0=s+6*dn;val room=w-x0
+            var ts=(area/dn*0.42f).coerceIn(14f,34f)
+            while(ts>14f && width(temp,ts,true)>room) ts-=1f
+            val top=(area-ts*dn-(if(extra!=null) 19*dn else 0f))/2
+            text(temp,x0,top+ts*dn*0.85f,ts,pal.fg,true)
+            if(extra!=null && extraKey!=null) {
+                val base=top+ts*dn+15*dn
+                glyph(extraKey,x0,base-12*dn,13*dn)
+                text(fit(extra,13f,false,room-16*dn),x0+16*dn,base,13f,pal.fg)
+            }
+        } else {
+            // Three cells and more: the chosen value (or the weather in words) fills the right side, the warning follows the place.
+            val shown=fit(place,13f,false,w-(if(hasAlert) 24*dn else 0f))
+            text(shown,0f,h-4*dn,13f,pal.muted)
+            warn(width(shown,13f,false)+6*dn,h-19*dn,18*dn)
+            val area=h-22*dn
+            val s=min(area,w*0.3f);weather(0f,(area-s)/2,s)
+            val x0=s+8*dn
+            val ts=(area/dn*0.5f).coerceIn(16f,40f)
+            text(temp,x0,area/2+ts*dn*0.36f,ts,pal.fg,true)
+            // The refresh button of the layout takes the top right corner.
+            val right=w-30*dn;val room=right-(x0+width(temp,ts,true)+10*dn)
+            if(room>=40*dn) {
+                if(extra!=null && extraKey!=null) {
+                    text(fit(Notifier.paramLabel(extraKey),10f,false,room),right,area/2-6*dn,10f,pal.muted,false,Paint.Align.RIGHT)
+                    val value=fit(extra,17f,true,room-22*dn)
+                    text(value,right,area/2+14*dn,17f,pal.fg,true,Paint.Align.RIGHT)
+                    glyph(extraKey,right-width(value,17f,true)-21*dn,area/2-1*dn,17*dn)
+                } else text(fit(overviewCondition(d.code),13f,false,room),right,area/2+5*dn,13f,pal.fg,false,Paint.Align.RIGHT)
+            }
+        }
+        return bmp
     }
     private fun now(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_now)

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="wg_name_air">Ovzdušie a peľ</string>
+    <string name="wg_name_air">Kvalita ovzdušia a peľ</string>
     <string name="wg_desc_air">Kvalita ovzdušia a peľ. Malý widget ukazuje jednu hodnotu, väčší podrobnosti.</string>
     <string name="wg_air_main">Hlavný údaj</string>
     <string name="wg_air_quality">Kvalita ovzdušia</string>

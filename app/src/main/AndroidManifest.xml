@@ -34,15 +34,15 @@
         <activity android:name=".ui.AirWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
-        <receiver android:name=".ui.CompactWidget" android:exported="false" android:label="@string/wg_name_compact">
+        <receiver android:name=".ui.CompactWidget" android:exported="false" android:label="@string/wg_title_compact">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_compact_info" />
         </receiver>
-        <receiver android:name=".ui.NowWidget" android:exported="false" android:label="@string/wg_name_now">
+        <receiver android:name=".ui.NowWidget" android:exported="false" android:label="@string/wg_title_now">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_now_info" />
         </receiver>
-        <receiver android:name=".ui.MeteogramWidget" android:exported="false" android:label="@string/wg_name_meteo">
+        <receiver android:name=".ui.MeteogramWidget" android:exported="false" android:label="@string/wg_title_meteo">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_meteo_info" />
         </receiver>

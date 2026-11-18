@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_title_compact">Compact</string>
+    <string name="wg_title_now">Next 6 hours</string>
+    <string name="wg_title_meteo">Meteogram</string>
+    <string name="wg_about_meteo">A chart of 24 or 48 hours with the quantities you choose</string>
+</resources>
