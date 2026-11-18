@@ -31,6 +31,9 @@
         <activity android:name=".ui.SixDayConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
+        <activity android:name=".ui.AirWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
         <receiver android:name=".ui.CompactWidget" android:exported="false" android:label="@string/wg_name_compact">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_compact_info" />
@@ -50,6 +53,10 @@
         <receiver android:name=".ui.SixDayWidget" android:exported="false" android:label="@string/wg_name_days">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_days_info" />
+        </receiver>
+        <receiver android:name=".ui.AirWidget" android:exported="false" android:label="@string/wg_name_air">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_air_info" />
         </receiver>
     </application>
 

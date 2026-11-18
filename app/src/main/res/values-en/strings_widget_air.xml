@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_air">Air and pollen</string>
+    <string name="wg_desc_air">Air quality and pollen. A small widget shows one value, a larger one the details.</string>
+    <string name="wg_air_main">Main value</string>
+    <string name="wg_air_quality">Air quality</string>
+    <string name="wg_air_pollen">Pollen</string>
+</resources>
