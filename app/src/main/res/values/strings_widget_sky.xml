@@ -5,8 +5,9 @@
     <string name="wg_sky_main">Zobraziť</string>
     <string name="wg_sky_rise">Východ</string>
     <string name="wg_sky_set">Západ</string>
-    <string name="wg_sky_day">Dĺžka dňa</string>
+    <string name="wg_sky_noon">Poludnie</string>
     <string name="wg_sky_change">Oproti včera</string>
     <string name="wg_sky_lit">Osvetlenie</string>
+    <string name="wg_sky_up">Nad obzorom</string>
     <string name="wg_sky_trend">Trend</string>
 </resources>
