@@ -66,8 +66,8 @@ internal object SixDayWidgets {
     private val Keys=listOf("temperature_2m","apparent_temperature","precipitation","precipitation_probability","wind_speed_10m","wind_gusts_10m","wind_direction_10m","cloud_cover","uv_index","relative_humidity_2m","dew_point_2m","visibility","pressure_msl","snowfall","rain","showers","weather_code","is_day")
     private val Levels=listOf("red","orange","yellow")
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
-    private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i)
-    private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v)
+    private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
+    private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
     private val DayName=intArrayOf(R.id.wg_h0t,R.id.wg_h1t,R.id.wg_h2t,R.id.wg_h3t,R.id.wg_h4t,R.id.wg_h5t)
     private val DayIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val DayMax=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
@@ -128,13 +128,18 @@ internal object SixDayWidgets {
         val dark=cfg.text=="dark"
         val fg=if(dark) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
         val muted=if(dark) 0xFF4B586C.toInt() else 0xFFBBC4D2.toInt()
+        val manager=AppWidgetManager.getInstance(c)
         val v=RemoteViews(c.packageName,R.layout.wg_days)
         v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,120))
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
         val snowing=(d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)
-        cfg.params.take(3).forEachIndexed { i,key ->
+        // The fourth value needs the room of about five cells.
+        val wide=(manager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 250)>=PerunWidgets.WideDp
+        v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
+        v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
+        cfg.params.take(if(wide) 4 else 3).forEachIndexed { i,key ->
             v.setImageViewBitmap(CellIcon[i],widgetGlyphBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
             v.setTextViewText(CellValue[i],param(key,d,ex,u))
         }
@@ -161,7 +166,7 @@ internal object SixDayWidgets {
         v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l)))
         v.setInt(R.id.wg_refresh,"setColorFilter",muted)
         v.setOnClickPendingIntent(R.id.wg_refresh,PendingIntent.getBroadcast(c,20000+id,Intent(c,SixDayWidget::class.java).setAction(ActionRefresh),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
-        AppWidgetManager.getInstance(c).updateAppWidget(id,v)
+        manager.updateAppWidget(id,v)
         return true
     }
 }
@@ -169,6 +174,8 @@ internal object SixDayWidgets {
 class SixDayWidget:AppWidgetProvider() {
     override fun onReceive(context:Context,intent:Intent) { if(intent.action==SixDayWidgets.ActionRefresh) SixDayWidgets.refresh(context,true) else super.onReceive(context,intent) }
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray) { SixDayWidgets.refresh(context);SixDayWidgets.schedule(context) }
+    // A new width can show or hide the fourth value.
+    override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { SixDayWidgets.refresh(context) }
     override fun onDeleted(context:Context,ids:IntArray) { PerunWidgets.remove(context,ids) }
     override fun onDisabled(context:Context) { SixDayWidgets.cancel(context) }
 }
@@ -205,8 +212,8 @@ class SixDayConfigActivity:ComponentActivity() {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
                     Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                         Text(uiText(R.string.wg_config_title),style=MaterialTheme.typography.titleLarge,color=Color(0xFFE8EAF0))
-                        // The form of the Current conditions widget: place, three values, background and text colour.
-                        WidgetConfigForm("NowWidget",locations,initial) { cfg ->
+                        // The form of the Current conditions widget: place, four values, background and text colour.
+                        WidgetConfigForm("SixDayWidget",locations,initial) { cfg ->
                             PerunWidgets.write(this@SixDayConfigActivity,id,cfg)
                             SixDayWidgets.refresh(this@SixDayConfigActivity)
                             SixDayWidgets.schedule(this@SixDayConfigActivity)

@@ -57,14 +57,18 @@ internal object PerunWidgets {
     private const val Prefs="perun_widgets"
     private const val Work="perun-widgets"
     const val ActionRefresh="sk.perun.weather.WIDGET_REFRESH"
+    /** Width from which the Current conditions and 6 days widgets show the fourth value; about five cells. */
+    const val WideDp=320
     val Kinds:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java)
+    /** Every widget of the app, for the settings page. The last two are drawn by their own workers. */
+    val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java)
     val MeteoOptions=listOf("temp","precip","prob","cloud","wind","gust")
     val Backgrounds=listOf("dark","glass","light")
     private fun prefs(c:Context) = c.applicationContext.getSharedPreferences(Prefs,Context.MODE_PRIVATE)
     fun read(c:Context,id:Int):WidgetConfig {
         val p=prefs(c)
-        val params=(p.getString("params_$id","") ?: "").split(",").filter { it in Notifier.CurrentOptions }.distinct().take(3)
-        val padded=(params+listOf("wind","rain","uv").filter { it !in params }).take(3)
+        val params=(p.getString("params_$id","") ?: "").split(",").filter { it in Notifier.CurrentOptions }.distinct().take(4)
+        val padded=(params+listOf("wind","rain","uv","humidity").filter { it !in params }).take(4)
         val meteo=(p.getString("meteo_$id","temp,precip,cloud") ?: "").split(",").filter { it in MeteoOptions }
         val bg=(p.getString("bg_$id",null) ?: if(p.getBoolean("glass_$id",false)) "glass" else "dark").takeIf { it in Backgrounds } ?: "dark"
         val text=if(p.getString("text_$id","light")=="dark") "dark" else "light"
@@ -81,7 +85,7 @@ internal object PerunWidgets {
     }
     fun ids(c:Context,kind:Class<*>):IntArray = AppWidgetManager.getInstance(c).getAppWidgetIds(ComponentName(c,kind))
     fun any(c:Context):Boolean = Kinds.any { ids(c,it).isNotEmpty() }
-    fun count(c:Context):Int = Kinds.sumOf { ids(c,it).size }
+    fun count(c:Context):Int = Listed.sumOf { ids(c,it).size }
     /** Re-renders every widget; force bypasses the fresh cache (refresh button). */
     fun refresh(c:Context,force:Boolean=false) {
         if(!any(c)) return
@@ -89,11 +93,13 @@ internal object PerunWidgets {
             .setConstraints(Constraints.Builder().setRequiredNetworkType(NetworkType.CONNECTED).build()).build()
         WorkManager.getInstance(c.applicationContext).enqueueUniqueWork(Work,ExistingWorkPolicy.REPLACE,request)
     }
+    /** The manual refresh of the settings page: every widget of the app, from the network. */
+    fun refreshAll(c:Context) { refresh(c,true);SixDayWidgets.refresh(c,true);DayWidgets.refresh(c,true) }
     fun pin(c:Context,kind:Class<*>):Boolean {
         val m=AppWidgetManager.getInstance(c)
         return m.isRequestPinAppWidgetSupported && m.requestPinAppWidget(ComponentName(c,kind),null,null)
     }
-    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_name_compact;NowWidget::class.java->R.string.wg_name_now;else->R.string.wg_name_meteo })
+    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_name_compact;NowWidget::class.java->R.string.wg_name_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;else->R.string.wg_name_meteo })
 }
 
 abstract class PerunWidgetProvider:AppWidgetProvider() {
@@ -150,8 +156,8 @@ internal object WidgetRender {
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
     private val Hh:DateTimeFormatter=DateTimeFormatter.ofPattern("HH")
     private val DayFormat:DateTimeFormatter=DateTimeFormatter.ofPattern(appPattern("EEE d."),appLocale())
-    private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i)
-    private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v)
+    private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
+    private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
     private val HourTime=intArrayOf(R.id.wg_h0t,R.id.wg_h1t,R.id.wg_h2t,R.id.wg_h3t,R.id.wg_h4t,R.id.wg_h5t)
     private val HourIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val HourTemp=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
@@ -160,7 +166,7 @@ internal object WidgetRender {
         val pal=if(w.text=="dark") DarkText else LightText
         val v=when(kind) {
             CompactWidget::class.java->compact(c,w,l,d,ex,u,pal,o)
-            NowWidget::class.java->now(c,w,l,d,ex,u,pal)
+            NowWidget::class.java->now(c,w,l,d,ex,u,pal,o)
             else->meteo(c,w,l,d,u,o,pal)
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",when(w.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
@@ -234,13 +240,17 @@ internal object WidgetRender {
         paint(v,pal.fg,R.id.wg_extra);paint(v,pal.muted,R.id.wg_place)
         return v
     }
-    private fun now(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette):RemoteViews {
+    private fun now(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_now)
         v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,120))
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
-        w.params.take(3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetGlyphBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
+        // The fourth value needs the room of about five cells.
+        val wide=(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 250)>=PerunWidgets.WideDp
+        v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
+        v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
+        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetGlyphBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
         d.hours.take(6).forEachIndexed { i,h ->
             v.setTextViewText(HourTime[i],h.time.format(Hm))
             v.setImageViewBitmap(HourIcon[i],widgetWeatherBitmap(h.code,dayAt(d,h.time),64))
@@ -443,13 +453,16 @@ private fun meteoLabel(key:String):String = when(key) {
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         label(R.string.wg_location)
         PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
-        if(kind.endsWith("NowWidget")) for(i in 0..2) {
-            Text(uiText(R.string.wg_param_n,i+1),style=MaterialTheme.typography.labelLarge,color=muted)
-            PerunChips(labels,options.indexOf(params[i]).coerceAtLeast(0),{ pick ->
-                val next=params.toMutableList();val chosen=options[pick]
-                val other=next.indexOf(chosen);if(other>=0 && other!=i) next[other]=next[i]
-                next[i]=chosen;params=next
-            })
+        if(kind.endsWith("NowWidget") || kind.endsWith("SixDayWidget")) {
+            for(i in 0..3) {
+                Text(uiText(R.string.wg_param_n,i+1),style=MaterialTheme.typography.labelLarge,color=muted)
+                PerunChips(labels,options.indexOf(params[i]).coerceAtLeast(0),{ pick ->
+                    val next=params.toMutableList();val chosen=options[pick]
+                    val other=next.indexOf(chosen);if(other>=0 && other!=i) next[other]=next[i]
+                    next[i]=chosen;params=next
+                })
+            }
+            Text(uiText(R.string.wg_param_wide),style=MaterialTheme.typography.bodySmall,color=muted)
         }
         if(kind.endsWith("CompactWidget")) {
             val extras=listOf("none")+options
@@ -488,13 +501,16 @@ private fun meteoLabel(key:String):String = when(key) {
     var tick by remember { mutableStateOf(0) }
     var editing by remember { mutableStateOf<Int?>(null) }
     val resumed=rememberOnResume { System.currentTimeMillis() }
-    val placed=remember(tick,resumed) { PerunWidgets.Kinds.flatMap { k -> PerunWidgets.ids(c,k).map { k to it } } }
+    val placed=remember(tick,resumed) { PerunWidgets.Listed.flatMap { k -> PerunWidgets.ids(c,k).map { k to it } } }
     val locations=remember { LocationStore(c).load() }
     val muted=MaterialTheme.colorScheme.onSurfaceVariant
     if(placed.isEmpty()) Text(uiText(R.string.wg_settings_empty),style=MaterialTheme.typography.bodyMedium,color=muted)
     placed.forEach { (kind,id) ->
         val cfg=PerunWidgets.read(c,id)
-        val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==cfg.loc }?.name ?: uiText(R.string.wg_loc_active)
+        // The Day by hours widget keeps its own settings; they open from the home screen.
+        val ownSettings=kind==DayHoursWidget::class.java
+        val locKey=if(ownSettings) DayWidgets.loc(c,id) else cfg.loc
+        val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.name ?: uiText(R.string.wg_loc_active)
         Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { editing=if(editing==id) null else id },verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(PerunWidgets.kindName(kind),style=MaterialTheme.typography.titleSmall)
@@ -502,11 +518,14 @@ private fun meteoLabel(key:String):String = when(key) {
             }
             Text(if(editing==id) "‹" else "›",style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.primary)
         }
-        if(editing==id) key(id) { WidgetConfigForm(kind.name,locations,cfg) { next -> PerunWidgets.write(c,id,next);PerunWidgets.refresh(c,true);editing=null;tick++ } }
+        if(editing==id) key(id) {
+            if(ownSettings) Text(uiText(R.string.wg_day_settings_hint),style=MaterialTheme.typography.bodySmall,color=muted)
+            else WidgetConfigForm(kind.name,locations,cfg) { next -> PerunWidgets.write(c,id,next);if(kind==SixDayWidget::class.java) SixDayWidgets.refresh(c,true) else PerunWidgets.refresh(c,true);editing=null;tick++ }
+        }
         HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))
     }
-    if(placed.isNotEmpty()) OutlinedButton(onClick={ PerunWidgets.refresh(c,true) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_refresh_all)) }
+    if(placed.isNotEmpty()) OutlinedButton(onClick={ PerunWidgets.refreshAll(c) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_refresh_all)) }
     Text(uiText(R.string.wg_add_title),style=MaterialTheme.typography.labelLarge,color=muted)
-    PerunWidgets.Kinds.forEach { k -> OutlinedButton(onClick={ PerunWidgets.pin(c,k) },modifier=Modifier.fillMaxWidth()) { Text(PerunWidgets.kindName(k)) } }
+    PerunWidgets.Listed.forEach { k -> OutlinedButton(onClick={ PerunWidgets.pin(c,k) },modifier=Modifier.fillMaxWidth()) { Text(PerunWidgets.kindName(k)) } }
     Text(uiText(R.string.wg_add_note),style=MaterialTheme.typography.bodySmall,color=muted)
 }

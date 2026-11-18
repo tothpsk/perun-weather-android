@@ -8,4 +8,6 @@
     <string name="wg_day_rows_note">As many rows are shown as fit the height of the widget, in this order.</string>
     <string name="wg_name_days">6 days</string>
     <string name="wg_desc_days">Current conditions and the forecast for six days.</string>
+    <string name="wg_param_wide">The fourth value is shown when the widget is wide enough (about 5 cells).</string>
+    <string name="wg_day_settings_hint">Open the settings of this widget by holding the widget on the home screen.</string>
 </resources>

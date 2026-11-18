@@ -8,4 +8,6 @@
     <string name="wg_day_rows_note">Zobrazí sa toľko riadkov, koľko sa zmestí na výšku widgetu, v tomto poradí.</string>
     <string name="wg_name_days">6 dní</string>
     <string name="wg_desc_days">Aktuálne podmienky a predpoveď na šesť dní.</string>
+    <string name="wg_param_wide">Štvrtá hodnota sa zobrazí, keď je widget dosť široký (asi 5 buniek).</string>
+    <string name="wg_day_settings_hint">Nastavenia tohto widgetu otvoríš podržaním widgetu na ploche.</string>
 </resources>
