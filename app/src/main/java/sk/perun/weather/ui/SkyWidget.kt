@@ -74,9 +74,12 @@ private fun swSunDay(date:LocalDate,zone:ZoneId,lat:Double,lon:Double):SwSunDay 
     return SwSunDay(r,s,seconds)
 }
 
+/** One value of the widget: a short name, the value and the colour of its bar. */
+private class SwFact(val caption:String,val value:String,val color:Int)
+
 internal class SkyWidgetConfig(val loc:String,val main:String,val bg:String,val text:String)
 
-/** The Sun and Moon widget. It keeps its own settings; the main value is "sun" or "moon". Everything is computed in the device. */
+/** The Sun and Moon widget. It keeps its own settings and shows one body, "sun" or "moon". Everything is computed in the device. */
 internal object SkyWidgets {
     private const val Prefs="perun_widget_sky"
     private const val Once="perun-widget-sky"
@@ -127,43 +130,59 @@ internal object SkyWidgets {
     }
 }
 
-/** The whole widget as one picture, laid out by its size in cells: one to four and more of width, one or two of height. */
+/**
+ * The whole widget as one picture, in the manner of the Air quality and pollen widget: a picture of the chosen body
+ * (the day arc of the Sun, or the Moon in its phase) and its values as columns with a coloured bar, as many as the size allows.
+ */
 private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Double,moonMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,cols:Int,rows:Int):Bitmap {
     val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
     val w=wPx.toFloat();val h=hPx.toFloat()
     val fg=if(darkText) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
     val muted=if(darkText) 0xFF4B586C.toInt() else 0xFFBBC4D2.toInt()
-    val track=(0x44 shl 24) or (fg and 0xFFFFFF)
-    val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+    val track=(0x33 shl 24) or (fg and 0xFFFFFF)
+    val p=Paint(Paint.ANTI_ALIAS_FLAG)
     val now=Instant.now();val today=now.atZone(zone).toLocalDate()
-    val sun=swSunDay(today,zone,lat,lon);val before=swSunDay(today.minusDays(1),zone,lat,lon)
     val hm=DateTimeFormatter.ofPattern("HH:mm")
     fun clock(t:Instant?)=t?.atZone(zone)?.format(hm) ?: "\u2013"
-    val sunRise=sun.rise;val sunSet=sun.set
-    val sunNext:Pair<Boolean,Instant?> = when {
-        sunRise!=null && now<sunRise -> true to sunRise
-        sunSet!=null && now<sunSet -> false to sunSet
-        else -> true to swSunDay(today.plusDays(1),zone,lat,lon).rise
+    val riseWord=uiText(R.string.wg_sky_rise);val setWord=uiText(R.string.wg_sky_set)
+
+    // The values of the chosen body, the most important first; the widget shows as many as fit.
+    var sunRise:Instant?=null;var sunSet:Instant?=null
+    var illum=0;var waxing=true
+    val facts:List<SwFact>;val lead:SwFact;val headline:String;val headColor:Int;val nextUp:Boolean;val nextText:String
+    if(moonMain) {
+        val events=SunMoonMath.moonEvents(today,zone,lat,lon)
+        val point=SunMoonMath.position(now,lat,lon)
+        waxing=SunMoonMath.position(now.plusSeconds(43200),lat,lon).illumination>=SunMoonMath.position(now.minusSeconds(43200),lat,lon).illumination
+        illum=point.illumination.roundToInt().coerceIn(0,100)
+        val lit=SwFact(uiText(R.string.wg_sky_lit),"$illum %",muted)
+        facts=listOf(SwFact(riseWord,clock(events.first),SwRise),SwFact(setWord,clock(events.second),SwSet),lit,
+            SwFact(uiText(R.string.wg_sky_trend),if(waxing) uiText(R.string.ui_rastie_a5341d12) else uiText(R.string.ui_cuva_c55fd1d0),if(waxing) SwRise else SwSet))
+        lead=lit;headline=SunMoonMath.phaseName(point.phase);headColor=muted;nextUp=true;nextText=lit.value
+    } else {
+        val sun=swSunDay(today,zone,lat,lon);val before=swSunDay(today.minusDays(1),zone,lat,lon)
+        val r=sun.rise;val s=sun.set
+        sunRise=r;sunSet=s
+        val next:Pair<Boolean,Instant?> = when {
+            r!=null && now<r -> true to r
+            s!=null && now<s -> false to s
+            else -> true to swSunDay(today.plusDays(1),zone,lat,lon).rise
+        }
+        val dayLength=if(sun.seconds>=0) uiText(R.string.ui_value_h_value_min_49a3b581,sun.seconds/3600,(sun.seconds%3600)/60) else "\u2013"
+        // Change of the day length against yesterday, as on the Sun and Moon screen.
+        val known=sun.seconds>=0 && before.seconds>=0
+        val change=if(known) sun.seconds-before.seconds else 0L
+        val changeText=if(!known) "\u2013" else (if(change>0) "+" else if(change<0) "\u2212" else "")+uiText(R.string.sky_min_s,abs(change)/60,abs(change)%60)
+        facts=listOf(SwFact(riseWord,clock(r),SwRise),SwFact(setWord,clock(s),SwSet),SwFact(uiText(R.string.wg_sky_day),dayLength,SwSun),
+            SwFact(uiText(R.string.wg_sky_change),changeText,if(!known || change==0L) muted else if(change>0) SwRise else SwSet))
+        nextUp=next.first;nextText=clock(next.second);headColor=if(nextUp) SwRise else SwSet
+        lead=SwFact(if(nextUp) riseWord else setWord,nextText,headColor)
+        headline=lead.caption+" "+nextText
     }
-    val moonToday=SunMoonMath.moonEvents(today,zone,lat,lon)
-    val moonTomorrow=SunMoonMath.moonEvents(today.plusDays(1),zone,lat,lon)
-    val moonNext=listOfNotNull(moonToday.first?.let { true to it },moonToday.second?.let { false to it },moonTomorrow.first?.let { true to it },moonTomorrow.second?.let { false to it })
-        .filter { it.second>now }.minByOrNull { it.second }
-    val point=SunMoonMath.position(now,lat,lon)
-    val waxing=SunMoonMath.position(now.plusSeconds(43200),lat,lon).illumination>=SunMoonMath.position(now.minusSeconds(43200),lat,lon).illumination
-    val illum=point.illumination.roundToInt().coerceIn(0,100)
-    val lit="$illum %"
-    val phase=SunMoonMath.phaseName(point.phase)
-    val dayLength=if(sun.seconds>=0) uiText(R.string.ui_value_h_value_min_49a3b581,sun.seconds/3600,(sun.seconds%3600)/60) else "\u2013"
-    // Change of the day length against yesterday, as on the Sun and Moon screen.
-    val known=sun.seconds>=0 && before.seconds>=0
-    val change=if(known) sun.seconds-before.seconds else 0L
-    val changeText=if(!known) "\u2013" else (if(change>0) "+" else if(change<0) "\u2212" else "")+uiText(R.string.sky_min_s,abs(change)/60,abs(change)%60)
-    val changeColor=if(!known || change==0L) fg else if(change>0) SwRise else SwSet
 
     fun font(size:Float,bold:Boolean) { p.style=Paint.Style.FILL;p.textSize=size*dn;p.typeface=if(bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT }
+    fun text(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) { font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,y,p) }
     fun width(s:String,size:Float,bold:Boolean=false):Float { font(size,bold);return p.measureText(s) }
-    fun line(s:String,x:Float,cy:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) { font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,cy+size*dn*0.36f,p) }
     fun fit(s:String,size:Float,bold:Boolean,room:Float):String {
         font(size,bold)
         if(p.measureText(s)<=room) return s
@@ -171,125 +190,91 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         while(t.length>1 && p.measureText(t+"\u2026")>room) t=t.dropLast(1)
         return if(p.measureText(t+"\u2026")<=room) t+"\u2026" else ""
     }
-    fun stroke(color:Int,wd:Float=1.8f) { p.style=Paint.Style.STROKE;p.strokeWidth=wd*dn;p.strokeCap=Paint.Cap.ROUND;p.color=color }
+    fun stroke(color:Int,px:Float) { p.style=Paint.Style.STROKE;p.strokeWidth=px;p.strokeCap=Paint.Cap.ROUND;p.color=color }
+    fun dot(x:Float,y:Float,color:Int,r:Float=3*dn) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,r,p) }
     fun arrow(x:Float,cy:Float,s:Float,up:Boolean,color:Int) {
-        stroke(color);val cx=x+s/2;val t=cy-s*0.4f;val b=cy+s*0.4f
+        stroke(color,1.8f*dn);val cx=x+s/2;val t=cy-s*0.4f;val b=cy+s*0.4f
         cv.drawLine(cx,t,cx,b,p)
         val tip=if(up) t else b;val back=if(up) t+s*0.32f else b-s*0.32f
         cv.drawLine(cx,tip,cx-s*0.3f,back,p);cv.drawLine(cx,tip,cx+s*0.3f,back,p)
         p.style=Paint.Style.FILL
     }
-    fun clockGlyph(x:Float,cy:Float,s:Float) {
-        stroke(muted,1.5f);val cx=x+s/2;val r=s*0.42f
-        cv.drawCircle(cx,cy,r,p);cv.drawLine(cx,cy,cx,cy-r*0.6f,p);cv.drawLine(cx,cy,cx+r*0.45f,cy+r*0.3f,p)
-        p.style=Paint.Style.FILL
-    }
-    // The Moon in its phase; the lit side follows the hemisphere, as on the Sun and Moon screen.
+    // The Moon in its phase with a thin rim; the lit side follows the hemisphere, as on the Sun and Moon screen.
     fun moon(cx:Float,cy:Float,r:Float) {
         p.style=Paint.Style.FILL;p.color=SwShade;cv.drawCircle(cx,cy,r,p)
         val k=illum/100f;val right=waxing!=(lat<0)
         p.color=SwLit;cv.drawArc(RectF(cx-r,cy-r,cx+r,cy+r),if(right) -90f else 90f,180f,true,p)
         val ex=r*abs(1-2*k);p.color=if(k<0.5f) SwShade else SwLit
         cv.drawOval(RectF(cx-ex,cy-r,cx+ex,cy+r),p)
+        stroke(track,1*dn);cv.drawCircle(cx,cy,r,p);p.style=Paint.Style.FILL
     }
-    fun sunIcon(x:Float,y:Float,s:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(widgetWeatherBitmap(0,true,s.roundToInt().coerceAtLeast(1)),null,RectF(x,y,x+s,y+s),p) }
-    // The day arc: the Sun moves from the sunrise on the left to the sunset on the right; at night the arc stays empty.
+    // The day arc over the horizon, from the sunrise on the left to the sunset on the right. The part of the day that has passed
+    // is in the colour of the Sun and the Sun stands at its end; at night the arc stays empty.
     fun arc(cx:Float,base:Float,r:Float) {
-        val box=RectF(cx-r,base-r,cx+r,base+r)
-        stroke(track,2.5f);cv.drawArc(box,180f,180f,false,p)
-        stroke(muted,1.2f);cv.drawLine(cx-r-4*dn,base,cx+r+4*dn,base,p)
-        if(sunRise!=null && sunSet!=null && sunSet>sunRise && now>=sunRise && now<=sunSet) {
-            val f=((now.epochSecond-sunRise.epochSecond).toFloat()/(sunSet.epochSecond-sunRise.epochSecond)).coerceIn(0f,1f)
-            stroke(SwSun,2.5f);cv.drawArc(box,180f,180f*f,false,p)
-            val a=PI*(1-f)
-            p.style=Paint.Style.FILL;p.color=SwSun
-            cv.drawCircle(cx+r*cos(a).toFloat(),base-r*sin(a).toFloat(),max(3.5f*dn,r*0.14f),p)
+        val box=RectF(cx-r,base-r,cx+r,base+r);val thick=max(2*dn,r*0.09f)
+        stroke(track,thick);cv.drawArc(box,180f,180f,false,p)
+        stroke(muted,1*dn);cv.drawLine(cx-r-5*dn,base,cx+r+5*dn,base,p)
+        val r0=sunRise;val s0=sunSet
+        if(r0!=null && s0!=null && s0>r0 && now>=r0 && now<=s0) {
+            val f=((now.epochSecond-r0.epochSecond).toFloat()/(s0.epochSecond-r0.epochSecond)).coerceIn(0f,1f)
+            stroke(SwSun,thick);cv.drawArc(box,180f,180f*f,false,p)
+            val a=PI*(1-f);val sx=cx+r*cos(a).toFloat();val sy=base-r*sin(a).toFloat();val d=max(3.5f*dn,r*0.13f)
+            dot(sx,sy,(0x55 shl 24) or (SwSun and 0xFFFFFF),d*1.9f);dot(sx,sy,SwSun,d)
         }
-        p.style=Paint.Style.FILL
+        dot(cx-r,base,SwRise,2.5f*dn);dot(cx+r,base,SwSet,2.5f*dn)
     }
-    // The main picture in a square of the given size around its centre.
-    fun graphic(cx:Float,cy:Float,s:Float) { if(moonMain) moon(cx,cy,s*0.42f) else arc(cx,cy+s*0.22f,s*0.44f) }
-    fun icon(x:Float,cy:Float,s:Float) { if(moonMain) moon(x+s/2,cy,s*0.42f) else sunIcon(x,cy-s/2,s) }
-    // A value with its symbol: 0 rise, 1 set, 2 day length, 3 the lit part of the Moon, 4 change of the day length.
-    fun itemWidth(value:String,ts:Float,bold:Boolean=false)=ts*dn+4*dn+width(value,ts,bold)
-    fun item(kind:Int,value:String,x:Float,cy:Float,ts:Float,color:Int=fg,bold:Boolean=false) {
-        val s=ts*dn
-        when(kind) {
-            0->arrow(x,cy,s,true,SwRise)
-            1->arrow(x,cy,s,false,SwSet)
-            2->clockGlyph(x,cy,s)
-            3->moon(x+s/2,cy,s*0.42f)
-            else->arrow(x,cy,s,change>=0,if(changeColor==fg) muted else changeColor)
-        }
-        line(value,x+s+4*dn,cy,ts,color,bold)
+    // The picture of the chosen body in a square of the given size around its centre.
+    fun graphic(cx:Float,cy:Float,s:Float) { if(moonMain) moon(cx,cy,s*0.42f) else arc(cx,cy+s*0.2f,s*0.42f) }
+    // A column as in the Air quality widget: a coloured bar, the name above the value; cy is its middle.
+    fun column(x:Float,cy:Float,room:Float,f:SwFact) {
+        p.style=Paint.Style.FILL;p.color=f.color;cv.drawRect(x,cy-11.5f*dn,x+2.5f*dn,cy+11.5f*dn,p)
+        text(fit(f.caption,9f,false,room-8*dn),x+6*dn,cy-3.5f*dn,9f,muted)
+        text(fit(f.value,12f,true,room-8*dn),x+6*dn,cy+10.5f*dn,12f,fg,true)
     }
-    val riseText=clock(if(moonMain) moonToday.first else sunRise)
-    val setText=clock(if(moonMain) moonToday.second else sunSet)
-    val next:Pair<Boolean,Instant?> = if(moonMain) moonNext ?: (true to null) else sunNext
-    val nextText=clock(next.second)
-    val third=if(moonMain) lit else dayLength
-    val thirdKind=if(moonMain) 3 else 2
 
     if(cols==1) {
         // One cell: the picture, and below it the next sunrise or sunset, or the lit part of the Moon.
         graphic(w/2,(h-16*dn)/2,min(w,h-16*dn))
-        if(moonMain) line(lit,w/2,h-7*dn,12f,fg,true,Paint.Align.CENTER)
-        else { val iw=itemWidth(nextText,12f,true);item(if(next.first) 0 else 1,nextText,(w-iw)/2,h-7*dn,12f,fg,true) }
+        if(moonMain) text(nextText,w/2,h-3*dn,12f,fg,true,Paint.Align.CENTER)
+        else { val x=(w-width(nextText,12f,true)-13*dn)/2;arrow(x,h-7*dn,10*dn,nextUp,headColor);text(nextText,x+13*dn,h-3*dn,12f,fg,true) }
     } else if(rows==1) {
-        val cy=h/2;val s=min(h,36*dn)
-        if(cols==2) {
-            // Two cells: the symbol on the left, the next event (or the lit part of the Moon) on the right.
-            icon(0f,cy,s)
-            if(moonMain) line(lit,w,cy,16f,fg,true,Paint.Align.RIGHT)
-            else { val iw=itemWidth(nextText,16f,true);item(if(next.first) 0 else 1,nextText,w-iw,cy,16f,fg,true) }
-        } else {
-            // Three cells: symbol, rise and set from edge to edge. Four and more: the place and the third value as well.
-            val parts=ArrayList<Pair<Float,(Float)->Unit>>()
-            parts.add(s to { x:Float -> icon(x,cy,s) })
-            parts.add(itemWidth(riseText,15f) to { x:Float -> item(0,riseText,x,cy,15f) })
-            parts.add(itemWidth(setText,15f) to { x:Float -> item(1,setText,x,cy,15f) })
-            if(cols>=4) {
-                if(moonMain) parts.add(width(lit,15f) to { x:Float -> line(lit,x,cy,15f,fg) })
-                else parts.add(itemWidth(dayLength,15f) to { x:Float -> item(2,dayLength,x,cy,15f) })
-                val used=parts.sumOf { it.first.toDouble() }.toFloat()
-                val shown=fit(place,15f,false,w-used-12*dn*parts.size)
-                if(shown.isNotEmpty()) parts.add(1,width(shown,15f) to { x:Float -> line(shown,x,cy,15f,fg) })
-            }
-            val gap=(w-parts.sumOf { it.first.toDouble() }.toFloat())/(parts.size-1)
-            var x=0f
-            parts.forEach { (pw,draw) -> draw(x);x+=pw+gap }
+        val s=min(h,w*0.4f)
+        graphic(s/2,h/2,s)
+        val x0=s+8*dn
+        if(cols==2) column(x0,h/2,w-x0,lead)
+        else if(cols==3) { val cw=(w-x0)/2;facts.take(2).forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
+        else {
+            // Four cells and more: what comes next (or the phase) with the place below it, then the columns.
+            val block=min(110*dn,(w-x0)*0.4f)
+            text(fit(headline,13f,true,block),x0,h/2-2*dn,13f,fg,true)
+            text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
+            val start=x0+block+6*dn
+            val shown=facts.take(((w-start)/(62*dn)).toInt().coerceIn(0,facts.size))
+            if(shown.isNotEmpty()) { val cw=(w-start)/shown.size;shown.forEachIndexed { k,f -> column(start+k*cw,h/2,cw,f) } }
         }
     } else if(cols==2) {
         // Two by two: the place on top, the picture in the middle, rise on the left and set on the right below.
-        line(fit(place,15f,false,w),0f,9*dn,15f,fg)
-        val top=20*dn;val bottom=h-20*dn
-        graphic(w/2,(top+bottom)/2,min(w*0.8f,bottom-top))
-        item(0,riseText,0f,h-8*dn,13f)
-        item(1,setText,w-itemWidth(setText,13f),h-8*dn,13f)
-    } else if(cols==3) {
-        // Three by two: the place on top, a large picture on the left, rise, set and the third value on the right.
-        line(fit(place,15f,false,w),0f,9*dn,15f,fg)
-        val top=22*dn;val s=min(h-top,w*0.45f)
-        graphic(s/2,top+(h-top)/2,s)
-        val step=(h-top)/3
-        listOf(0 to riseText,1 to setText,thirdKind to third).forEachIndexed { i,(k,v) -> item(k,v,w-itemWidth(v,15f),top+step*(i+0.5f),15f) }
+        text(fit(place,11f,false,w),w/2,11*dn,11f,muted,false,Paint.Align.CENTER)
+        val top=16*dn;val bottom=h-20*dn
+        graphic(w/2,(top+bottom)/2,min(w*0.9f,bottom-top))
+        arrow(0f,h-7*dn,10*dn,true,SwRise);text(facts[0].value,13*dn,h-3*dn,12f,fg)
+        val sw=width(facts[1].value,12f)
+        arrow(w-sw-13*dn,h-7*dn,10*dn,false,SwSet);text(facts[1].value,w,h-3*dn,12f,fg,false,Paint.Align.RIGHT)
     } else {
-        // Four and five by two: the place and the phase of the Moon on top, the main picture on the left, then a column for the Sun and one for the Moon.
-        line(fit(place,15f,false,w*0.6f),0f,9*dn,15f,fg)
-        line(fit(phase,12f,false,w*0.38f),w,9*dn,12f,muted,false,Paint.Align.RIGHT)
-        val top=22*dn;val s=min(h-top,w*0.26f)
-        graphic(s/2,top+(h-top)/2,s)
-        val x1=s+14*dn;val colW=(w-x1)/2
-        val sunRows=listOf(0 to clock(sunRise),1 to clock(sunSet),2 to dayLength,4 to changeText)
-        val moonRows=listOf(0 to clock(moonToday.first),1 to clock(moonToday.second),3 to lit)
-        val columns=if(moonMain) listOf(uiText(R.string.ui_mesiac_3ca578fb) to moonRows,uiText(R.string.ui_slnko_d4e0d075) to sunRows)
-            else listOf(uiText(R.string.ui_slnko_d4e0d075) to sunRows,uiText(R.string.ui_mesiac_3ca578fb) to moonRows)
-        val step=(h-top)/5
-        val ts=(step/dn*0.62f).coerceIn(10f,14f)
-        columns.forEachIndexed { c,(title,list) ->
-            val x=x1+c*colW
-            line(fit(title,10f,false,colW),x,top+step*0.5f,10f,muted)
-            list.forEachIndexed { i,(k,v) -> item(k,fit(v,ts,false,colW-ts*dn-8*dn),x,top+step*(i+1.5f),ts,if(k==4) changeColor else fg) }
+        // Two rows, three cells and more: the place and what comes next (or the phase) on top, the picture on the left, the columns on the right.
+        text(fit(place,13f,true,w*0.5f),0f,13*dn,13f,fg,true)
+        val head=fit(headline,12f,false,w*0.45f)
+        text(head,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
+        if(head.isNotEmpty()) dot(w-width(head,12f)-7*dn,9*dn,headColor)
+        val top=22*dn;val area=h-top
+        if(cols==3) {
+            val s=min(area,w*0.48f);graphic(s/2,top+area/2,s)
+            val x1=s+10*dn;val step=area/3
+            facts.take(3).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
+        } else {
+            val s=min(area,w*0.34f);graphic(s/2,top+area/2,s)
+            val x1=s+14*dn;val cw=(w-x1)/2
+            facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
         }
     }
     return bmp

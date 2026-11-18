@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="wg_name_sky">Slnko a Mesiac</string>
-    <string name="wg_desc_sky">Východ a západ Slnka a Mesiaca a fáza Mesiaca. Malý widget ukazuje jeden údaj, väčší podrobnosti.</string>
-    <string name="wg_sky_main">Hlavný údaj</string>
+    <string name="wg_desc_sky">Východ a západ Slnka alebo Mesiaca, dĺžka dňa a fáza Mesiaca. Malý widget ukazuje jeden údaj, väčší podrobnosti.</string>
+    <string name="wg_sky_main">Zobraziť</string>
+    <string name="wg_sky_rise">Východ</string>
+    <string name="wg_sky_set">Západ</string>
+    <string name="wg_sky_day">Dĺžka dňa</string>
+    <string name="wg_sky_change">Oproti včera</string>
+    <string name="wg_sky_lit">Osvetlenie</string>
+    <string name="wg_sky_trend">Trend</string>
 </resources>

@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="wg_name_sky">Sun and Moon</string>
-    <string name="wg_desc_sky">Sunrise, sunset, moonrise, moonset and the phase of the Moon. A small widget shows one value, a larger one the details.</string>
-    <string name="wg_sky_main">Main value</string>
+    <string name="wg_desc_sky">Rise and set of the Sun or the Moon, the length of the day and the phase of the Moon. A small widget shows one value, a larger one the details.</string>
+    <string name="wg_sky_main">Show</string>
+    <string name="wg_sky_rise">Rise</string>
+    <string name="wg_sky_set">Set</string>
+    <string name="wg_sky_day">Day length</string>
+    <string name="wg_sky_change">Since yesterday</string>
+    <string name="wg_sky_lit">Illuminated</string>
+    <string name="wg_sky_trend">Trend</string>
 </resources>
