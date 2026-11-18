@@ -88,7 +88,7 @@ internal object AirWidgets {
     suspend fun render(c:Context,id:Int,all:List<Location>,active:Location?):Boolean {
         val cfg=read(c,id)
         val l=(if(cfg.loc=="active") null else all.firstOrNull { BackgroundRefresh.locationKey(it)==cfg.loc }) ?: active ?: return false
-        val data=loadAirQuality(l)
+        val air=loadAirQuality(l)
         val saved=c.getSharedPreferences("perun_air_detail",Context.MODE_PRIVATE).getString("scale","")
         val scale=AirQualityScale.entries.firstOrNull { it.name==saved } ?: AirQualityScale.European
         val manager=AppWidgetManager.getInstance(c);val o=manager.getAppWidgetOptions(id)
@@ -97,11 +97,11 @@ internal object AirWidgets {
         val dn=c.resources.displayMetrics.density
         val wPx=((wDp-12)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-12)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_air)
-        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,data,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp)))
+        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp)))
         v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
-            data=android.net.Uri.parse("perun://widget/"+id)
+            setData(android.net.Uri.parse("perun://widget/"+id))
             putExtra("perun_route","more/air");putExtra("perun_location",BackgroundRefresh.locationKey(l))
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }

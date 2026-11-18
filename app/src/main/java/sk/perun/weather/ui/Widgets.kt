@@ -50,8 +50,8 @@ internal object PerunWidgets {
     /** Width from which the Current conditions and 6 days widgets show the fourth value; about five cells. */
     const val WideDp=320
     val Kinds:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java)
-    /** Every widget of the app, for the settings page. The last two are drawn by their own workers. */
-    val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java)
+    /** Every widget of the app, for the settings page. The last three are drawn by their own workers. */
+    val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java,AirWidget::class.java)
     val MeteoOptions=listOf("temp","feels","dew","precip","prob","humidity","cloud","wind","gust","pressure","uv","visibility")
     val Backgrounds=listOf("dark","glass","light")
     private fun prefs(c:Context) = c.applicationContext.getSharedPreferences(Prefs,Context.MODE_PRIVATE)
@@ -84,12 +84,12 @@ internal object PerunWidgets {
         WorkManager.getInstance(c.applicationContext).enqueueUniqueWork(Work,ExistingWorkPolicy.REPLACE,request)
     }
     /** The manual refresh of the settings page: every widget of the app, from the network. */
-    fun refreshAll(c:Context) { refresh(c,true);SixDayWidgets.refresh(c,true);DayWidgets.refresh(c,true) }
+    fun refreshAll(c:Context) { refresh(c,true);SixDayWidgets.refresh(c,true);DayWidgets.refresh(c,true);AirWidgets.refresh(c,true) }
     fun pin(c:Context,kind:Class<*>):Boolean {
         val m=AppWidgetManager.getInstance(c)
         return m.isRequestPinAppWidgetSupported && m.requestPinAppWidget(ComponentName(c,kind),null,null)
     }
-    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_name_compact;NowWidget::class.java->R.string.wg_name_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;else->R.string.wg_name_meteo })
+    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_name_compact;NowWidget::class.java->R.string.wg_name_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;AirWidget::class.java->R.string.wg_name_air;else->R.string.wg_name_meteo })
 }
 
 abstract class PerunWidgetProvider:AppWidgetProvider() {
@@ -378,9 +378,9 @@ private fun meteoLabel(key:String):String = when(key) {
     if(placed.isEmpty()) Text(uiText(R.string.wg_settings_empty),style=MaterialTheme.typography.bodyMedium,color=muted)
     placed.forEach { (kind,id) ->
         val cfg=PerunWidgets.read(c,id)
-        // The Day by hours widget keeps its own settings; they open from the home screen.
-        val ownSettings=kind==DayHoursWidget::class.java
-        val locKey=if(ownSettings) DayWidgets.loc(c,id) else cfg.loc
+        // The Day by hours and the Air and pollen widgets keep their own settings; they open from the home screen.
+        val ownSettings=kind==DayHoursWidget::class.java || kind==AirWidget::class.java
+        val locKey=when(kind) { DayHoursWidget::class.java->DayWidgets.loc(c,id);AirWidget::class.java->AirWidgets.loc(c,id);else->cfg.loc }
         val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.name ?: uiText(R.string.wg_loc_active)
         Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { editing=if(editing==id) null else id },verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
