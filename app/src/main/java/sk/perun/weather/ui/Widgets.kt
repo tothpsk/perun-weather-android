@@ -42,6 +42,7 @@ import sk.perun.weather.ui.theme.PerunTheme
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
@@ -213,8 +214,9 @@ internal object WidgetRender {
     }
     private fun snowing(d:OverviewData):Boolean = (d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)
     /**
-     * Below 120 dp of width only the icon and the temperature. Otherwise the widget is one picture: a single row at one cell of height,
-     * the icon with the values beside it and the place below at two cells of width, and a wider form with the refresh button.
+     * Below 120 dp of width only the icon and the temperature. Otherwise the widget is one picture, laid out by its size in cells:
+     * one row or two, and two, three or four and more cells of width. The place is as large as in the Next 6 hours widget and the
+     * warning follows it; the refresh button is shown where it fits.
      */
     private fun compact(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 180
@@ -226,19 +228,23 @@ internal object WidgetRender {
             paint(v,pal.fg,R.id.wg_temp)
             return v
         }
-        val v=RemoteViews(c.packageName,R.layout.wg_compact)
+        val row=hDp<100
+        val cells=if(wDp<180) 2 else if(wDp<250) 3 else 4
+        // The two layouts differ in the place of the refresh button: the middle of the row, or the second row.
+        val v=RemoteViews(c.packageName,if(row) R.layout.wg_compact_row else R.layout.wg_compact)
         val dn=c.resources.displayMetrics.density
-        val row=hDp<100;val wide=!row && wDp>=200
         val order=listOf("red","orange","yellow")
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        v.setImageViewBitmap(R.id.wg_compact_img,compactBitmap(dn,((wDp-16)*dn).roundToInt().coerceIn(40,1400),((hDp-16)*dn).roundToInt().coerceIn(40,900),row,wide,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,pal))
+        val (bmp,refresh)=compactBitmap(dn,((wDp-16)*dn).roundToInt().coerceIn(40,1400),((hDp-16)*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,pal)
+        v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
-        v.setViewVisibility(R.id.wg_refresh,if(wide) View.VISIBLE else View.GONE)
+        v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
         return v
     }
-    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,wide:Boolean,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,pal:Palette):Bitmap {
+    /** The picture and whether the refresh button of the layout has its room in it. */
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,pal:Palette):Pair<Bitmap,Boolean> {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -257,59 +263,80 @@ internal object WidgetRender {
         fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetGlyphBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
         val hasAlert=alertEvent!=null && alertLevel!=null
         fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
+        // The place at 15 sp with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
+        val alertW=if(hasAlert) 24*dn else 0f
+        fun placedWidth(shown:String):Float = if(shown.isNotEmpty()) width(shown,15f,false)+alertW else if(hasAlert) 18*dn else 0f
+        fun placed(shown:String,x:Float,cy:Float) {
+            if(shown.isNotEmpty()) text(shown,x,cy+15*dn*0.36f,15f,pal.muted)
+            warn(if(shown.isNotEmpty()) x+width(shown,15f,false)+6*dn else x,cy-9*dn,18*dn)
+        }
+        var refresh=false
         if(row) {
-            // One row: icon, temperature, place, warning, the chosen value.
-            val s=min(h,34*dn);weather(0f,(h-s)/2,s)
+            // One row. Two cells: icon, temperature, warning. Three: the chosen value instead of the place. Four and more: all of them.
+            val cy=h/2;val gap=8*dn
+            val s=min(h,34*dn)
             val ts=(h/dn*0.5f).coerceIn(13f,22f)
-            val x=s+6*dn+width(temp,ts,true)+8*dn
-            text(temp,s+6*dn,h/2+ts*dn*0.36f,ts,pal.fg,true)
-            var right=w
-            if(extra!=null && extraKey!=null) {
-                val ew=width(extra,13f,true)
-                text(extra,right,h/2+13*dn*0.36f,13f,pal.fg,true,Paint.Align.RIGHT)
-                glyph(extraKey,right-ew-17*dn,h/2-7*dn,14*dn)
-                right-=ew+25*dn
-            }
-            if(hasAlert) { warn(right-18*dn,h/2-9*dn,18*dn);right-=24*dn }
-            text(fit(place,13f,false,right-x),x,h/2+13*dn*0.36f,13f,pal.muted)
-        } else if(!wide) {
-            // Two cells: icon, the temperature and the chosen value beside it, the warning in the corner, the place below.
-            warn(w-20*dn,0f,20*dn)
-            text(fit(place,12f,false,w),w/2,h-4*dn,12f,pal.muted,false,Paint.Align.CENTER)
-            val area=h-20*dn
-            val s=min(area,w*0.45f);weather(0f,(area-s)/2,s)
-            val x0=s+6*dn;val room=w-x0
-            var ts=(area/dn*0.42f).coerceIn(14f,34f)
+            val wA=s+6*dn+width(temp,ts,true)
+            val value=if(cells>=3 && extra!=null && extraKey!=null) extra else null
+            val wC=if(value!=null) 17*dn+width(value,13f,true) else 0f
+            val showPlace=cells>=4 || (cells==3 && value==null)
+            val gaps=gap*(if(wC>0f) 2 else 1)
+            refresh=cells>=3 && wA+placedWidth(if(showPlace) place else "")+wC+gaps+30*dn<=w
+            val avail=if(refresh) w-30*dn else w
+            val shown=if(showPlace) fit(place,15f,false,avail-wA-wC-alertW-gaps) else ""
+            val wB=placedWidth(shown)
+            // With the chosen value the place stands in the middle between it and the temperature; without it the two groups are spread evenly.
+            val xA=(if(wC>0f) 0f else if(wB>0f) (avail-wA-wB)/3 else (avail-wA)/2).coerceAtLeast(0f)
+            val xB=if(wC>0f) wA+(avail-wC-wA-wB)/2 else xA+wA+(avail-wA-wB)/3
+            weather(xA,(h-s)/2,s)
+            text(temp,xA+s+6*dn,cy+ts*dn*0.36f,ts,pal.fg,true)
+            placed(shown,xB,cy)
+            if(value!=null && extraKey!=null) { glyph(extraKey,avail-wC,cy-7*dn,14*dn);text(value,avail,cy+13*dn*0.36f,13f,pal.fg,true,Paint.Align.RIGHT) }
+        } else if(cells<4) {
+            // Two rows, two or three cells: the icon with the temperature and the chosen value beside it, the place with the warning below.
+            val s=min(min(h-48*dn,w*0.42f),60*dn).coerceAtLeast(20*dn)
+            val es=if(cells==3) 15f else 13f
+            val room=w-s-6*dn
+            var ts=(s/dn*0.6f).coerceIn(16f,40f)
             while(ts>14f && width(temp,ts,true)>room) ts-=1f
-            val top=(area-ts*dn-(if(extra!=null) 19*dn else 0f))/2
-            text(temp,x0,top+ts*dn*0.85f,ts,pal.fg,true)
-            if(extra!=null && extraKey!=null) {
-                val base=top+ts*dn+15*dn
-                glyph(extraKey,x0,base-12*dn,13*dn)
-                text(fit(extra,13f,false,room-16*dn),x0+16*dn,base,13f,pal.fg)
-            }
+            val value=if(extra!=null && extraKey!=null) fit(extra,es,false,room-(es+3f)*dn) else ""
+            val blockW=max(width(temp,ts,true),if(value.isNotEmpty()) (es+3f)*dn+width(value,es,false) else 0f)
+            val blockH=ts*dn+(if(value.isNotEmpty()) (es+4f)*dn else 0f)
+            val r1=max(s,blockH)
+            refresh=cells==3 && placedWidth(place)+34*dn<=w
+            val shown=fit(place,15f,false,w-alertW)
+            val wB=placedWidth(shown)
+            val xB=if(refresh && (w-wB)/2<30*dn) (w-30*dn-wB)/2 else (w-wB)/2
+            // Three cells keep the second row level with the refresh button; two cells share the height evenly.
+            val free=(h-r1-18*dn).coerceAtLeast(0f)
+            val top=if(cells==3) ((h-30*dn-r1)/2).coerceAtLeast(0f) else free/3
+            val cy2=if(cells==3) h-13*dn else top+r1+free/3+9*dn
+            val x0=((w-s-6*dn-blockW)/2).coerceAtLeast(0f)
+            weather(x0,top+(r1-s)/2,s)
+            val bt=top+(r1-blockH)/2;val tx=x0+s+6*dn
+            text(temp,tx,bt+ts*dn*0.85f,ts,pal.fg,true)
+            if(value.isNotEmpty() && extraKey!=null) { glyph(extraKey,tx,bt+ts*dn+4*dn,es*dn);text(value,tx+(es+3f)*dn,bt+ts*dn+4*dn+es*dn*0.85f,es,pal.fg) }
+            placed(shown,xB,cy2)
         } else {
-            // Three cells and more: the chosen value (or the weather in words) fills the right side, the warning follows the place.
-            val shown=fit(place,13f,false,w-(if(hasAlert) 24*dn else 0f))
-            text(shown,0f,h-4*dn,13f,pal.muted)
-            warn(width(shown,13f,false)+6*dn,h-19*dn,18*dn)
-            val area=h-22*dn
+            // Two rows, four cells and more: the chosen value (or the weather in words) on the right; the second row has the place, the warning and the refresh button.
+            refresh=true
+            placed(fit(place,15f,false,w-30*dn-alertW),0f,h-13*dn)
+            val area=h-30*dn
             val s=min(area,w*0.3f);weather(0f,(area-s)/2,s)
             val x0=s+8*dn
             val ts=(area/dn*0.5f).coerceIn(16f,40f)
             text(temp,x0,area/2+ts*dn*0.36f,ts,pal.fg,true)
-            // The refresh button of the layout takes the top right corner.
-            val right=w-30*dn;val room=right-(x0+width(temp,ts,true)+10*dn)
+            val room=w-(x0+width(temp,ts,true)+10*dn)
             if(room>=40*dn) {
                 if(extra!=null && extraKey!=null) {
-                    text(fit(Notifier.paramLabel(extraKey),10f,false,room),right,area/2-6*dn,10f,pal.muted,false,Paint.Align.RIGHT)
+                    text(fit(Notifier.paramLabel(extraKey),10f,false,room),w,area/2-6*dn,10f,pal.muted,false,Paint.Align.RIGHT)
                     val value=fit(extra,17f,true,room-22*dn)
-                    text(value,right,area/2+14*dn,17f,pal.fg,true,Paint.Align.RIGHT)
-                    glyph(extraKey,right-width(value,17f,true)-21*dn,area/2-1*dn,17*dn)
-                } else text(fit(overviewCondition(d.code),13f,false,room),right,area/2+5*dn,13f,pal.fg,false,Paint.Align.RIGHT)
+                    text(value,w,area/2+14*dn,17f,pal.fg,true,Paint.Align.RIGHT)
+                    glyph(extraKey,w-width(value,17f,true)-21*dn,area/2-1*dn,17*dn)
+                } else text(fit(overviewCondition(d.code),13f,false,room),w,area/2+5*dn,13f,pal.fg,false,Paint.Align.RIGHT)
             }
         }
-        return bmp
+        return bmp to refresh
     }
     private fun now(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_now)
