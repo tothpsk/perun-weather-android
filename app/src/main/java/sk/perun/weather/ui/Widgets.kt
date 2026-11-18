@@ -52,7 +52,7 @@ internal object PerunWidgets {
     val Kinds:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java)
     /** Every widget of the app, for the settings page. The last two are drawn by their own workers. */
     val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java)
-    val MeteoOptions=listOf("temp","precip","prob","cloud","wind","gust")
+    val MeteoOptions=listOf("temp","feels","dew","precip","prob","humidity","cloud","wind","gust","pressure","uv","visibility")
     val Backgrounds=listOf("dark","glass","light")
     private fun prefs(c:Context) = c.applicationContext.getSharedPreferences(Prefs,Context.MODE_PRIVATE)
     fun read(c:Context,id:Int):WidgetConfig {
@@ -128,8 +128,11 @@ internal class WidgetWorker(context:Context,params:WorkerParameters):CoroutineWo
                     loaded
                 }
                 if(data==null) { failed=true;continue }
-                val views=try { WidgetRender.render(c,kind,id,cfg,l,data.first,data.second,units,manager.getAppWidgetOptions(id)) }
-                    catch(e:CancellationException) { throw e } catch(e:Exception) { null }
+                val views=try {
+                    // Hourly values the overview does not load, only for a meteogram that shows one of them.
+                    val more=if(kind==MeteogramWidget::class.java && cfg.meteo.any { it in MeteoExtraKeys }) loadMeteogramExtra(l,sources.read(l).weatherModel,cfg.meteo) else emptyMap()
+                    WidgetRender.render(c,kind,id,cfg,l,data.first,data.second,units,manager.getAppWidgetOptions(id),more)
+                } catch(e:CancellationException) { throw e } catch(e:Exception) { null }
                 if(views==null) { failed=true;continue }
                 manager.updateAppWidget(id,views)
             }
@@ -150,12 +153,12 @@ internal object WidgetRender {
     private val HourIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val HourTemp=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
 
-    fun render(c:Context,kind:Class<*>,id:Int,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,o:Bundle):RemoteViews {
+    fun render(c:Context,kind:Class<*>,id:Int,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,o:Bundle,more:Map<String,Map<LocalDateTime,Double>> = emptyMap()):RemoteViews {
         val pal=if(w.text=="dark") DarkText else LightText
         val v=when(kind) {
             CompactWidget::class.java->compact(c,w,l,d,ex,u,pal,o)
             NowWidget::class.java->now(c,w,l,d,ex,u,pal,o)
-            else->meteo(c,w,l,d,u,o,pal)
+            else->meteo(c,w,l,d,u,o,pal,more)
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",when(w.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,if(kind==MeteogramWidget::class.java) "forecast" else "overview",BackgroundRefresh.locationKey(l)))
@@ -251,7 +254,7 @@ internal object WidgetRender {
         return v
     }
     /** The chart itself is drawn in MeteogramChart.kt, at the real size of the widget down to two cells. */
-    private fun meteo(c:Context,w:WidgetConfig,l:Location,d:OverviewData,u:WeatherUnits,o:Bundle,pal:Palette):RemoteViews {
+    private fun meteo(c:Context,w:WidgetConfig,l:Location,d:OverviewData,u:WeatherUnits,o:Bundle,pal:Palette,more:Map<String,Map<LocalDateTime,Double>>):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_meteo)
         v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,84))
         v.setTextViewText(R.id.wg_place,l.name)
@@ -264,7 +267,7 @@ internal object WidgetRender {
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 160
         val cw=((wDp-20)*dn).roundToInt().coerceIn(200,1400)
         val ch=((hDp-54)*dn).roundToInt().coerceIn((40*dn).roundToInt(),(420*dn).roundToInt())
-        v.setImageViewBitmap(R.id.wg_chart,meteogramBitmap(c,d,u,w.hours,w.meteo,pal.muted,pal.dark,cw,ch))
+        v.setImageViewBitmap(R.id.wg_chart,meteogramBitmap(c,d,u,w.hours,w.meteo,pal.muted,pal.dark,cw,ch,more))
         return v
     }
 }
@@ -299,7 +302,8 @@ class WidgetConfigActivity:ComponentActivity() {
 
 private fun meteoLabel(key:String):String = when(key) {
     "temp"->uiText(R.string.nt_metric_temp);"precip"->uiText(R.string.nt_metric_precip);"prob"->uiText(R.string.nt_metric_prob)
-    "cloud"->LongMetric.Cloud.label;"wind"->uiText(R.string.nt_metric_wind);else->uiText(R.string.nt_metric_gust)
+    "cloud"->LongMetric.Cloud.label;"wind"->uiText(R.string.nt_metric_wind);"gust"->uiText(R.string.nt_metric_gust)
+    else->Notifier.paramLabel(key)
 }
 
 @OptIn(ExperimentalLayoutApi::class)
