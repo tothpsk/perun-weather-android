@@ -151,15 +151,15 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     (left+right).forEach { a -> a.w=max(labels(a).maxOf { p.measureText(it) }+5*dn,glyph+4*dn) }
     val plotL=left.sumOf { it.w.toDouble() }.toFloat()+2*dn
     val plotR=max(wPx-right.sumOf { it.w.toDouble() }.toFloat()-2*dn,plotL+24*dn)
-    // At two cells the row of weather icons is left out and the axis icons take its place.
+    // At two cells the row of weather icons is left out; the axis icons then stand beside the cloud band, which starts at the very top.
     val small=hPx<96*dn
     val iconPx=(18*dn).roundToInt()
-    // The row of icons sits close under the header: the chart has no blank strip of its own above the icons and the cloud band.
-    val headH=if(small) glyph+0.5f*dn else iconPx+1*dn
+    val headH=if(small) 0f else iconPx.toFloat()
     val cloudOn="cloud" in show
     val bandH=if(small) 4*dn else 6*dn
     val bandTop=headH
-    val top=headH+(if(cloudOn) bandH+1*dn else 0f)+3*dn;val bottom=hPx-13*dn
+    // The plot starts below the axis icons, so that the top number of an axis does not touch its icon.
+    val top=max(headH+(if(cloudOn) bandH+1*dn else 0f)+3*dn,if(small) glyph+4.5f*dn else 0f);val bottom=hPx-13*dn
     val plotH=max(bottom-top,8*dn)
     val stride=if(plotH<56*dn) 2 else 1
     val step=(plotR-plotL)/(s.size-1)
@@ -214,7 +214,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
         p.color=a.color;p.textAlign=if(dir<0) Paint.Align.RIGHT else Paint.Align.LEFT
         val text=labels(a)
         for(k in 0..4 step stride) cv.drawText(text[k],inner+dir*3*dn,bottom-plotH*k/4+3.2f*dn,p)
-        cv.drawBitmap(widgetGlyphBitmap(a.icon,a.color,glyph),inner+dir*a.w/2-glyph/2f,(headH-glyph)/2f,null)
+        cv.drawBitmap(widgetIconBitmap(a.icon,a.color,glyph),inner+dir*a.w/2-glyph/2f,if(small) 0f else (headH-glyph)/2f,null)
     }
     var edge=plotL
     left.forEach { axisColumn(it,edge,-1);edge-=it.w }

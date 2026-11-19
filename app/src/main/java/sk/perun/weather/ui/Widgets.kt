@@ -260,7 +260,7 @@ internal object WidgetRender {
         }
         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
         fun weather(x:Float,y:Float,size:Float) = pic(widgetWeatherBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
-        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetGlyphBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
+        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetIconBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
         val hasAlert=alertEvent!=null && alertLevel!=null
         fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
         // The place at 15 sp in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
@@ -358,7 +358,7 @@ internal object WidgetRender {
         val wide=(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 250)>=PerunWidgets.WideDp
         v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
-        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetGlyphBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
+        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
         d.hours.take(6).forEachIndexed { i,h ->
             v.setTextViewText(HourTime[i],h.time.format(Hm))
             v.setImageViewBitmap(HourIcon[i],widgetWeatherBitmap(h.code,dayAt(d,h.time),64))
@@ -383,7 +383,7 @@ internal object WidgetRender {
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 160
         val cw=((wDp-20)*dn).roundToInt().coerceIn(200,1400)
-        val ch=((hDp-54)*dn).roundToInt().coerceIn((40*dn).roundToInt(),(420*dn).roundToInt())
+        val ch=((hDp-51)*dn).roundToInt().coerceIn((40*dn).roundToInt(),(420*dn).roundToInt())
         v.setImageViewBitmap(R.id.wg_chart,meteogramBitmap(c,d,u,w.hours,w.meteo,pal.muted,pal.dark,cw,ch,more))
         return v
     }

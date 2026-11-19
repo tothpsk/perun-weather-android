@@ -140,7 +140,7 @@ internal object SixDayWidgets {
         v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
         cfg.params.take(if(wide) 4 else 3).forEachIndexed { i,key ->
-            v.setImageViewBitmap(CellIcon[i],widgetGlyphBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
+            v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
             v.setTextViewText(CellValue[i],param(key,d,ex,u))
         }
         for(i in 0 until 6) {
