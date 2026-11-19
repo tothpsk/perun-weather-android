@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
+import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.unit.Density
@@ -23,8 +24,8 @@ private fun iconPath(d:String):Path = PathParser().parsePathString(d).toNodes().
 
 /**
  * The icon of a quantity for every home-screen widget, in the shapes of the app: the same drawing as the rows of the
- * expanded day on the Forecast screen (see rowGlyph in DayWidget.kt). A quantity without such a shape keeps the icon
- * of the notifications.
+ * expanded day on the Forecast screen (see rowGlyph in DayWidget.kt). The cloud is the outline of the cloud cover tile
+ * on Now (CloudFillPath in OverviewArt.kt). A quantity without such a shape keeps the icon of the notifications.
  */
 internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
     if(key !in SharedIconKeys) return widgetGlyphBitmap(key,color,size)
@@ -44,7 +45,8 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
                     moveTo(4.5f,12f);lineTo(18.3f,12f);cubicTo(23.3f,12f,23.3f,5.2f,19.2f,5.2f);cubicTo(17.5f,5.2f,16.7f,6.6f,16.7f,8f)
                     moveTo(1.5f,15f);lineTo(17.8f,15f);cubicTo(23f,15f,23f,21.5f,19f,21.5f);cubicTo(17.1f,21.5f,16.1f,20f,16.1f,18.6f)
                 },c,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-                "cloud"->drawPath(Path().apply { moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close() },c,style=Stroke(1.8f,join=StrokeJoin.Round))
+                // The cloud of the cloud cover tile, drawn in a 130 x 100 box there, brought into the 24 x 24 box of the icons.
+                "cloud"->translate(-0.93f,3.73f) { scale(0.196f,0.196f,Offset.Zero) { drawPath(iconPath("M35 77a22 22 0 0 1-4-44 31 31 0 0 1 59-7 25 25 0 0 1 10 51Z"),c,style=Stroke(9.2f,join=StrokeJoin.Round)) } }
                 "humidity"->{
                     drawPath(Path().apply { moveTo(12f,2f);cubicTo(12f,2f,5f,10f,5f,15f);cubicTo(5f,24.333334f,19f,24.333334f,19f,15f);cubicTo(19f,10f,12f,2f,12f,2f);close() },c,style=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round))
                     drawCircle(c,1.25f,Offset(9.4f,12.8f),style=Stroke(1.1f))
