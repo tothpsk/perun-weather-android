@@ -94,7 +94,7 @@ private fun swMoonUp(date:LocalDate,zone:ZoneId,lat:Double,lon:Double):Long {
 
 /**
  * One value of the widget: its symbol, a short name, the value and the colour of the symbol.
- * Symbols, as on the Sun and Moon screen: 0 rise, 1 set, 2 solar noon, 4 rising trend, 5 falling trend, 6 Moon above the horizon; -1 none.
+ * Symbols, as on the Sun and Moon screen: 0 rise, 1 set, 2 solar noon, 3 day length, 4 rising trend, 5 falling trend, 6 Moon above the horizon; -1 none.
  */
 private class SwFact(val icon:Int,val caption:String,val value:String,val color:Int)
 
@@ -223,7 +223,8 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
     fun dot(x:Float,y:Float,color:Int,r:Float=3*dn) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,r,p) }
     // A line through points given in the 24 x 24 grid of the symbols of the Sun and Moon screen.
     fun path(k:Float,ox:Float,oy:Float,vararg pts:Float) { for(i in 0 until pts.size/2-1) cv.drawLine(ox+pts[2*i]*k,oy+pts[2*i+1]*k,ox+pts[2*i+2]*k,oy+pts[2*i+3]*k,p) }
-    // The symbols of the Sun and Moon screen in a 16 dp box whose middle is at cy: the rise and set arrows (12 x 15 dp, 2.2 dp line), solar noon, the trend arrows and the Moon above the horizon.
+    // The symbols of the Sun and Moon screen in a 16 dp box whose middle is at cy: the rise and set arrows (12 x 15 dp, 2.2 dp line), solar noon,
+    // the clock of the day length, the trend arrows and the Moon above the horizon.
     fun icon(kind:Int,x:Float,cy:Float,color:Int) {
         val s=16*dn;val k=s/24f;val oy=cy-s/2
         when(kind) {
@@ -232,6 +233,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 stroke(color,2.2f*dn);cv.drawLine(cx,tip,cx,tail,p);cv.drawLine(cx,tip,cx-hd,tip+dir*hd,p);cv.drawLine(cx,tip,cx+hd,tip+dir*hd,p)
             }
             2 -> { stroke(color,1.8f*k);path(k,x,oy,2.5f,19f,21.5f,19f);cv.drawArc(RectF(x+4*k,oy+11*k,x+20*k,oy+27*k),180f,180f,false,p);path(k,x,oy,12f,3.5f,12f,6f);dot(x+12*k,oy+11*k,color,3*k) }
+            3 -> { stroke(color,1.8f*k);cv.drawCircle(x+12*k,oy+12*k,9*k,p);path(k,x,oy,12f,7f,12f,12f,15f,14f) }
             4 -> { stroke(color,1.8f*k);path(k,x,oy,3f,17f,9f,11f,13f,15f,21f,7f);path(k,x,oy,15f,7f,21f,7f,21f,13f) }
             5 -> { stroke(color,1.8f*k);path(k,x,oy,3f,7f,9f,13f,13f,9f,21f,17f);path(k,x,oy,15f,17f,21f,17f,21f,11f) }
             6 -> { stroke(color,1.8f*k);path(k,x,oy,2.5f,19f,21.5f,19f);cv.drawCircle(x+12*k,oy+10*k,4.5f*k,p) }
@@ -333,24 +335,24 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
             }
         } else {
-            // The Sun in two rows, three cells and more: the place on top and the change of the day length with its trend arrow on the right;
-            // the day arc with the length of the day under its horizon on the left; rise, solar noon and set on the right,
-            // side by side when there is room for them, otherwise one above another.
+            // The Sun in two rows, three cells and more: the place on top and the change of the day length with its trend arrow on the right.
             val trend=facts[3]
             val tw=width(trend.value,12f)
             icon(trend.icon,w-tw-20*dn,8.5f*dn,trend.color)
             text(trend.value,w,13*dn,12f,if(trend.color==muted) fg else trend.color,false,Paint.Align.RIGHT)
             text(fit(place,13f,true,w-tw-30*dn),0f,13*dn,13f,fg,true)
-            val times=facts.take(3)
-            val narrow=min(area,w*0.3f)
-            if(cols>=4 && (w-narrow-12*dn)/3>=66*dn) {
-                picture(narrow/2,top+area/2,narrow,true)
-                val x1=narrow+12*dn;val cw=(w-x1)/3
-                times.forEachIndexed { k,f -> column(x1+k*cw,top+area/2,cw,f) }
+            if(cols>=4) {
+                // Four cells and more: a larger day arc; to its right the rise above the solar noon and the set above the length of the day.
+                // The arc is only half as tall as it is wide, so its square may be wider than the room below the header.
+                val s=min(area*1.3f,w*0.4f);picture(s/2,top+area/2,s)
+                val x1=s+12*dn;val cw=(w-x1)/2
+                val grid=listOf(facts[0],facts[1],facts[2],SwFact(3,uiText(R.string.ui_dlzka_dna_bc509f34),dayLength,muted))
+                grid.forEachIndexed { k,f -> column(x1+(k/2)*cw,top+area*(if(k%2==0) 0.27f else 0.73f),cw,f) }
             } else {
+                // Three cells: the length of the day under the horizon of the arc; rise, solar noon and set one above another.
                 val s=min(area,w*0.48f);picture(s/2,top+area/2,s,true)
                 val x1=s+10*dn;val step=area/3
-                times.forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
+                facts.take(3).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
             }
         }
     }
