@@ -43,11 +43,11 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** CompactDetails is the three-cell, two-row layout. */
-internal enum class AirWidgetShape { Tiny,Square,Strip,CompactDetails,Full }
+/** Row is one row of two or three cells; Strip is one row of four cells and more; CompactDetails is the three-cell, two-row layout. */
+internal enum class AirWidgetShape { Tiny,Square,Row,Strip,CompactDetails,Full }
 internal fun airWidgetShape(wDp:Int,hDp:Int):AirWidgetShape = when {
     wDp<120 -> AirWidgetShape.Tiny
-    hDp<100 -> if(wDp<240) AirWidgetShape.Tiny else AirWidgetShape.Strip
+    hDp<100 -> if(wDp<240) AirWidgetShape.Row else AirWidgetShape.Strip
     wDp<180 -> AirWidgetShape.Square
     wDp<250 -> AirWidgetShape.CompactDetails
     else -> AirWidgetShape.Full
@@ -176,6 +176,9 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
         val v=data.at(key,i);val sub=data.at((if(eu) "european_aqi_" else "us_aqi_")+key,i)
         return Triple(AirPollutants.firstOrNull { it.key==key }?.symbol ?: key,if(v.isFinite()) v.roundToInt().toString() else "\u2013",airQualityLevel(sub,scale)?.let { AqiColors[it.band] } ?: muted)
     }
+    // A kind of pollen as a value: its name, the amount and the colour of its level; a dash without a measurement.
+    fun pollenItem(x:PollenNow):Triple<String,String,Int> =
+        Triple(x.type.name,if(x.value.isFinite()) x.value.roundToInt().toString() else "\u2013",if(x.value.isFinite() && x.level>=0) PollenColors[x.level] else muted)
     // A column: a coloured bar, the name above the value.
     fun column(x:Float,y:Float,room:Float,item:Triple<String,String,Int>) {
         p.style=Paint.Style.FILL;p.color=item.third;cv.drawRect(x,y-8*dn,x+2.5f*dn,y+15*dn,p)
@@ -206,21 +209,37 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             // Six values in two columns of three. The air quality: PM2.5, PM10 and ozone, then the other pollutants of the Air quality screen.
             // The pollen: all kinds, the strongest first.
             val airKeys=listOf("pm2_5","pm10","ozone").let { first -> first+AirPollutants.map { it.key }.filter { it !in first }.take(3) }
-            val items=if(pollenMain) pollenAll.take(6).map { Triple(it.type.name,if(it.value.isFinite()) it.value.roundToInt().toString() else "\u2013",if(it.value.isFinite() && it.level>=0) PollenColors[it.level] else muted) }
-                else airKeys.map { pollutant(it) }
+            val items=if(pollenMain) pollenAll.take(6).map { pollenItem(it) } else airKeys.map { pollutant(it) }
             val cw=room/2
             items.forEachIndexed { k,item -> column(x0+(k/3)*cw,areaTop+area*(((k%3)+0.5f)/3f)-3.5f*dn,cw,item) }
+        }
+        AirWidgetShape.Row -> {
+            // One row of two or three cells: the gauge on the left; to its right the rating above the place, and at three cells two values.
+            val r=h/2-1*dn
+            gauge(r+1*dn,h/2,r,"")
+            val x0=2*r+8*dn
+            val three=w>=168*dn
+            val block=if(three) min(72*dn,(w-x0)*0.45f) else (w-x0).coerceAtLeast(1f)
+            text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
+            text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
+            if(three) {
+                // The air quality: PM2.5 and PM10. The pollen: the two strongest kinds.
+                val items=if(pollenMain) pollenAll.take(2).map { pollenItem(it) } else listOf(pollutant("pm2_5"),pollutant("pm10"))
+                val start=x0+block+6*dn;val cw=(w-start)/items.size
+                if(cw>=26*dn) items.forEachIndexed { k,item -> column(start+k*cw,h/2-3*dn,cw,item) }
+            }
         }
         AirWidgetShape.Strip -> {
             val r=h/2-1*dn
             gauge(r+1*dn,h/2,r,"")
-            val x0=2*r+9*dn;val block=min(110*dn,(w-x0)*0.4f)
+            // The pollen keeps a narrower heading, so that four kinds fit at four cells and all six from five cells.
+            val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(110*dn,(w-x0)*0.4f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
-            val items=if(pollenMain) pollen.take(3).map { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) }+Triple("AQI",aqiText,aqiColor)
+            val items=if(pollenMain) pollenAll.take(if(w>=308*dn) 6 else 4).map { pollenItem(it) }
                 else listOf(pollutant("pm2_5"),pollutant("pm10"),pollutant("ozone"))+listOfNotNull(top?.let { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) })
             val start=x0+block+6*dn
-            val shown=items.take(((w-start)/(44*dn)).toInt().coerceAtLeast(0))
+            val shown=items.take(((w-start)/((if(pollenMain) 30 else 44)*dn)).toInt().coerceAtLeast(0))
             if(shown.isNotEmpty()) { val cw=(w-start)/shown.size;shown.forEachIndexed { k,item -> column(start+k*cw,h/2-3*dn,cw,item) } }
         }
         AirWidgetShape.Full -> {
