@@ -43,12 +43,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
 
-/** What the Air and pollen widget shows at its size: one value (Tiny, Square), a row (Strip) or the details (Full). */
-internal enum class AirWidgetShape { Tiny,Square,Strip,Full }
+/** CompactDetails is the three-cell, two-row layout. */
+internal enum class AirWidgetShape { Tiny,Square,Strip,CompactDetails,Full }
 internal fun airWidgetShape(wDp:Int,hDp:Int):AirWidgetShape = when {
     wDp<120 -> AirWidgetShape.Tiny
     hDp<100 -> if(wDp<240) AirWidgetShape.Tiny else AirWidgetShape.Strip
-    wDp<240 -> AirWidgetShape.Square
+    wDp<180 -> AirWidgetShape.Square
+    wDp<250 -> AirWidgetShape.CompactDetails
     else -> AirWidgetShape.Full
 }
 
@@ -190,6 +191,19 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             text(line,x0+9*dn,h-3*dn,11f,fg)
             val areaTop=16*dn;val areaBottom=h-18*dn
             gauge(w/2,(areaTop+areaBottom)/2,max(min(w/2-4*dn,(areaBottom-areaTop)/2),8*dn),if(pollenMain) pollenLabel else level?.label ?: "")
+        }
+        AirWidgetShape.CompactDetails -> {
+            text(fit(place,13f,true,w),0f,13*dn,13f,fg,true)
+            val areaTop=22*dn
+            val area=(h-areaTop).coerceAtLeast(1f)
+            val diameter=min(w*0.46f,(area-4*dn).coerceAtLeast(1f))
+            gauge(diameter/2,areaTop+area/2,diameter/2,if(pollenMain) pollenLabel else level?.label ?: mainWord)
+            val x0=diameter+12*dn
+            val room=(w-x0).coerceAtLeast(1f)
+            val items=if(pollenMain) pollen.take(3).map { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) }
+                else listOf(pollutant("pm2_5"),pollutant("pm10"),pollutant("ozone"))
+            if(items.isEmpty()) text(fit(pollenLabel,11f,false,room),x0,areaTop+area/2,11f,muted)
+            else items.forEachIndexed { k,item -> column(x0,areaTop+area*((k+0.5f)/3f)-3.5f*dn,room,item) }
         }
         AirWidgetShape.Strip -> {
             val r=h/2-1*dn
