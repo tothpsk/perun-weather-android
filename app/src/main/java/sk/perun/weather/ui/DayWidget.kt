@@ -270,10 +270,11 @@ internal object DayWidgets {
         val i=Intent(c,DayHoursWidget::class.java).setAction(action).setData(android.net.Uri.parse("perun://day-widget/$id")).putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id)
         return PendingIntent.getBroadcast(c,id,i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
     }
-    private fun launch(c:Context,id:Int,loc:String):PendingIntent {
+    /** A tap opens the Forecast screen; with a day it opens that day expanded. */
+    private fun launch(c:Context,id:Int,loc:String,day:LocalDate?):PendingIntent {
         val i=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             data=android.net.Uri.parse("perun://widget/"+id)
-            putExtra("perun_route","forecast");putExtra("perun_location",loc)
+            putExtra("perun_route",if(day==null) "forecast" else "forecast?day="+day);putExtra("perun_location",loc)
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         return PendingIntent.getActivity(c,10000+id,i,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
@@ -302,7 +303,7 @@ internal object DayWidgets {
         val l=place(c,id)
         if(l!=null) {
             v.setTextViewText(R.id.wg_place,l.name)
-            v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l)))
+            v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l),null))
         }
         val data=if(l==null) null else read(c,id,l)
         val today=if(data==null) null else Instant.now().atZone(data.zone).toLocalDate()
@@ -320,6 +321,8 @@ internal object DayWidgets {
         var date=dayWidgetDate(wanted,days) ?: days.first()
         if(delta!=0) { date=dayWidgetStep(date,days,delta);p.edit().putString("date_$id",date.toString()).apply() }
         v.setTextViewText(R.id.wg_day_name,dayLabel(date,today))
+        // The tap carries the shown day, so that the Forecast screen opens it expanded.
+        if(l!=null) v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l),date))
         v.setImageViewBitmap(R.id.wg_day_prev,chevron(dn,false,if(date>days.first()) blue else Disabled))
         v.setImageViewBitmap(R.id.wg_day_next,chevron(dn,true,if(date<days.last()) blue else Disabled))
         val alert=currentAlert(p.getString("alert_$id",null),Instant.now().epochSecond)
@@ -448,7 +451,7 @@ internal object DayWidgets {
         val symbol=(18*dn).roundToInt()
         day.hours.forEach { h ->
             val code=h.v("weather_code")
-            if(code.isFinite() && hourOf(h)%3==0) cv.drawBitmap(widgetWeatherBitmap(code.toInt(),h.v("is_day")==1.0,symbol),(x(h.time)-symbol/2f).coerceIn(0f,(wPx-symbol).toFloat().coerceAtLeast(0f)),badge+(top-badge-symbol)/2,null)
+            if(code.isFinite() && hourOf(h)%3==0) cv.drawBitmap(widgetSymbolBitmap(code.toInt(),h.v("is_day")==1.0,symbol),(x(h.time)-symbol/2f).coerceIn(0f,(wPx-symbol).toFloat().coerceAtLeast(0f)),badge+(top-badge-symbol)/2,null)
         }
         // The now cursor of the app: a line through the chart and a badge with the word and the time.
         val now=Instant.now().epochSecond

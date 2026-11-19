@@ -38,7 +38,7 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     }
     LaunchedEffect(notificationToken) {
         val requested=notificationRoute ?: return@LaunchedEffect
-        val allowed=requested in setOf("overview","alerts","forecast","maps","more/air","more/air?mode=pollen","more/sun-moon") || requested.startsWith("forecast?chart=")
+        val allowed=requested in setOf("overview","alerts","forecast","maps","more/air","more/air?mode=pollen","more/sun-moon") || requested.startsWith("forecast?chart=") || requested.startsWith("forecast?day=")
         if(!allowed) return@LaunchedEffect
         val index=locations.locations.indexOfFirst { BackgroundRefresh.locationKey(it)==notificationLocation }
         if(index>=0) locations.select(index)
@@ -81,7 +81,8 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
                 composable("more/air?mode={mode}",arguments=listOf(navArgument("mode") {defaultValue=""})) {backStack->val mode=backStack.arguments?.getString("mode").orEmpty();key(locations.current,mode) {AirQualityScreen(locations.current,onBack={nav.popBackStack()},initialMode=mode)}}
                 composable("more/sun-moon") {key(locations.current) {SunMoonScreen(locations.current,onBack={nav.popBackStack()})}}
                 composable("more/marine?metric={metric}",arguments=listOf(navArgument("metric") {defaultValue=""})) {backStack->val metric=backStack.arguments?.getString("metric").orEmpty();key(locations.current,metric) {MarineScreen(locations.current,onBack={nav.popBackStack()},targetMetric=metric)}}
-                composable("forecast?chart={chart}",arguments=listOf(navArgument("chart") {defaultValue=""})) {backStack->val chart=backStack.arguments?.getString("chart").orEmpty();key(locations.current,chart) {ForecastScreen(locations.current,targetGraph=chart)}}
+                // day is the ISO date that the Day by hours widget shows; the Forecast screen opens it expanded.
+                composable("forecast?chart={chart}&day={day}",arguments=listOf(navArgument("chart") {defaultValue=""},navArgument("day") {defaultValue=""})) {backStack->val chart=backStack.arguments?.getString("chart").orEmpty();val day=backStack.arguments?.getString("day").orEmpty();key(locations.current,chart,day) {ForecastScreen(locations.current,targetGraph=chart,targetDay=day)}}
                 Tab.entries.filter {it!=Tab.Forecast}.forEach {tab->composable(tab.route) {
                     if(tab==Tab.Overview) key(locations.current) {
                         val events=OverviewNavigation(openForecast={chart->if(chart=="marine") nav.navigate("more/marine") {launchSingleTop=true} else if(chart in setOf("temperature","uv","precipitation","probability","cloud","wind","pressure","humidity","visibility")) nav.navigate("forecast?chart=$chart") {launchSingleTop=true} else if(chart=="forecast") nav.navigate(Tab.Forecast.route) {launchSingleTop=true}},openAlerts={nav.navigate(Tab.Alerts.route) {launchSingleTop=true}},openSunMoon={nav.navigate("more/sun-moon") {launchSingleTop=true}},openMarine={metric->nav.navigate("more/marine?metric=$metric") {launchSingleTop=true}},openAir={mode->nav.navigate("more/air?mode=$mode") {launchSingleTop=true}})
