@@ -18,11 +18,9 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -186,7 +183,7 @@ internal object WidgetRender {
     }
     private fun paint(v:RemoteViews,color:Int,vararg ids:Int) { ids.forEach { v.setTextColor(it,color) } }
     private fun num(x:Double,dec:Int):String = if(x.isFinite()) weatherUnitNumber(x,dec) else "-"
-    private fun t(u:WeatherUnits,x:Double):String = num(u.temperature.fromCelsius(x),0)+"°"
+    private fun t(u:WeatherUnits,x:Double):String = num(u.temperature.fromCelsius(x),0)+"\u00b0"
     private fun dayAt(d:OverviewData,time:LocalDateTime):Boolean {
         if(d.sunTimes.isEmpty()) return time.hour in 7..19
         val at=time.atZone(d.zone).toInstant()
@@ -226,7 +223,7 @@ internal object WidgetRender {
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 110
         if(wDp<120) {
             val v=RemoteViews(c.packageName,R.layout.wg_compact_tiny)
-            v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,144))
+            v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,144))
             v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
             paint(v,pal.fg,R.id.wg_temp)
             return v
@@ -262,7 +259,7 @@ internal object WidgetRender {
             return if(p.measureText(t+"\u2026")<=room) t+"\u2026" else ""
         }
         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
-        fun weather(x:Float,y:Float,size:Float) = pic(widgetWeatherBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
+        fun weather(x:Float,y:Float,size:Float) = pic(widgetSymbolBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
         fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetIconBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
         val hasAlert=alertEvent!=null && alertLevel!=null
         fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
@@ -353,7 +350,7 @@ internal object WidgetRender {
     }
     private fun now(c:Context,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,pal:Palette,o:Bundle):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_now)
-        v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,120))
+        v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,120))
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
@@ -364,7 +361,7 @@ internal object WidgetRender {
         w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
         d.hours.take(6).forEachIndexed { i,h ->
             v.setTextViewText(HourTime[i],h.time.format(Hm))
-            v.setImageViewBitmap(HourIcon[i],widgetWeatherBitmap(h.code,dayAt(d,h.time),64))
+            v.setImageViewBitmap(HourIcon[i],widgetSymbolBitmap(h.code,dayAt(d,h.time),64))
             v.setTextViewText(HourTemp[i],t(u,h.temperature))
         }
         v.setTextViewText(R.id.wg_foot,uiText(R.string.wg_updated,d.time.format(Hm)))
@@ -376,7 +373,7 @@ internal object WidgetRender {
     /** The chart itself is drawn in MeteogramChart.kt, at the real size of the widget down to two cells. */
     private fun meteo(c:Context,w:WidgetConfig,l:Location,d:OverviewData,u:WeatherUnits,o:Bundle,pal:Palette,more:Map<String,Map<LocalDateTime,Double>>):RemoteViews {
         val v=RemoteViews(c.packageName,R.layout.wg_meteo)
-        v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,84))
+        v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,84))
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
@@ -516,14 +513,10 @@ private fun meteoLabel(key:String):String = when(key) {
         HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))
     }
     if(placed.isNotEmpty()) OutlinedButton(onClick={ PerunWidgets.refreshAll(c) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_refresh_all)) }
-    // The note about adding from the home screen is behind the (i) next to the heading.
-    var addNote by remember { mutableStateOf(false) }
-    Row(verticalAlignment=Alignment.CenterVertically) {
-        Text(uiText(R.string.wg_add_title),style=MaterialTheme.typography.labelLarge,color=muted)
-        Box(Modifier.size(40.dp).clickable(onClickLabel=uiText(R.string.ui_pomocnik_c68b7b84),role=Role.Button) { addNote=!addNote },contentAlignment=Alignment.Center) {
-            Box(Modifier.size(20.dp).border(1.5.dp,MaterialTheme.colorScheme.primary,CircleShape),contentAlignment=Alignment.Center) { Text("i",style=MaterialTheme.typography.labelMedium,color=MaterialTheme.colorScheme.primary) }
-        }
+    // The note about adding from the home screen sits behind the (i) next to the heading, as in the background refresh settings.
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+        Text(uiText(R.string.wg_add_title),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
+        SettingsInfo(uiText(R.string.wg_add_note))
     }
-    if(addNote) Text(uiText(R.string.wg_add_note),style=MaterialTheme.typography.bodySmall,color=muted)
     PerunWidgets.Listed.forEach { k -> OutlinedButton(onClick={ PerunWidgets.pin(c,k) },modifier=Modifier.fillMaxWidth()) { Text(PerunWidgets.kindName(k)) } }
 }
