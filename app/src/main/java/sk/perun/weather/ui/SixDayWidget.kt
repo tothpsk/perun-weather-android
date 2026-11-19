@@ -130,7 +130,7 @@ internal object SixDayWidgets {
         val muted=if(dark) 0xFF4B586C.toInt() else 0xFFBBC4D2.toInt()
         val manager=AppWidgetManager.getInstance(c)
         val v=RemoteViews(c.packageName,R.layout.wg_days)
-        v.setImageViewBitmap(R.id.wg_icon,widgetWeatherBitmap(d.code,d.isDayFlag,120))
+        v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,120))
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
@@ -149,7 +149,7 @@ internal object SixDayWidgets {
             v.setTextViewText(DayName[i],if(day==null) "" else if(i==0) uiText(R.string.wg_today) else day.date.format(DateTimeFormatter.ofPattern("EEE",appLocale())))
             v.setTextViewText(DayMax[i],if(day==null) "" else t(u,day.max))
             v.setTextViewText(DayMin[i],if(day==null) "" else t(u,day.min))
-            if(day!=null) v.setImageViewBitmap(DayIcon[i],widgetWeatherBitmap(day.code,true,64))
+            if(day!=null) v.setImageViewBitmap(DayIcon[i],widgetSymbolBitmap(day.code,true,64))
         }
         v.setTextViewText(R.id.wg_foot,uiText(R.string.wg_updated,d.time.format(Hm)))
         (intArrayOf(R.id.wg_place,R.id.wg_temp)+CellValue+DayMax).forEach { v.setTextColor(it,fg) }
