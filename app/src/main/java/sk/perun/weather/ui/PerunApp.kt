@@ -38,7 +38,7 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     }
     LaunchedEffect(notificationToken) {
         val requested=notificationRoute ?: return@LaunchedEffect
-        val allowed=requested in setOf("overview","alerts","forecast","maps","more/air","more/sun-moon") || requested.startsWith("forecast?chart=")
+        val allowed=requested in setOf("overview","alerts","forecast","maps","more/air","more/air?mode=pollen","more/sun-moon") || requested.startsWith("forecast?chart=")
         if(!allowed) return@LaunchedEffect
         val index=locations.locations.indexOfFirst { BackgroundRefresh.locationKey(it)==notificationLocation }
         if(index>=0) locations.select(index)

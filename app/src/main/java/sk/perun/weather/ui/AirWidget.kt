@@ -85,7 +85,7 @@ internal object AirWidgets {
         WorkManager.getInstance(c.applicationContext).enqueueUniquePeriodicWork(Periodic,ExistingPeriodicWorkPolicy.KEEP,request)
     }
     fun cancel(c:Context) { WorkManager.getInstance(c.applicationContext).cancelUniqueWork(Periodic) }
-    /** Loads and draws one widget; false when the place is missing. A tap opens the Air quality screen. */
+    /** Loads and draws one widget; false when the place is missing. A tap opens the Air quality and pollen screen, on the pollen mode for a pollen widget. */
     suspend fun render(c:Context,id:Int,all:List<Location>,active:Location?):Boolean {
         val cfg=read(c,id)
         val l=(if(cfg.loc=="active") null else all.firstOrNull { BackgroundRefresh.locationKey(it)==cfg.loc }) ?: active ?: return false
@@ -103,7 +103,7 @@ internal object AirWidgets {
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             setData(android.net.Uri.parse("perun://widget/"+id))
-            putExtra("perun_route","more/air");putExtra("perun_location",BackgroundRefresh.locationKey(l))
+            putExtra("perun_route",if(cfg.main=="pollen") "more/air?mode=pollen" else "more/air");putExtra("perun_location",BackgroundRefresh.locationKey(l))
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         v.setOnClickPendingIntent(R.id.wg_root,PendingIntent.getActivity(c,10000+id,open,PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
@@ -132,6 +132,9 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
     // Pollen that is in the air now, the strongest first.
     val pollen=AirPollenTypes.map { PollenNow(it,data.at(it.key,i),airPollenLevel(it,data.at(it.key,i))) }.filter { it.value.isFinite() && it.value>0.0 }
         .sortedWith(compareByDescending<PollenNow> { it.level }.thenByDescending { it.value/it.type.high })
+    // Every kind of pollen, those in the air first; the kinds without a measurement come last.
+    val pollenAll=AirPollenTypes.map { PollenNow(it,data.at(it.key,i),airPollenLevel(it,data.at(it.key,i))) }
+        .sortedWith(compareByDescending<PollenNow> { if(it.value.isFinite()) it.level else -2 }.thenByDescending { if(it.value.isFinite()) it.value/it.type.high else -1.0 })
     val top=pollen.firstOrNull()
     val pollenKnown=AirPollenTypes.any { data.at(it.key,i).isFinite() }
     val pollenColor=if(top!=null) PollenColors[top.level] else if(pollenKnown) PollenColors[0] else muted
@@ -200,10 +203,13 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             gauge(diameter/2,areaTop+area/2,diameter/2,if(pollenMain) pollenLabel else level?.label ?: mainWord)
             val x0=diameter+12*dn
             val room=(w-x0).coerceAtLeast(1f)
-            val items=if(pollenMain) pollen.take(3).map { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) }
-                else listOf(pollutant("pm2_5"),pollutant("pm10"),pollutant("ozone"))
-            if(items.isEmpty()) text(fit(pollenLabel,11f,false,room),x0,areaTop+area/2,11f,muted)
-            else items.forEachIndexed { k,item -> column(x0,areaTop+area*((k+0.5f)/3f)-3.5f*dn,room,item) }
+            // Six values in two columns of three. The air quality: PM2.5, PM10 and ozone, then the other pollutants of the Air quality screen.
+            // The pollen: all kinds, the strongest first.
+            val airKeys=listOf("pm2_5","pm10","ozone").let { first -> first+AirPollutants.map { it.key }.filter { it !in first }.take(3) }
+            val items=if(pollenMain) pollenAll.take(6).map { Triple(it.type.name,if(it.value.isFinite()) it.value.roundToInt().toString() else "\u2013",if(it.value.isFinite() && it.level>=0) PollenColors[it.level] else muted) }
+                else airKeys.map { pollutant(it) }
+            val cw=room/2
+            items.forEachIndexed { k,item -> column(x0+(k/3)*cw,areaTop+area*(((k%3)+0.5f)/3f)-3.5f*dn,cw,item) }
         }
         AirWidgetShape.Strip -> {
             val r=h/2-1*dn
