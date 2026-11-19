@@ -168,10 +168,11 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
     fun span(seconds:Long)=uiText(R.string.ui_value_h_value_min_49a3b581,seconds/3600,(seconds%3600)/60)
     val riseWord=uiText(R.string.wg_sky_rise);val setWord=uiText(R.string.wg_sky_set)
 
-    // The values of the chosen body, the most important first; the widget shows as many as fit.
+    // The values of the chosen body. The Sun: rise, solar noon, set and the change of the day length. The Moon: rise, set, time above the horizon and the trend.
+    // pair holds the rise and the set for the sizes that show only these two.
     var sunRise:Instant?=null;var sunSet:Instant?=null
     var illum=0;var waxing=true;var dayLength=""
-    val facts:List<SwFact>;val lead:SwFact;val headline:String;val rowHead:String;val rowSub:String;val headColor:Int;val nextIcon:Int;val nextText:String
+    val facts:List<SwFact>;val pair:List<SwFact>;val lead:SwFact;val headline:String;val rowHead:String;val rowSub:String;val headColor:Int;val nextIcon:Int;val nextText:String
     if(moonMain) {
         val events=SunMoonMath.moonEvents(today,zone,lat,lon)
         val point=SunMoonMath.position(now,lat,lon)
@@ -181,6 +182,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         facts=listOf(SwFact(0,riseWord,clock(events.first),SwRise),SwFact(1,setWord,clock(events.second),SwSet),
             SwFact(6,uiText(R.string.wg_sky_up),span(swMoonUp(today,zone,lat,lon)),muted),
             SwFact(if(waxing) 4 else 5,uiText(R.string.wg_sky_trend),if(waxing) uiText(R.string.ui_rastie_a5341d12) else uiText(R.string.ui_cuva_c55fd1d0),if(waxing) SwRise else SwSet))
+        pair=facts.take(2)
         lead=SwFact(-1,uiText(R.string.wg_sky_lit),lit,muted)
         headline=phase+" \u2022 "+lit;rowHead=phase;rowSub=lit+" \u00B7 "+place;headColor=muted;nextIcon=-1;nextText=lit
     } else {
@@ -198,8 +200,9 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         val known=sun.seconds>=0 && before.seconds>=0
         val change=if(known) sun.seconds-before.seconds else 0L
         val changeText=if(!known) "\u2013" else (if(change>0) "+" else if(change<0) "\u2212" else "")+uiText(R.string.sky_min_s,abs(change)/60,abs(change)%60)
-        facts=listOf(SwFact(0,riseWord,clock(r),SwRise),SwFact(1,setWord,clock(s),SwSet),SwFact(2,uiText(R.string.wg_sky_noon),clock(noon),SwSun),
+        facts=listOf(SwFact(0,riseWord,clock(r),SwRise),SwFact(2,uiText(R.string.wg_sky_noon),clock(noon),SwSun),SwFact(1,setWord,clock(s),SwSet),
             SwFact(if(change<0) 5 else 4,uiText(R.string.wg_sky_change),changeText,if(!known || change==0L) muted else if(change>0) SwRise else SwSet))
+        pair=listOf(facts[0],facts[2])
         val nextUp=next.first
         nextIcon=if(nextUp) 0 else 1;nextText=clock(next.second);headColor=if(nextUp) SwRise else SwSet
         lead=SwFact(nextIcon,if(nextUp) riseWord else setWord,nextText,headColor)
@@ -288,9 +291,14 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         picture(s/2,h/2,s)
         val x0=s+8*dn
         if(cols==2) column(x0,h/2,w-x0,lead)
-        else if(cols==3) { val cw=(w-x0)/2;facts.take(2).forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
-        else {
-            // Four cells and more: what comes next (or the phase) with the place below it, then the values.
+        else if(cols==3) { val cw=(w-x0)/2;pair.forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
+        else if(!moonMain) {
+            // The Sun at four cells: rise, solar noon and set. Five cells add the change of the day length, which gets a wider column.
+            val total=w-x0
+            if(total/4>=62*dn) { val cw=total*0.23f;facts.forEachIndexed { k,f -> column(x0+k*cw,h/2,if(k<3) cw else total-3*cw,f) } }
+            else { val cw=total/3;facts.take(3).forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
+        } else {
+            // The Moon at four cells and more: the phase with the lit part and the place below it, then the values.
             val block=min(110*dn,(w-x0)*0.4f)
             text(fit(rowHead,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(rowSub,10f,false,block),x0,h/2+12*dn,10f,muted)
@@ -303,27 +311,47 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         text(fit(place,11f,false,w),w/2,11*dn,11f,muted,false,Paint.Align.CENTER)
         val top=16*dn;val bottom=h-22*dn
         picture(w/2,(top+bottom)/2,min(w*0.9f,bottom-top))
-        icon(0,0f,h-8*dn,SwRise);text(facts[0].value,18*dn,h-3*dn,12f,fg)
-        val sw=width(facts[1].value,12f)
-        icon(1,w-sw-18*dn,h-8*dn,SwSet);text(facts[1].value,w,h-3*dn,12f,fg,false,Paint.Align.RIGHT)
+        icon(0,0f,h-8*dn,SwRise);text(pair[0].value,18*dn,h-3*dn,12f,fg)
+        val sw=width(pair[1].value,12f)
+        icon(1,w-sw-18*dn,h-8*dn,SwSet);text(pair[1].value,w,h-3*dn,12f,fg,false,Paint.Align.RIGHT)
     } else {
-        // Two rows, three cells and more: the place on top and, on the right, what comes next for the Sun or the phase of the Moon,
-        // from four cells with its lit part; the picture on the left (the length of the day under the horizon of the Sun), the values on the right.
-        val head=fit(if(cols==3) rowHead else headline,12f,false,w*0.58f)
-        text(head,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
-        if(head.isNotEmpty()) dot(w-width(head,12f)-7*dn,9*dn,headColor)
-        text(fit(place,13f,true,w-width(head,12f)-20*dn),0f,13*dn,13f,fg,true)
         val top=22*dn;val area=h-top
-        if(cols==3) {
-            // The Sun has its two times one above the other; the Moon adds the time above the horizon.
-            val n=if(moonMain) 3 else 2
-            val s=min(area,w*0.48f);picture(s/2,top+area/2,s,true)
-            val x1=s+10*dn;val step=area/n
-            facts.take(n).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
+        if(moonMain) {
+            // The Moon in two rows, three cells and more: the place on top and the phase on the right, from four cells with its lit part;
+            // the picture on the left, the values on the right.
+            val head=fit(if(cols==3) rowHead else headline,12f,false,w*0.58f)
+            text(head,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
+            if(head.isNotEmpty()) dot(w-width(head,12f)-7*dn,9*dn,headColor)
+            text(fit(place,13f,true,w-width(head,12f)-20*dn),0f,13*dn,13f,fg,true)
+            if(cols==3) {
+                val s=min(area,w*0.48f);picture(s/2,top+area/2,s)
+                val x1=s+10*dn;val step=area/3
+                facts.take(3).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
+            } else {
+                val s=min(area,w*0.3f);picture(s/2,top+area/2,s)
+                val x1=s+12*dn;val cw=(w-x1)/2
+                facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
+            }
         } else {
-            val s=min(area,w*0.3f);picture(s/2,top+area/2,s,true)
-            val x1=s+12*dn;val cw=(w-x1)/2
-            facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
+            // The Sun in two rows, three cells and more: the place on top and the change of the day length with its trend arrow on the right;
+            // the day arc with the length of the day under its horizon on the left; rise, solar noon and set on the right,
+            // side by side when there is room for them, otherwise one above another.
+            val trend=facts[3]
+            val tw=width(trend.value,12f)
+            icon(trend.icon,w-tw-20*dn,8.5f*dn,trend.color)
+            text(trend.value,w,13*dn,12f,if(trend.color==muted) fg else trend.color,false,Paint.Align.RIGHT)
+            text(fit(place,13f,true,w-tw-30*dn),0f,13*dn,13f,fg,true)
+            val times=facts.take(3)
+            val narrow=min(area,w*0.3f)
+            if(cols>=4 && (w-narrow-12*dn)/3>=66*dn) {
+                picture(narrow/2,top+area/2,narrow,true)
+                val x1=narrow+12*dn;val cw=(w-x1)/3
+                times.forEachIndexed { k,f -> column(x1+k*cw,top+area/2,cw,f) }
+            } else {
+                val s=min(area,w*0.48f);picture(s/2,top+area/2,s,true)
+                val x1=s+10*dn;val step=area/3
+                times.forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
+            }
         }
     }
     return bmp
