@@ -307,9 +307,9 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         val sw=width(facts[1].value,12f)
         icon(1,w-sw-18*dn,h-8*dn,SwSet);text(facts[1].value,w,h-3*dn,12f,fg,false,Paint.Align.RIGHT)
     } else {
-        // Two rows, three cells and more: the place on top and, on the right, what comes next for the Sun or the phase with the lit part for the Moon;
-        // the picture on the left (the length of the day under the horizon of the Sun), the values on the right.
-        val head=fit(headline,12f,false,w*0.58f)
+        // Two rows, three cells and more: the place on top and, on the right, what comes next for the Sun or the phase of the Moon,
+        // from four cells with its lit part; the picture on the left (the length of the day under the horizon of the Sun), the values on the right.
+        val head=fit(if(cols==3) rowHead else headline,12f,false,w*0.58f)
         text(head,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
         if(head.isNotEmpty()) dot(w-width(head,12f)-7*dn,9*dn,headColor)
         text(fit(place,13f,true,w-width(head,12f)-20*dn),0f,13*dn,13f,fg,true)
