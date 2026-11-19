@@ -154,11 +154,12 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     // At two cells the row of weather icons is left out and the axis icons take its place.
     val small=hPx<96*dn
     val iconPx=(18*dn).roundToInt()
-    val headH=if(small) glyph+2*dn else iconPx+3*dn
+    // The row of icons sits close under the header: the chart has no blank strip of its own above the icons and the cloud band.
+    val headH=if(small) glyph+0.5f*dn else iconPx+1*dn
     val cloudOn="cloud" in show
     val bandH=if(small) 4*dn else 6*dn
-    val bandTop=headH+1*dn
-    val top=headH+(if(cloudOn) bandH+2*dn else 0f)+5*dn;val bottom=hPx-13*dn
+    val bandTop=headH
+    val top=headH+(if(cloudOn) bandH+1*dn else 0f)+3*dn;val bottom=hPx-13*dn
     val plotH=max(bottom-top,8*dn)
     val stride=if(plotH<56*dn) 2 else 1
     val step=(plotR-plotL)/(s.size-1)
@@ -230,7 +231,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
             val tw=p.measureText(text)
             val at=(x(i)-tw/2).coerceIn(plotL,(plotR-tw).coerceAtLeast(plotL))
             if(at>=lastEnd+3*dn) { p.color=if(h.time.hour==0) strong else muted;cv.drawText(text,at,hPx-3*dn,p);lastEnd=at+tw }
-            if(!small) cv.drawBitmap(widgetWeatherBitmap(h.code,isDay(h.time),iconPx),(x(i)-iconPx/2f).coerceIn(plotL,(plotR-iconPx).coerceAtLeast(plotL)),1*dn,null)
+            if(!small) cv.drawBitmap(widgetWeatherBitmap(h.code,isDay(h.time),iconPx),(x(i)-iconPx/2f).coerceIn(plotL,(plotR-iconPx).coerceAtLeast(plotL)),0f,null)
         }
     }
     return bmp
