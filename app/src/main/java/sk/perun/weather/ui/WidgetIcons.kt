@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
 import androidx.compose.ui.graphics.vector.PathParser
@@ -71,6 +72,54 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
                     drawLine(c,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
                 }
                 else->Unit
+            }
+        }
+    }
+    return image.asAndroidBitmap()
+}
+
+// The weather symbols of the app: the shapes and colours of WeatherSymbol in OverviewArt.kt, drawn still (no animation) in a 100 x 100 box.
+private val SymGold=Color(0xFFFFD166)
+private val SymMoon=Color(0xFFD2DEF5)
+private val SymCloud=Color(0xFFCBD7E7)
+private val SymSnow=Color(0xFFE8EAF0)
+private val SymDrop=Color(0xFF70D0FF)
+private val SymRays by lazy { iconPath("M50 8v10m0 64v10M8 50h10m64 0h10M20 20l7 7m46 46l7 7M20 80l7-7m46-46l7-7") }
+private val SymMoonPath by lazy { iconPath("M70 15A38 38 0 1 0 85 72 34 34 0 0 1 70 15") }
+private val SymCloudPath by lazy { iconPath("M23 73a18 18 0 0 1-2-36 27 27 0 0 1 51-5 21 21 0 0 1 7 41Z") }
+private val SymDrops by lazy { iconPath("M28 75l-5 12m28-12l-5 12m28-12l-5 12") }
+private val SymBolt by lazy { iconPath("M52 60L35 83h15l-6 16 26-27H54l8-12Z") }
+private val SymFog by lazy { iconPath("M12 82h75M18 92h63") }
+
+private fun androidx.compose.ui.graphics.drawscope.DrawScope.symbolSun() {
+    drawPath(SymRays,SymGold,style=Stroke(4f,cap=StrokeCap.Round))
+    drawCircle(SymGold,23f,Offset(50f,50f))
+}
+
+/** The weather symbol of a WMO code for the home-screen widgets, the same drawing as WeatherSymbol in the app. A negative code gives an empty picture. */
+internal fun widgetSymbolBitmap(code:Int,day:Boolean,size:Int):Bitmap {
+    val px=size.coerceAtLeast(1)
+    val image=ImageBitmap(px,px)
+    if(code<0) return image.asAndroidBitmap()
+    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+        scale(px/100f,px/100f,Offset.Zero) {
+            when {
+                code==0 -> if(day) symbolSun() else drawPath(SymMoonPath,SymMoon)
+                code in 1..2 -> {
+                    scale(.75f,.75f,Offset.Zero) { if(day) symbolSun() else drawPath(SymMoonPath,SymMoon) }
+                    translate(15f,20f) { scale(.85f,.8f,Offset.Zero) { drawPath(SymCloudPath,SymCloud) } }
+                }
+                code==45 || code==48 -> { drawPath(SymCloudPath,SymCloud);drawPath(SymFog,SymCloud,style=Stroke(4f,cap=StrokeCap.Round)) }
+                code>=95 -> { drawPath(SymCloudPath,SymCloud);drawPath(SymBolt,SymGold) }
+                code in listOf(71,73,75,77,85,86) -> {
+                    drawPath(SymCloudPath,SymCloud)
+                    listOf(27f,50f,73f).forEachIndexed { i,x -> drawCircle(SymSnow,4f,Offset(x,if(i==1) 91f else 88f)) }
+                }
+                code>=51 -> {
+                    translate(0f,-12f) { drawPath(SymCloudPath,SymCloud) }
+                    drawPath(SymDrops,SymDrop,style=Stroke(5f,cap=StrokeCap.Round))
+                }
+                else -> drawPath(SymCloudPath,SymCloud)
             }
         }
     }

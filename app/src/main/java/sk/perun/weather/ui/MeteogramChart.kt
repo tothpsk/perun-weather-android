@@ -232,7 +232,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
             val tw=p.measureText(text)
             val at=(x(i)-tw/2).coerceIn(plotL,(plotR-tw).coerceAtLeast(plotL))
             if(at>=lastEnd+3*dn) { p.color=if(h.time.hour==0) strong else muted;cv.drawText(text,at,hPx-3*dn,p);lastEnd=at+tw }
-            if(!small) cv.drawBitmap(widgetWeatherBitmap(h.code,isDay(h.time),iconPx),(x(i)-iconPx/2f).coerceIn(plotL,(plotR-iconPx).coerceAtLeast(plotL)),0f,null)
+            if(!small) cv.drawBitmap(widgetSymbolBitmap(h.code,isDay(h.time),iconPx),(x(i)-iconPx/2f).coerceIn(plotL,(plotR-iconPx).coerceAtLeast(plotL)),0f,null)
         }
     }
     return bmp
