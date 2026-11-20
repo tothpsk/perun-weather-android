@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.0.6 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.1.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -98,9 +98,17 @@ Sunrise and sunset, the length of the day and its change, moonrise and moonset, 
 
 ### Widgets
 
-Three home-screen widgets are available: compact, current conditions and a meteogram, each with its own settings.
+Seven home-screen widgets are available, each with its own settings:
 
-**The widgets are not finished yet.** Their look and behaviour may still change, and two more widgets, a forecast by day and air quality with pollen, are planned.
+- Compact: the current weather in one row.
+- Next 6 hours: the current conditions and the coming hours.
+- Meteogram: a chart of the coming days.
+- Day by hours: the hours of one day as a chart. Arrows switch the day and a tap opens that day in Forecast.
+- 6 days: the forecast by day.
+- Air and pollen: the air quality index or the pollen, with pollutants or kinds of pollen at larger sizes.
+- Sun and Moon: the Sun or the Moon, with more values at larger sizes.
+
+The widgets are new; their look and behaviour may still change.
 
 ### Settings
 
