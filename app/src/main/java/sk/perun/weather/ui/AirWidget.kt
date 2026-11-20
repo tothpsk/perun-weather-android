@@ -232,11 +232,11 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
         AirWidgetShape.Strip -> {
             val r=h/2-1*dn
             gauge(r+1*dn,h/2,r,"")
-            // The pollen keeps a narrower heading, so that four kinds fit at four cells and all six from five cells.
+            // The pollen keeps a narrower heading and shows its strongest kinds: three at four cells and five from five cells.
             val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(110*dn,(w-x0)*0.4f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
-            val items=if(pollenMain) pollenAll.take(if(w>=308*dn) 6 else 4).map { pollenItem(it) }
+            val items=if(pollenMain) pollenAll.take(if(w>=308*dn) 5 else 3).map { pollenItem(it) }
                 else listOf(pollutant("pm2_5"),pollutant("pm10"),pollutant("ozone"))+listOfNotNull(top?.let { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) })
             val start=x0+block+6*dn
             val shown=items.take(((w-start)/((if(pollenMain) 30 else 44)*dn)).toInt().coerceAtLeast(0))
@@ -248,8 +248,9 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             text(summary,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
             dot(w-width(summary,12f)-7*dn,9*dn,aqiColor)
             // The main value over the next 24 hours; the band grows with the widget.
-            val pollutants=h>=108*dn
-            val spare=(h-(if(pollutants) 108 else 78)*dn).coerceAtLeast(0f)
+            // The pollen widget has no line of pollen names, so its values always fit.
+            val values=pollenMain || h>=108*dn
+            val spare=(h-(if(pollenMain) 88 else if(values) 108 else 78)*dn).coerceAtLeast(0f)
             val bandH=min(12*dn+spare*0.6f,40*dn)
             text((if(pollenMain) uiText(R.string.wg_air_pollen) else uiText(R.string.wg_air_quality))+" \u00B7 24 h",0f,30*dn,9f,muted)
             val bandTop=34*dn
@@ -265,21 +266,29 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
                     if(hour%6==0) text(hour.toString().padStart(2,'0'),((k+0.5f)*seg).coerceIn(6*dn,w-6*dn),bandTop+bandH+11*dn,9f,muted,false,Paint.Align.CENTER)
                 }
             }
-            // Every kind of pollen in the air, as many as fit.
             val rowY=bandTop+bandH+28*dn
-            if(pollen.isEmpty()) text(pollenLabel,0f,rowY,11f,muted) else {
-                var x=0f;var drawn=0
-                for(item in pollen) {
-                    val tw=width(item.type.name,11f)
-                    if(x+9*dn+tw>w-(if(drawn<pollen.size-1) 22*dn else 0f)) break
-                    dot(x+3*dn,rowY-4*dn,PollenColors[item.level]);text(item.type.name,x+9*dn,rowY,11f,fg)
-                    x+=9*dn+tw+10*dn;drawn++
+            // The air quality widget: every kind of pollen in the air, as many as fit. A place without pollen data has no such line.
+            if(!pollenMain && pollenKnown) {
+                if(pollen.isEmpty()) text(pollenLabel,0f,rowY,11f,muted) else {
+                    var x=0f;var drawn=0
+                    for(item in pollen) {
+                        val tw=width(item.type.name,11f)
+                        if(x+9*dn+tw>w-(if(drawn<pollen.size-1) 22*dn else 0f)) break
+                        dot(x+3*dn,rowY-4*dn,PollenColors[item.level]);text(item.type.name,x+9*dn,rowY,11f,fg)
+                        x+=9*dn+tw+10*dn;drawn++
+                    }
+                    if(drawn<pollen.size) text("+"+(pollen.size-drawn),x,rowY,11f,muted)
                 }
-                if(drawn<pollen.size) text("+"+(pollen.size-drawn),x,rowY,11f,muted)
             }
-            if(pollutants) {
-                val keys=listOf("pm2_5","pm10","nitrogen_dioxide","ozone");val cw=w/keys.size
-                keys.forEachIndexed { k,key -> column(k*cw,rowY+16*dn,cw,pollutant(key)) }
+            if(values) {
+                // The bottom row: four values at four cells and six from five cells. The air quality: the pollutants of the Air quality screen.
+                // The pollen: its strongest kinds.
+                val six=w>=308*dn
+                val items=if(pollenMain) pollenAll.take(if(six) 6 else 4).map { pollenItem(it) }
+                    else (if(six) AirPollutants.map { it.key } else listOf("pm2_5","pm10","nitrogen_dioxide","ozone")).map { pollutant(it) }
+                val cw=w/items.size
+                val y=if(pollenMain) rowY-2*dn else rowY+16*dn
+                items.forEachIndexed { k,item -> column(k*cw,y,cw,item) }
             }
         }
     }
