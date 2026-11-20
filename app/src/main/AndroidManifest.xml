@@ -25,17 +25,45 @@
         <activity android:name=".ui.WidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
         </activity>
-        <receiver android:name=".ui.CompactWidget" android:exported="false" android:label="@string/wg_name_compact">
+        <activity android:name=".ui.DayWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
+        <activity android:name=".ui.SixDayConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
+        <activity android:name=".ui.AirWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
+        <activity android:name=".ui.SkyWidgetConfigActivity" android:exported="true" android:theme="@android:style/Theme.Material.NoActionBar">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" /></intent-filter>
+        </activity>
+        <receiver android:name=".ui.CompactWidget" android:exported="false" android:label="@string/wg_title_compact">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_compact_info" />
         </receiver>
-        <receiver android:name=".ui.NowWidget" android:exported="false" android:label="@string/wg_name_now">
+        <receiver android:name=".ui.NowWidget" android:exported="false" android:label="@string/wg_title_now">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_now_info" />
         </receiver>
-        <receiver android:name=".ui.MeteogramWidget" android:exported="false" android:label="@string/wg_name_meteo">
+        <receiver android:name=".ui.MeteogramWidget" android:exported="false" android:label="@string/wg_title_meteo">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_meteo_info" />
+        </receiver>
+        <receiver android:name=".ui.DayHoursWidget" android:exported="false" android:label="@string/wg_name_day">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_day_info" />
+        </receiver>
+        <receiver android:name=".ui.SixDayWidget" android:exported="false" android:label="@string/wg_name_days">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_days_info" />
+        </receiver>
+        <receiver android:name=".ui.AirWidget" android:exported="false" android:label="@string/wg_name_air">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_air_info" />
+        </receiver>
+        <receiver android:name=".ui.SkyWidget" android:exported="false" android:label="@string/wg_name_sky">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_sky_info" />
         </receiver>
     </application>
 

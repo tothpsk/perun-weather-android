@@ -2,6 +2,24 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.1.0] - 2026-11-20
+
+### Added
+
+- Day by hours widget: the hours of one day as a chart with the rows of the expanded day on Forecast; the rows are chosen in the widget settings. Arrows switch the day, a line marks the current time and the header shows the official alert valid now. A tap opens Forecast with the shown day expanded.
+- 6 days widget.
+- Air and pollen widget: the air quality index or the pollen as the main value, chosen in the widget settings, for sizes from one cell up. Small sizes show a gauge with the rating and the place; wider ones add pollutants or the strongest kinds of pollen; the large sizes add a 24-hour band, the other value under it and up to six pollutants or kinds of pollen. A tap opens Air quality, on the pollen mode for a pollen widget.
+- Sun and Moon widget: the chosen body for sizes from one cell to five cells by two rows, with the symbols of the Sun and Moon screen. A tap opens that screen.
+- Meteogram widget: six more quantities.
+
+### Changed
+
+- Widgets draw the weather symbols and the quantity icons of the app.
+- Compact widget: separate layouts for one row, two cells and three cells, a bold place with the alert beside it, a refresh button where it fits and the time of the update in the wide form.
+- Meteogram widget: value axes with icons, a faint grid, days on the time axis and a cloud band that is always visible; usable at two cells.
+- Wide widgets show a fourth value.
+- Widget settings: unified widget names, the new widgets in the list, and the note about adding a widget behind the (i) button.
+
 ## [1.0.6] - 2026-11-17
 
 ### Added

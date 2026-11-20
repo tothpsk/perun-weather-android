@@ -142,13 +142,14 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
     ForecastBundle(days,z,note)
 }
 
+// targetDay is an ISO date such as 2026-11-20: that day opens expanded (the tap on the Day by hours widget); empty opens the list.
 @OptIn(ExperimentalLayoutApi::class,ExperimentalMaterial3Api::class)
-@Composable internal fun ForecastScreen(location:Location,targetGraph:String="") {
+@Composable internal fun ForecastScreen(location:Location,targetGraph:String="",targetDay:String="") {
     val prefs=rememberForecastPreferences();val u=prefs.units
     var data by remember(location,prefs.model) { mutableStateOf<ForecastBundle?>(null) }
     var error by remember(location,prefs.model) { mutableStateOf<String?>(null) }
     var loading by remember { mutableStateOf(true) };var refresh by remember { mutableIntStateOf(0) }
-    var open by remember(location,prefs.model) { mutableStateOf<LocalDate?>(null) }
+    var open by remember(location,prefs.model,targetDay) { mutableStateOf<LocalDate?>(runCatching { LocalDate.parse(targetDay) }.getOrNull()) }
     val listState=rememberLazyListState()
     var mode by remember(targetGraph) { mutableStateOf(when(targetGraph) { "wind"->FV.Wind;"uv"->FV.Uv;"precipitation","probability"->FV.Rain;"cloud"->FV.Cloud;"pressure"->FV.Pressure;"humidity"->FV.Humidity;"visibility"->FV.Visibility;else->FV.Temp }) }
     LaunchedEffect(location,prefs.model,refresh) {
