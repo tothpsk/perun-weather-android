@@ -232,14 +232,16 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
         AirWidgetShape.Strip -> {
             val r=h/2-1*dn
             gauge(r+1*dn,h/2,r,"")
-            // The pollen keeps a narrower heading and shows its strongest kinds: three at four cells and five from five cells.
-            val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(110*dn,(w-x0)*0.4f)
+            // A narrow heading leaves room for the values. The pollen shows its strongest kinds: three at four cells and five from five cells.
+            // The air quality shows three pollutants at four cells and four from five cells.
+            val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(84*dn,(w-x0)*0.34f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
-            val items=if(pollenMain) pollenAll.take(if(w>=308*dn) 5 else 3).map { pollenItem(it) }
-                else listOf(pollutant("pm2_5"),pollutant("pm10"),pollutant("ozone"))+listOfNotNull(top?.let { Triple(it.type.name,it.value.roundToInt().toString(),PollenColors[it.level]) })
+            val wide=w>=308*dn
+            val items=if(pollenMain) pollenAll.take(if(wide) 5 else 3).map { pollenItem(it) }
+                else (if(wide) listOf("pm2_5","pm10","nitrogen_dioxide","ozone") else listOf("pm2_5","pm10","ozone")).map { pollutant(it) }
             val start=x0+block+6*dn
-            val shown=items.take(((w-start)/((if(pollenMain) 30 else 44)*dn)).toInt().coerceAtLeast(0))
+            val shown=items.take(((w-start)/((if(pollenMain) 30 else 36)*dn)).toInt().coerceAtLeast(0))
             if(shown.isNotEmpty()) { val cw=(w-start)/shown.size;shown.forEachIndexed { k,item -> column(start+k*cw,h/2-3*dn,cw,item) } }
         }
         AirWidgetShape.Full -> {
