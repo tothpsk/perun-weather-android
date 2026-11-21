@@ -237,7 +237,7 @@ internal object WidgetRender {
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-16)*dn).roundToInt().coerceIn(40,1400),((hDp-16)*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
@@ -332,7 +332,7 @@ internal object WidgetRender {
             placed(fit(place,15f,true,w-30*dn-alertW),0f,cy2)
             if(placedWidth(place)+10*dn+width(updated,10f,false)+30*dn<=w) text(updated,w-30*dn,cy2+10*dn*0.36f,10f,pal.muted,false,Paint.Align.RIGHT)
             val area=h-30*dn
-            val s=min(min(area,w*0.3f),88*dn);weather(0f,(area-s)/2,s)
+            val s=min(area*0.92f,w*0.3f);weather(0f,(area-s)/2,s)
             val x0=s+8*dn
             val ts=(area/dn*0.5f).coerceIn(16f,40f)
             text(temp,x0,area/2+ts*dn*0.36f,ts,pal.fg,true)
