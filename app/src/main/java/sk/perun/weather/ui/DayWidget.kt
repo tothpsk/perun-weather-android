@@ -395,7 +395,7 @@ internal object DayWidgets {
             rect(Divider,0f,y0,wPx.toFloat(),y0+dn)
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
-                "direction"->compassGlyph(ForecastGreen,(gs*1.15f).roundToInt())
+                "direction"->compassGlyph(Color.White,(gs*1.15f).roundToInt())
                 "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
                 "rain"->rowGlyph(row,Color.White,gs)
                 "gust"->rowGlyph(row,Color.White,gs)

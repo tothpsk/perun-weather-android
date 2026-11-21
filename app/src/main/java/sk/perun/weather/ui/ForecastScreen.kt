@@ -355,7 +355,7 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
             FV.Prob->Umbrella(Color.White)
             FV.Gust->GustGlyph(Color.White,22.dp)
-            FV.Direction->TkCompass(0.0,ForecastGreen,Modifier.size(26.dp))
+            FV.Direction->TkCompass(0.0,Color.White,Modifier.size(26.dp))
             FV.Dew->DewPointGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
         }
