@@ -347,7 +347,9 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 val x1=s+12*dn;val cw=(w-x1)/2
                 // The right column ends at the right edge.
                 val x2=max(x1+cw,w-max(columnWidth(facts[1]),columnWidth(facts[3])))
-                facts.forEachIndexed { k,f -> column(if(k%2==0) x1 else x2,top+area*(if(k<2) 0.27f else 0.73f),if(k%2==0) cw else w-x2+6*dn,f) }
+                // The left column stays close to the right one, as at four cells; the spare room is between the picture and the values.
+                val xa=max(x1,x2-max(columnWidth(facts[0]),columnWidth(facts[2]))-14*dn)
+                facts.forEachIndexed { k,f -> column(if(k%2==0) xa else x2,top+area*(if(k<2) 0.27f else 0.73f),if(k%2==0) x2-xa else w-x2+6*dn,f) }
             }
         } else {
             // The Sun in two rows, three cells and more: the place on top and the change of the day length with its trend arrow on the right.
@@ -364,7 +366,9 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 val grid=listOf(facts[0],facts[1],facts[2],SwFact(3,uiText(R.string.ui_dlzka_dna_bc509f34),dayLength,muted))
                 // The right column ends at the right edge.
                 val x2=max(x1+cw,w-max(columnWidth(grid[2]),columnWidth(grid[3])))
-                grid.forEachIndexed { k,f -> column(if(k<2) x1 else x2,top+area*(if(k%2==0) 0.27f else 0.73f),if(k<2) cw else w-x2+6*dn,f) }
+                // The left column stays close to the right one, as at four cells; the spare room is between the picture and the values.
+                val xa=max(x1,x2-max(columnWidth(grid[0]),columnWidth(grid[1]))-14*dn)
+                grid.forEachIndexed { k,f -> column(if(k<2) xa else x2,top+area*(if(k%2==0) 0.27f else 0.73f),if(k<2) x2-xa else w-x2+6*dn,f) }
             } else {
                 // Three cells: the length of the day under the horizon of the arc; rise, solar noon and set one above another.
                 val s=min(area,w*0.48f);picture(s/2,top+area/2,s,true)
