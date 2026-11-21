@@ -40,8 +40,8 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
                 "rain"->drawPath(iconPath("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z"),c,style=s)
                 "snow"->drawPath(iconPath("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"),c,style=s)
                 "wind"->drawPath(iconPath("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"),c,style=s)
-                // The same drawing as SummaryIcon.Uv in OverviewTileKit.kt: seven rays, the disc at 12, 8.5 and the letters UV below.
-                "uv"->{ drawPath(iconPath("M12 1.5v2M5 8.5h2M17 8.5h2M7.05 3.55l1.41 1.41M16.95 3.55l-1.41 1.41M7.05 13.45l1.41-1.41M16.95 13.45l-1.41-1.41"),c,style=s);drawCircle(c,3f,Offset(12f,8.5f),style=s);drawPath(iconPath("M7.2 16.6v3a2 2 0 0 0 4 0v-3M13.2 16.6l1.9 5l1.9-5"),c,style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
+                // The same drawing as SummaryIcon.Uv in OverviewTileKit.kt: seven rays, a small disc at 12, 7 and the letters UV below.
+                "uv"->{ val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(iconPath("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92"),c,style=sun);drawCircle(c,2.4f,Offset(12f,7f),style=sun);drawPath(iconPath("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6"),c,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
                 "gust"->drawPath(Path().apply {
                     moveTo(1.5f,9f);lineTo(12f,9f);cubicTo(16.7f,9f,16.7f,2.5f,12.9f,2.5f);cubicTo(10.9f,2.5f,10f,4f,10f,5.4f)
                     moveTo(4.5f,12f);lineTo(18.3f,12f);cubicTo(23.3f,12f,23.3f,5.2f,19.2f,5.2f);cubicTo(17.5f,5.2f,16.7f,6.6f,16.7f,8f)
