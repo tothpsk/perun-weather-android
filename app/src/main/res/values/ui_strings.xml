@@ -468,7 +468,7 @@
     <string name="ui_slnko_d4e0d075" formatted="false">"Slnko"</string>
     <string name="ui_slnko_dnes_4d65cb81" formatted="false">"Slnko dnes"</string>
     <string name="ui_smer_nedostupny_f96aaf53" formatted="false">"Smer nedostupný"</string>
-    <string name="ui_smer_sirenia_e0efaa7c" formatted="false">"Smer šírenia "</string>
+    <string name="ui_smer_sirenia_e0efaa7c" formatted="false">"Vlny smerujú na "</string>
     <string name="ui_smer_vetra_f7a54eb7" formatted="false">"Smer vetra"</string>
     <string name="ui_sneh_27400f08" formatted="false">"Sneh"</string>
     <string name="ui_sneh_bbd0d4e8" formatted="false">" · sneh "</string>
