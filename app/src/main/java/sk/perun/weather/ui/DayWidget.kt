@@ -107,7 +107,7 @@ private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = composeBitmap(px,24
         "rain"->drawPath(svg("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z"),color,style=s)
         "snow"->drawPath(svg("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"),color,style=s)
         "wind"->drawPath(svg("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"),color,style=s)
-        "uv"->{ drawPath(svg("M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2"),color,style=s);drawCircle(color,4.5f,Offset(12f,12f),style=s) }
+        "uv"->{ val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(svg("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92"),color,style=sun);drawCircle(color,2.4f,Offset(12f,7f),style=sun);drawPath(svg("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6"),color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
         "gust"->drawPath(ComposePath().apply {
             moveTo(1.5f,9f);lineTo(12f,9f);cubicTo(16.7f,9f,16.7f,2.5f,12.9f,2.5f);cubicTo(10.9f,2.5f,10f,4f,10f,5.4f)
             moveTo(4.5f,12f);lineTo(18.3f,12f);cubicTo(23.3f,12f,23.3f,5.2f,19.2f,5.2f);cubicTo(17.5f,5.2f,16.7f,6.6f,16.7f,8f)
@@ -336,10 +336,14 @@ internal object DayWidgets {
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 200
         val chartDp=(hDp-54).coerceAtLeast(40)
         val cw=((wDp-20)*dn).roundToInt().coerceIn(200,1400)
-        val ch=(chartDp*dn).roundToInt().coerceIn((40*dn).roundToInt(),(1_500_000/cw).coerceAtLeast((40*dn).roundToInt()))
+        // A tall widget would need more pixels than the picture of a widget may have. The chart is then drawn at a lower density
+        // in its true proportions and enlarged by the layout, instead of being cut short and stretched.
+        val fullH=(chartDp*dn).roundToInt().coerceAtLeast((40*dn).roundToInt())
+        val fit=Math.sqrt(1_500_000.0/(cw.toDouble()*fullH)).coerceAtMost(1.0).toFloat()
+        val bw=(cw*fit).roundToInt().coerceAtLeast(1);val ch=(fullH*fit).roundToInt().coerceAtLeast(1)
         val units=readForecastPreferences(c.getSharedPreferences("perun_forecast",Context.MODE_PRIVATE)).units
         val chosen=rows(c,id)
-        v.setImageViewBitmap(R.id.wg_chart,chart(data.day(date),data.zone,units,chosen.take(dayWidgetRowCount(chartDp,chosen.size)),cw,ch,dn))
+        v.setImageViewBitmap(R.id.wg_chart,chart(data.day(date),data.zone,units,chosen.take(dayWidgetRowCount(chartDp,chosen.size)),bw,ch,dn*fit))
         manager.updateAppWidget(id,v)
     }
     private fun convert(row:String,x:Double,u:WeatherUnits):Double = when(row) {
@@ -392,11 +396,11 @@ internal object DayWidgets {
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
                 "direction"->compassGlyph(ForecastGreen,(gs*1.15f).roundToInt())
-                "prob"->widgetGlyphBitmap("prob",RainBlue.toArgb(),gs)
-                "rain"->rowGlyph(row,RainBlue,gs)
-                "gust"->rowGlyph(row,Color(0xFFFFB74D),gs)
+                "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
+                "rain"->rowGlyph(row,Color.White,gs)
+                "gust"->rowGlyph(row,Color.White,gs)
                 "dew"->rowGlyph(row,Color.White,gs)
-                else->rowGlyph(row,Color(0xFFE8EAF0),gs)
+                else->rowGlyph(row,Color.White,gs)
             }
             cv.drawBitmap(icon,(left-icon.width)/2f,y0+(rh-icon.height)/2f,null)
             if(row=="direction") {

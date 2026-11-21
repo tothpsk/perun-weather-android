@@ -54,7 +54,9 @@ internal class HelpSpec(val title:String,val body:@Composable ColumnScope.()->Un
 private fun tkPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
 private val TkArrow=tkPath("M50 28L38 80L50 68L62 80Z")
 private val TkArrowRight=tkPath("M5 12h14M14 7l5 5-5 5")
-private val TkSun=tkPath("M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2")
+// Seven rays around a small disc centred at 12, 7; the lower half of the box belongs to the letters UV.
+private val TkSun=tkPath("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92")
+private val TkUvText=tkPath("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6")
 private val TkDrop=tkPath("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z")
 private val TkEye=tkPath("M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8Z")
 private val TkWind=tkPath("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7")
@@ -110,7 +112,7 @@ internal enum class SummaryIcon { Temp, Rain, Snow, Wind, Uv }
                 SummaryIcon.Rain -> drawPath(TkDrop,color,style=s)
                 SummaryIcon.Snow -> drawPath(TkSnow,color,style=s)
                 SummaryIcon.Wind -> drawPath(TkWind,color,style=s)
-                SummaryIcon.Uv -> { drawPath(TkSun,color,style=s);drawCircle(color,4.5f,Offset(12f,12f),style=s) }
+                SummaryIcon.Uv -> { val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(TkSun,color,style=sun);drawCircle(color,2.4f,Offset(12f,7f),style=sun);drawPath(TkUvText,color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
             }
         }
     }

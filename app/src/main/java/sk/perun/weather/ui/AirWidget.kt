@@ -96,11 +96,14 @@ internal object AirWidgets {
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 160
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 160
         val dn=c.resources.displayMetrics.density
-        val wPx=((wDp-12)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-12)*dn).roundToInt().coerceIn(40,900)
+        // 10 dp at the sides as in the Meteogram widget; one cell of width keeps 6 dp. Above and below 10 dp at two rows and 6 dp at one row, which is too low for more.
+        val padH=if(wDp<120) 6 else 10;val padV=if(hDp<100) 6 else 10
+        val wPx=((wDp-2*padH)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-2*padV)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_air)
         v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp)))
         v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             setData(android.net.Uri.parse("perun://widget/"+id))
             putExtra("perun_route",if(cfg.main=="pollen") "more/air?mode=pollen" else "more/air");putExtra("perun_location",BackgroundRefresh.locationKey(l))
@@ -185,6 +188,17 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
         text(fit(item.first,9f,false,room-8*dn),x+6*dn,y,9f,muted)
         text(fit(item.second,13f,true,room-8*dn),x+6*dn,y+14*dn,13f,fg,true)
     }
+    // The width a value takes: its bar and the wider of its name and its value.
+    fun columnWidth(item:Triple<String,String,Int>):Float = 6*dn+max(width(item.first,9f),width(item.second,13f,true))
+    // Values in one row: the first starts at x0, the last ends at the right edge and the gaps between them are equal.
+    // When they do not fit, the room is shared evenly.
+    fun spread(x0:Float,y:Float,items:List<Triple<String,String,Int>>) {
+        val widths=items.map { columnWidth(it) }
+        val gap=if(items.size>1) (w-x0-widths.sum())/(items.size-1) else 0f
+        if(items.size<2 || gap<4*dn) { val cw=(w-x0)/items.size;items.forEachIndexed { k,item -> column(x0+k*cw,y,cw,item) };return }
+        var x=x0
+        items.forEachIndexed { k,item -> column(x,y,widths[k]+3*dn,item);x+=widths[k]+gap }
+    }
     val mainWord=if(pollenMain) uiText(R.string.wg_air_pollen) else "AQI"
     when(shape) {
         AirWidgetShape.Tiny -> gauge(w/2,h/2,min(w,h)/2-2*dn,mainWord)
@@ -211,14 +225,16 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             val airKeys=listOf("pm2_5","pm10","ozone").let { first -> first+AirPollutants.map { it.key }.filter { it !in first }.take(3) }
             val items=if(pollenMain) pollenAll.take(6).map { pollenItem(it) } else airKeys.map { pollutant(it) }
             val cw=room/2
-            items.forEachIndexed { k,item -> column(x0+(k/3)*cw,areaTop+area*(((k%3)+0.5f)/3f)-3.5f*dn,cw,item) }
+            // The right column ends at the right edge.
+            val x2=max(x0+cw,w-(items.drop(3).maxOfOrNull { columnWidth(it) } ?: 0f))
+            items.forEachIndexed { k,item -> column(if(k<3) x0 else x2,areaTop+area*(((k%3)+0.5f)/3f)-3.5f*dn,if(k<3) cw else w-x2+3*dn,item) }
         }
         AirWidgetShape.Row -> {
             // One row of two or three cells: the gauge on the left; to its right the rating above the place, and at three cells two values.
             val r=h/2-1*dn
             gauge(r+1*dn,h/2,r,"")
             val x0=2*r+8*dn
-            val three=w>=168*dn
+            val three=w>=160*dn
             val block=if(three) min(72*dn,(w-x0)*0.45f) else (w-x0).coerceAtLeast(1f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
@@ -226,7 +242,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
                 // The air quality: PM2.5 and PM10. The pollen: the two strongest kinds.
                 val items=if(pollenMain) pollenAll.take(2).map { pollenItem(it) } else listOf(pollutant("pm2_5"),pollutant("pm10"))
                 val start=x0+block+6*dn;val cw=(w-start)/items.size
-                if(cw>=26*dn) items.forEachIndexed { k,item -> column(start+k*cw,h/2-3*dn,cw,item) }
+                if(cw>=26*dn) spread(start,h/2-3*dn,items)
             }
         }
         AirWidgetShape.Strip -> {
@@ -237,12 +253,12 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(84*dn,(w-x0)*0.34f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
             text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
-            val wide=w>=308*dn
+            val wide=w>=300*dn
             val items=if(pollenMain) pollenAll.take(if(wide) 5 else 3).map { pollenItem(it) }
                 else (if(wide) listOf("pm2_5","pm10","nitrogen_dioxide","ozone") else listOf("pm2_5","pm10","ozone")).map { pollutant(it) }
             val start=x0+block+6*dn
             val shown=items.take(((w-start)/((if(pollenMain) 30 else 36)*dn)).toInt().coerceAtLeast(0))
-            if(shown.isNotEmpty()) { val cw=(w-start)/shown.size;shown.forEachIndexed { k,item -> column(start+k*cw,h/2-3*dn,cw,item) } }
+            if(shown.isNotEmpty()) spread(start,h/2-3*dn,shown)
         }
         AirWidgetShape.Full -> {
             // The header: the place on the left. On the right the air quality index; in the pollen widget the strongest kind of pollen,
@@ -292,11 +308,10 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             if(values) {
                 // The bottom row: four values at four cells and six from five cells. The air quality: the pollutants of the Air quality screen.
                 // The pollen: its strongest kinds.
-                val six=w>=308*dn
+                val six=w>=300*dn
                 val items=if(pollenMain) pollenAll.take(if(six) 6 else 4).map { pollenItem(it) }
                     else (if(six) AirPollutants.map { it.key } else listOf("pm2_5","pm10","nitrogen_dioxide","ozone")).map { pollutant(it) }
-                val cw=w/items.size
-                items.forEachIndexed { k,item -> column(k*cw,rowY+16*dn,cw,item) }
+                spread(0f,rowY+16*dn,items)
             }
         }
     }

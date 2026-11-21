@@ -281,7 +281,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
         },graphic={
             if(!a.isFinite()) Text("—",color=ForecastMuted,fontSize=24.sp) else when(v) {
                 FV.Wind->TkCompass(direction,ForecastGreen,Modifier.size(52.dp))
-                FV.Humidity->TkDropGraphic((a/100).coerceIn(0.0,1.0),color,Modifier.size(42.dp))
+                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(42.dp))
                 FV.Visibility->TkEyeGraphic(color,Modifier.size(44.dp))
                 FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(44.dp)) else Text("—",color=ForecastMuted)
                 FV.Uv->SummaryGlyph(SummaryIcon.Uv,uvColor(a),40.dp)
@@ -326,10 +326,10 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
 private data class ForecastPlotRow(val v:FV,val key:String,val label:String)
 private val ForecastPlotRows=FV.entries.filter { it !in listOf(FV.Feels,FV.Trend) }.map { ForecastPlotRow(it,it.key,it.label) }
 private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.v("showers"),h.v("snowfall")) ?: RainBlue
-@Composable private fun ForecastPrecipGlyph(h:ForecastHour?,dimension:androidx.compose.ui.unit.Dp) {
+@Composable private fun ForecastPrecipGlyph(h:ForecastHour?,dimension:androidx.compose.ui.unit.Dp,tint:Color?=null) {
     val snow=h?.v("snowfall") ?: Double.NaN
     val wet=h!=null && (h.v("rain")>0 || h.v("showers")>0)
-    val color=if(h==null) RainBlue else forecastPrecipColor(h)
+    val color=tint ?: if(h==null) RainBlue else forecastPrecipColor(h)
     if(snow>0 && wet) Row(verticalAlignment=Alignment.CenterVertically) { SummaryGlyph(SummaryIcon.Rain,color,dimension/2);SummaryGlyph(SummaryIcon.Snow,color,dimension/2) }
     else SummaryGlyph(if(snow>0) SummaryIcon.Snow else SummaryIcon.Rain,color,dimension)
 }
@@ -352,12 +352,12 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
     val description=if(row.v==FV.Rain) uiText(R.string.ui_zrazky_value_vodny_ekvivalent_sneh_pri_kurzore_value_c076cdec, u.precipitation.liquidSymbol, u.precipitation.snowSymbol) else row.label+unit(row.v,u).takeIf { it.isNotBlank() }?.let { " · $it" }.orEmpty()
     Box(Modifier.fillMaxSize().clickable(role=Role.Button,onClickLabel=uiText(R.string.ui_nazov_a_jednotka_28e528ad),onClick={show=true}).semantics { contentDescription=description },contentAlignment=Alignment.Center) {
         when(row.v) {
-            FV.Rain->ForecastPrecipGlyph(h,22.dp)
-            FV.Prob->Umbrella(RainBlue)
-            FV.Gust->GustGlyph(Color(0xFFFFB74D),22.dp)
+            FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
+            FV.Prob->Umbrella(Color.White)
+            FV.Gust->GustGlyph(Color.White,22.dp)
             FV.Direction->TkCompass(0.0,ForecastGreen,Modifier.size(26.dp))
             FV.Dew->DewPointGlyph(Color.White,22.dp)
-            else->ForecastModeGlyph(row.v,FText)
+            else->ForecastModeGlyph(row.v,Color.White)
         }
         DropdownMenu(expanded=show,onDismissRequest={show=false}) { Text(description,modifier=Modifier.widthIn(max=260.dp).padding(12.dp),fontSize=13.sp) }
     }

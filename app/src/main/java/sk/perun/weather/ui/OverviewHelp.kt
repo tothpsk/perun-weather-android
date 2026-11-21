@@ -29,7 +29,7 @@ private fun bftRange(i:Int):String {
     ).forEach { (illumination,waxing,name) ->
         Row(verticalAlignment=Alignment.CenterVertically) {
             MoonGraphic(illumination,waxing,southern,Modifier.size(26.dp))
-            Text(name,Modifier.padding(start=10.dp),fontWeight=FontWeight.SemiBold,fontSize=15.sp)
+            Text(name+" \u00B7 "+illumination+" %",Modifier.padding(start=10.dp),fontWeight=FontWeight.SemiBold,fontSize=15.sp)
         }
     }
 }

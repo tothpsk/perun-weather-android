@@ -135,11 +135,14 @@ internal object SkyWidgets {
         val cols=if(wDp<120) 1 else if(wDp<180) 2 else if(wDp<250) 3 else 4
         val rows=if(hDp<100) 1 else 2
         val dn=c.resources.displayMetrics.density
-        val wPx=((wDp-12)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-12)*dn).roundToInt().coerceIn(40,900)
+        // 10 dp at the sides as in the Meteogram widget; one cell of width keeps 6 dp. Above and below 10 dp at two rows and 6 dp at one row, which is too low for more.
+        val padH=if(wDp<120) 6 else 10;val padV=if(hDp<100) 6 else 10
+        val wPx=((wDp-2*padH)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-2*padV)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_sky)
         v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows))
         v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             setData(android.net.Uri.parse("perun://widget/"+id))
             putExtra("perun_route","more/sun-moon");putExtra("perun_location",BackgroundRefresh.locationKey(l))
@@ -282,6 +285,17 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         while(vs>10f && width(f.value,vs,true)>tr) vs-=0.5f
         text(fit(f.value,vs,true,tr),tx,cy+10.5f*dn,vs,fg,true)
     }
+    // The width a value takes: its symbol and the wider of its name and its value.
+    fun columnWidth(f:SwFact):Float = (if(f.icon>=0) 20*dn else 0f)+max(width(f.caption,9f),width(f.value,12f,true))
+    // Values in one row: the first starts at x0, the last ends at the right edge and the gaps between them are equal.
+    // When they do not fit, the room is shared evenly.
+    fun spread(x0:Float,cy:Float,items:List<SwFact>) {
+        val widths=items.map { columnWidth(it) }
+        val gap=if(items.size>1) (w-x0-widths.sum())/(items.size-1) else 0f
+        if(items.size<2 || gap<6*dn) { val cw=(w-x0)/items.size;items.forEachIndexed { k,f -> column(x0+k*cw,cy,cw,f) };return }
+        var x=x0
+        items.forEachIndexed { k,f -> column(x,cy,widths[k]+6*dn,f);x+=widths[k]+gap }
+    }
 
     if(cols==1) {
         // One cell: the picture, and below it the next sunrise or sunset, or the lit part of the Moon.
@@ -293,12 +307,11 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         picture(s/2,h/2,s)
         val x0=s+8*dn
         if(cols==2) column(x0,h/2,w-x0,lead)
-        else if(cols==3) { val cw=(w-x0)/2;pair.forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
+        else if(cols==3) spread(x0,h/2,pair)
         else if(!moonMain) {
             // The Sun at four cells: rise, solar noon and set. Five cells add the change of the day length, which gets a wider column.
             val total=w-x0
-            if(total/4>=62*dn) { val cw=total*0.23f;facts.forEachIndexed { k,f -> column(x0+k*cw,h/2,if(k<3) cw else total-3*cw,f) } }
-            else { val cw=total/3;facts.take(3).forEachIndexed { k,f -> column(x0+k*cw,h/2,cw,f) } }
+            spread(x0,h/2,if(total/4>=62*dn) facts else facts.take(3))
         } else {
             // The Moon at four cells and more: the phase with the lit part and the place below it, then the values.
             val block=min(110*dn,(w-x0)*0.4f)
@@ -306,7 +319,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             text(fit(rowSub,10f,false,block),x0,h/2+12*dn,10f,muted)
             val start=x0+block+6*dn
             val shown=facts.take(((w-start)/(64*dn)).toInt().coerceIn(0,facts.size))
-            if(shown.isNotEmpty()) { val cw=(w-start)/shown.size;shown.forEachIndexed { k,f -> column(start+k*cw,h/2,cw,f) } }
+            if(shown.isNotEmpty()) spread(start,h/2,shown)
         }
     } else if(cols==2) {
         // Two by two: the place on top, the picture in the middle, rise on the left and set on the right below.
@@ -330,9 +343,13 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 val x1=s+10*dn;val step=area/3
                 facts.take(3).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
             } else {
-                val s=min(area,w*0.3f);picture(s/2,top+area/2,s)
+                val s=min(area*0.85f,w*0.3f);picture(s/2,top+area/2,s)
                 val x1=s+12*dn;val cw=(w-x1)/2
-                facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
+                // The right column ends at the right edge.
+                val x2=max(x1+cw,w-max(columnWidth(facts[1]),columnWidth(facts[3])))
+                // The left column stays close to the right one, as at four cells; the spare room is between the picture and the values.
+                val xa=max(x1,x2-max(columnWidth(facts[0]),columnWidth(facts[2]))-14*dn)
+                facts.forEachIndexed { k,f -> column(if(k%2==0) xa else x2,top+area*(if(k<2) 0.27f else 0.73f),if(k%2==0) x2-xa else w-x2+6*dn,f) }
             }
         } else {
             // The Sun in two rows, three cells and more: the place on top and the change of the day length with its trend arrow on the right.
@@ -344,10 +361,14 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             if(cols>=4) {
                 // Four cells and more: a larger day arc; to its right the rise above the solar noon and the set above the length of the day.
                 // The arc is only half as tall as it is wide, so its square may be wider than the room below the header.
-                val s=min(area*1.3f,w*0.4f);picture(s/2,top+area/2,s)
+                val s=min(area*1.1f,w*0.4f);picture(s/2,top+area/2,s)
                 val x1=s+12*dn;val cw=(w-x1)/2
                 val grid=listOf(facts[0],facts[1],facts[2],SwFact(3,uiText(R.string.ui_dlzka_dna_bc509f34),dayLength,muted))
-                grid.forEachIndexed { k,f -> column(x1+(k/2)*cw,top+area*(if(k%2==0) 0.27f else 0.73f),cw,f) }
+                // The right column ends at the right edge.
+                val x2=max(x1+cw,w-max(columnWidth(grid[2]),columnWidth(grid[3])))
+                // The left column stays close to the right one, as at four cells; the spare room is between the picture and the values.
+                val xa=max(x1,x2-max(columnWidth(grid[0]),columnWidth(grid[1]))-14*dn)
+                grid.forEachIndexed { k,f -> column(if(k<2) xa else x2,top+area*(if(k%2==0) 0.27f else 0.73f),if(k<2) x2-xa else w-x2+6*dn,f) }
             } else {
                 // Three cells: the length of the day under the horizon of the arc; rise, solar noon and set one above another.
                 val s=min(area,w*0.48f);picture(s/2,top+area/2,s,true)
