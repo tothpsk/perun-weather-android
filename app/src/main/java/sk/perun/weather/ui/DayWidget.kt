@@ -336,10 +336,14 @@ internal object DayWidgets {
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 200
         val chartDp=(hDp-54).coerceAtLeast(40)
         val cw=((wDp-20)*dn).roundToInt().coerceIn(200,1400)
-        val ch=(chartDp*dn).roundToInt().coerceIn((40*dn).roundToInt(),(1_500_000/cw).coerceAtLeast((40*dn).roundToInt()))
+        // A tall widget would need more pixels than the picture of a widget may have. The chart is then drawn at a lower density
+        // in its true proportions and enlarged by the layout, instead of being cut short and stretched.
+        val fullH=(chartDp*dn).roundToInt().coerceAtLeast((40*dn).roundToInt())
+        val fit=Math.sqrt(1_500_000.0/(cw.toDouble()*fullH)).coerceAtMost(1.0).toFloat()
+        val bw=(cw*fit).roundToInt().coerceAtLeast(1);val ch=(fullH*fit).roundToInt().coerceAtLeast(1)
         val units=readForecastPreferences(c.getSharedPreferences("perun_forecast",Context.MODE_PRIVATE)).units
         val chosen=rows(c,id)
-        v.setImageViewBitmap(R.id.wg_chart,chart(data.day(date),data.zone,units,chosen.take(dayWidgetRowCount(chartDp,chosen.size)),cw,ch,dn))
+        v.setImageViewBitmap(R.id.wg_chart,chart(data.day(date),data.zone,units,chosen.take(dayWidgetRowCount(chartDp,chosen.size)),bw,ch,dn*fit))
         manager.updateAppWidget(id,v)
     }
     private fun convert(row:String,x:Double,u:WeatherUnits):Double = when(row) {
@@ -392,11 +396,11 @@ internal object DayWidgets {
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
                 "direction"->compassGlyph(ForecastGreen,(gs*1.15f).roundToInt())
-                "prob"->widgetGlyphBitmap("prob",RainBlue.toArgb(),gs)
-                "rain"->rowGlyph(row,RainBlue,gs)
-                "gust"->rowGlyph(row,Color(0xFFFFB74D),gs)
+                "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
+                "rain"->rowGlyph(row,Color.White,gs)
+                "gust"->rowGlyph(row,Color.White,gs)
                 "dew"->rowGlyph(row,Color.White,gs)
-                else->rowGlyph(row,Color(0xFFE8EAF0),gs)
+                else->rowGlyph(row,Color.White,gs)
             }
             cv.drawBitmap(icon,(left-icon.width)/2f,y0+(rh-icon.height)/2f,null)
             if(row=="direction") {

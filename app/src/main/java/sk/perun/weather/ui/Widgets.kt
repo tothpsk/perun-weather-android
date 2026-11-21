@@ -332,7 +332,7 @@ internal object WidgetRender {
             placed(fit(place,15f,true,w-30*dn-alertW),0f,cy2)
             if(placedWidth(place)+10*dn+width(updated,10f,false)+30*dn<=w) text(updated,w-30*dn,cy2+10*dn*0.36f,10f,pal.muted,false,Paint.Align.RIGHT)
             val area=h-30*dn
-            val s=min(area,w*0.3f);weather(0f,(area-s)/2,s)
+            val s=min(min(area,w*0.3f),88*dn);weather(0f,(area-s)/2,s)
             val x0=s+8*dn
             val ts=(area/dn*0.5f).coerceIn(16f,40f)
             text(temp,x0,area/2+ts*dn*0.36f,ts,pal.fg,true)

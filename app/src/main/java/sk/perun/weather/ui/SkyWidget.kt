@@ -330,7 +330,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
                 val x1=s+10*dn;val step=area/3
                 facts.take(3).forEachIndexed { k,f -> column(x1,top+step*(k+0.5f),w-x1,f) }
             } else {
-                val s=min(area,w*0.3f);picture(s/2,top+area/2,s)
+                val s=min(min(area,w*0.3f),88*dn);picture(s/2,top+area/2,s)
                 val x1=s+12*dn;val cw=(w-x1)/2
                 facts.forEachIndexed { k,f -> column(x1+(k%2)*cw,top+area*(if(k<2) 0.27f else 0.73f),cw,f) }
             }
@@ -344,7 +344,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             if(cols>=4) {
                 // Four cells and more: a larger day arc; to its right the rise above the solar noon and the set above the length of the day.
                 // The arc is only half as tall as it is wide, so its square may be wider than the room below the header.
-                val s=min(area*1.3f,w*0.4f);picture(s/2,top+area/2,s)
+                val s=min(min(area*1.3f,w*0.4f),118*dn);picture(s/2,top+area/2,s)
                 val x1=s+12*dn;val cw=(w-x1)/2
                 val grid=listOf(facts[0],facts[1],facts[2],SwFact(3,uiText(R.string.ui_dlzka_dna_bc509f34),dayLength,muted))
                 grid.forEachIndexed { k,f -> column(x1+(k/2)*cw,top+area*(if(k%2==0) 0.27f else 0.73f),cw,f) }
