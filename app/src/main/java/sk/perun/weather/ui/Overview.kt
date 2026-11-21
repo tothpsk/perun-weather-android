@@ -297,11 +297,11 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
 
 @Composable private fun SummaryCell(parts:List<Triple<SummaryIcon,String,Color>>) {
     Row(verticalAlignment=Alignment.CenterVertically) {
-        parts.forEachIndexed { i,(icon,text,color) ->
+        parts.forEachIndexed { i,(icon,text) ->
             if(i>0) Spacer(Modifier.width(8.dp))
-            SummaryGlyph(icon,if(color==OverviewText) ForecastMuted else color,18.dp)
+            SummaryGlyph(icon,Color.White,18.dp)
             Spacer(Modifier.width(4.dp))
-            Text(text,fontSize=15.sp,fontWeight=FontWeight.SemiBold,color=color,maxLines=1,softWrap=false)
+            Text(text,fontSize=15.sp,fontWeight=FontWeight.SemiBold,color=Color.White,maxLines=1,softWrap=false)
         }
     }
 }
