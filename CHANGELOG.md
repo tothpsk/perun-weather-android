@@ -2,6 +2,24 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.1.1] - 2026-11-21
+
+### Changed
+
+- UV icon: an outlined sun with the letters UV below it, in the app and in the widgets.
+- Now: the day summary shows its icons and values in white.
+- Now: the wave tile has a shorter line for the direction of the waves.
+- Forecast: the humidity drop in the list of days carries the percent sign, as on the humidity tile on Now.
+- Forecast, expanded day, and the Day by hours widget: the row icons are white; the compass keeps its green arrow.
+- Moon help sheets: the lit share of the disc in percent beside the four main phases.
+- Meteogram widget: larger icons above the value axes.
+- Compact, Sun and Moon, and Air and pollen widgets: 10 dp at the sides, as in the Meteogram widget, and the values reach the right edge instead of leaving the spare room there.
+- Compact and Sun and Moon widgets at two rows: the size of the picture follows the height, so five cells show it as large as four. The two columns of values of the Sun and Moon widget stay close together.
+
+### Fixed
+
+- Day by hours widget: a tall widget drew its chart cut short and stretched. The chart keeps its proportions now.
+
 ## [1.1.0] - 2026-11-20
 
 ### Added
