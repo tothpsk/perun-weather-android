@@ -460,7 +460,7 @@
     <string name="ui_slnko_d4e0d075" formatted="false">"Sun"</string>
     <string name="ui_slnko_dnes_4d65cb81" formatted="false">"Sun today"</string>
     <string name="ui_smer_nedostupny_f96aaf53" formatted="false">"Direction unavailable"</string>
-    <string name="ui_smer_sirenia_e0efaa7c" formatted="false">"Waves heading "</string>
+    <string name="ui_smer_sirenia_e0efaa7c" formatted="false">"Heading "</string>
     <string name="ui_smer_vetra_f7a54eb7" formatted="false">"Wind direction"</string>
     <string name="ui_sneh_27400f08" formatted="false">"Snow"</string>
     <string name="ui_sneh_bbd0d4e8" formatted="false">" · snow "</string>
