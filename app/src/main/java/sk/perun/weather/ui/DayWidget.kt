@@ -72,7 +72,7 @@ import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /** Rows of the hourly chart, in the order of the expanded day on the Forecast screen. */
-internal val DayWidgetRows=listOf("temp","rain","prob","wind","gust","direction","cloud",,"humidity","dew","visibility","pressure")
+internal val DayWidgetRows=listOf("temp","rain","prob","wind","gust","direction","cloud","uv","humidity","dew","visibility","pressure")
 private const val DayWidgetFixedDp=45
 private const val DayWidgetMinRowDp=24
 /** As many rows as fit under the now badge and the icon strip and above the time axis, at least one. */
