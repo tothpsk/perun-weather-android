@@ -60,6 +60,9 @@ import kotlin.math.sin
         val box=Size(2*r,2*r)
         drawArc(Color(0x33FFFFFF),180f,180f,false,topLeft=corner,size=box,style=Stroke(thick,cap=StrokeCap.Round))
         drawLine(Color(0xFFBBC4D2),Offset(cx-r-5.dp.toPx(),base),Offset(cx+r+5.dp.toPx(),base),1.dp.toPx(),StrokeCap.Round)
+        // The dots of the sunrise and the sunset first, so that the Sun is drawn over them.
+        drawCircle(Color(0xFF66D17A),2.5.dp.toPx(),Offset(cx-r,base))
+        drawCircle(Color(0xFFFF8F6B),2.5.dp.toPx(),Offset(cx+r,base))
         if(sunrise!=null && sunset!=null && sunset.isAfter(sunrise) && !now.isBefore(sunrise) && !now.isAfter(sunset)) {
             val f=((now.epochSecond-sunrise.epochSecond).toFloat()/(sunset.epochSecond-sunrise.epochSecond)).coerceIn(0f,1f)
             drawArc(Color(0xFFFFD166),180f,180f*f,false,topLeft=corner,size=box,style=Stroke(thick,cap=StrokeCap.Round))
@@ -69,8 +72,6 @@ import kotlin.math.sin
             drawCircle(Color(0x55FFD166),d*1.9f,pos)
             drawCircle(Color(0xFFFFD166),d,pos)
         }
-        drawCircle(Color(0xFF66D17A),2.5.dp.toPx(),Offset(cx-r,base))
-        drawCircle(Color(0xFFFF8F6B),2.5.dp.toPx(),Offset(cx+r,base))
     }
 }
 

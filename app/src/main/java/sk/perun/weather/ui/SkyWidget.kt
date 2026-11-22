@@ -254,10 +254,16 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
     }
     // The day arc over the horizon, from the sunrise on the left to the sunset on the right. The part of the day that has passed
     // is in the colour of the Sun and the Sun stands at its end; at night the arc stays empty.
-    fun arc(cx:Float,base:Float,r:Float) {
+    fun arc(cx:Float,base:Float,full:Float) {
+        // The picture is a square around the arc, 1/0.84 of its radius to each side. The arc is drawn a little smaller,
+        // so that the glow of the Sun at the sunrise and the sunset, and the horizon, stay inside the square.
+        val half=full/0.84f
+        val r=min(full,half-1.9f*max(3.5f*dn,full*0.13f)).coerceAtLeast(1f);val side=min(5*dn,half-r)
         val box=RectF(cx-r,base-r,cx+r,base+r);val thick=max(2*dn,r*0.09f)
         stroke(track,thick);cv.drawArc(box,180f,180f,false,p)
-        stroke(muted,1*dn);cv.drawLine(cx-r-5*dn,base,cx+r+5*dn,base,p)
+        stroke(muted,1*dn);cv.drawLine(cx-r-side,base,cx+r+side,base,p)
+        // The dots of the sunrise and the sunset first, so that the Sun is drawn over them.
+        dot(cx-r,base,SwRise,2.5f*dn);dot(cx+r,base,SwSet,2.5f*dn)
         val r0=sunRise;val s0=sunSet
         if(r0!=null && s0!=null && s0>r0 && now>=r0 && now<=s0) {
             val f=((now.epochSecond-r0.epochSecond).toFloat()/(s0.epochSecond-r0.epochSecond)).coerceIn(0f,1f)
@@ -265,7 +271,6 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             val a=PI*(1-f);val sx=cx+r*cos(a).toFloat();val sy=base-r*sin(a).toFloat();val d=max(3.5f*dn,r*0.13f)
             dot(sx,sy,(0x55 shl 24) or (SwSun and 0xFFFFFF),d*1.9f);dot(sx,sy,SwSun,d)
         }
-        dot(cx-r,base,SwRise,2.5f*dn);dot(cx+r,base,SwSet,2.5f*dn)
     }
     // The picture of the chosen body in a square of the given size around its centre; the length of the day can stand under the horizon of the Sun.
     fun picture(cx:Float,cy:Float,s:Float,withLength:Boolean=false) {

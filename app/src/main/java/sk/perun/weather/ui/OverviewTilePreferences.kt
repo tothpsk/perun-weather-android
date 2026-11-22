@@ -148,7 +148,7 @@ private fun readMarine(p:SharedPreferences)=p.getStringSet(MarineTilesKey,null)?
             }
         }
     }
-    TextButton({ p.edit().remove(TileKey).remove(OutlookKey).remove(MarineTilesKey).remove(OrderKey).apply() }) { Text(uiText(R.string.tile_order_reset)) }
+    OutlinedButton(onClick={ p.edit().remove(TileKey).remove(OutlookKey).remove(MarineTilesKey).remove(OrderKey).apply() },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.tile_order_reset)) }
 }
 @Composable private fun TileOrderRow(label:String,marine:Boolean,checked:Boolean,dragging:Boolean,dragOffset:Float,onToggle:(Boolean)->Unit,onMoveUp:()->Unit,onMoveDown:()->Unit,onHeight:(Float)->Unit,handle:Modifier) {
     val shape=RoundedCornerShape(14.dp)
