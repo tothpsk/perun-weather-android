@@ -231,9 +231,10 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     val scroll=rememberScrollableState {delta->move(-delta.toDouble()*span/plotPixels);delta}
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
-    // With the envelope on, the line of the temperature is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
-    val median=remember(ens,showBand) {if(showBand) ens.bands[LongMetric.Temp.key+LongMedianSuffix].orEmpty().associate {it.first to it.second.lower} else emptyMap()}
-    fun lineRaw(m:LongMetric,i:Int):Double = (if(m==LongMetric.Temp) median[d.times[i]] else null) ?: d.value(m.key,i)
+    // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
+    // Precipitation and UV index are bars of the model, and the probability of precipitation has no median.
+    val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
+    fun lineRaw(m:LongMetric,i:Int):Double = (if(m==LongMetric.Rain || m==LongMetric.Uv) null else medians[m.key+LongMedianSuffix]?.get(d.times[i])) ?: d.value(m.key,i)
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -367,6 +368,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Text(fullTitle,style=MaterialTheme.typography.titleLarge)
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
+                HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
         }
