@@ -198,7 +198,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     // Wind direction: arrows that point to where the wind blows to, in the shape of the arrows of the expanded day on the
     // Forecast screen. An arrow is as tall as its row; as many hours are skipped as it takes for the arrows not to touch.
     if(dirOn) {
-        val skip=listOf(1,2,3,6,12).firstOrNull { it*step>=dirH+2*dn } ?: 12
+        val skip=listOf(1,2,3,4,6,12).firstOrNull { it*step>=15*dn } ?: 12
         val arrow=Path().apply { moveTo(0f,-0.5f*dirH);lineTo(-0.23f*dirH,0.5f*dirH);lineTo(0f,0.27f*dirH);lineTo(0.23f*dirH,0.5f*dirH);close() }
         p.style=Paint.Style.FILL;p.color=cWind
         s.forEachIndexed { i,h ->

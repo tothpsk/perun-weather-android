@@ -526,31 +526,44 @@ class DayWidgetConfigActivity:ComponentActivity() {
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
-                    var loc by remember { mutableStateOf(startLoc) }
-                    var rows by remember { mutableStateOf(startRows) }
-                    val muted=Color(0xFFBBC4D2)
                     Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                         Text(uiText(R.string.wg_config_title),style=MaterialTheme.typography.titleLarge,color=Color(0xFFE8EAF0))
-                        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
-                        Text(uiText(R.string.wg_day_rows),style=MaterialTheme.typography.labelLarge,color=muted)
-                        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                            DayWidgetRows.forEach { key ->
-                                PerunChip(dayWidgetRowLabel(key),key in rows) { rows=if(key in rows) rows-key else DayWidgetRows.filter { it in rows || it==key } }
-                            }
-                        }
-                        Text(uiText(R.string.wg_day_rows_note),style=MaterialTheme.typography.bodySmall,color=muted)
-                        Button(onClick={
-                            DayWidgets.write(this@DayWidgetConfigActivity,id,loc,rows.ifEmpty { DayWidgetRows })
+                        DayWidgetForm(locations,startLoc,startRows) { loc,rows ->
+                            DayWidgets.write(this@DayWidgetConfigActivity,id,loc,rows)
                             runCatching { DayWidgets.draw(this@DayWidgetConfigActivity,id) }
                             DayWidgets.refresh(this@DayWidgetConfigActivity)
                             DayWidgets.schedule(this@DayWidgetConfigActivity)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
-                        },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/** The settings of the Day by hours widget; shared by the screen that opens from the home screen and by the Settings of the app. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable internal fun DayWidgetForm(locations:List<Location>,startLoc:String,startRows:List<String>,onSave:(String,List<String>)->Unit) {
+    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    var loc by remember { mutableStateOf(startLoc) }
+    var rows by remember { mutableStateOf(startRows) }
+    val muted=Color(0xFFBBC4D2)
+    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Row(Modifier.fillMaxWidth(),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+            Text(uiText(R.string.wg_day_rows),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
+            SettingsInfo(uiText(R.string.wg_day_rows_note))
+        }
+        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            DayWidgetRows.forEach { key ->
+                PerunChip(dayWidgetRowLabel(key),key in rows) { rows=if(key in rows) rows-key else DayWidgetRows.filter { it in rows || it==key } }
+            }
+        }
+        Button(onClick={ onSave(loc,rows.ifEmpty { DayWidgetRows }) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
 }

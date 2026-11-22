@@ -238,7 +238,7 @@ internal object WidgetRender {
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
@@ -255,11 +255,12 @@ internal object WidgetRender {
         fun width(s:String,size:Float,bold:Boolean):Float { font(size,bold);return p.measureText(s) }
         fun text(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) {
             font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,y,p)
-            if(windArrow!=null && s.endsWith("\u2003")) {
-                val tw=p.measureText(s);val a=size*dn*0.95f
+            if(windArrow!=null && s.endsWith("\u2003\u2005")) {
+                val tw=p.measureText(s);val a=size*dn
                 val end=when(align) { Paint.Align.RIGHT->x;Paint.Align.CENTER->x+tw/2;else->x+tw }
                 val mid=y-size*dn*0.36f
-                cv.drawBitmap(windArrow,null,RectF(end-a,mid-a/2,end,mid+a/2),p)
+                val cx=end-p.measureText("\u2003\u2005")+size*dn*0.714f
+                cv.drawBitmap(windArrow,null,RectF(cx-a/2,mid-a/2,cx+a/2,mid+a/2),p)
             }
         }
         fun fit(s:String,size:Float,bold:Boolean,room:Float):String {
@@ -511,7 +512,7 @@ private fun meteoLabel(key:String):String = when(key) {
     if(placed.isEmpty()) Text(uiText(R.string.wg_settings_empty),style=MaterialTheme.typography.bodyMedium,color=muted)
     placed.forEach { (kind,id) ->
         val cfg=PerunWidgets.read(c,id)
-        // The Day by hours, the Air and pollen and the Sun and Moon widgets keep their own settings; they open from the home screen.
+        // The Day by hours, the Air and pollen and the Sun and Moon widgets keep their own settings and have their own forms.
         val ownSettings=kind==DayHoursWidget::class.java || kind==AirWidget::class.java || kind==SkyWidget::class.java
         val locKey=when(kind) { DayHoursWidget::class.java->DayWidgets.loc(c,id);AirWidget::class.java->AirWidgets.loc(c,id);SkyWidget::class.java->SkyWidgets.loc(c,id);else->cfg.loc }
         val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.name ?: uiText(R.string.wg_loc_active)
@@ -523,7 +524,9 @@ private fun meteoLabel(key:String):String = when(key) {
             Text(if(editing==id) "‹" else "›",style=MaterialTheme.typography.headlineSmall,color=MaterialTheme.colorScheme.primary)
         }
         if(editing==id) key(id) {
-            if(ownSettings) Text(uiText(R.string.wg_day_settings_hint),style=MaterialTheme.typography.bodySmall,color=muted)
+            if(kind==DayHoursWidget::class.java) DayWidgetForm(locations,DayWidgets.loc(c,id),DayWidgets.rows(c,id)) { loc,rows -> DayWidgets.write(c,id,loc,rows);runCatching { DayWidgets.draw(c,id) };DayWidgets.refresh(c,true);editing=null;tick++ }
+            else if(kind==AirWidget::class.java) AirWidgetForm(locations,AirWidgets.read(c,id)) { next -> AirWidgets.write(c,id,next);AirWidgets.refresh(c,true);editing=null;tick++ }
+            else if(kind==SkyWidget::class.java) SkyWidgetForm(locations,SkyWidgets.read(c,id)) { next -> SkyWidgets.write(c,id,next);SkyWidgets.refresh(c);editing=null;tick++ }
             else WidgetConfigForm(kind.name,locations,cfg) { next -> PerunWidgets.write(c,id,next);if(kind==SixDayWidget::class.java) SixDayWidgets.refresh(c,true) else PerunWidgets.refresh(c,true);editing=null;tick++ }
         }
         HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))

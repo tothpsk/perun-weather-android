@@ -416,31 +416,43 @@ class SkyWidgetConfigActivity:ComponentActivity() {
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
-                    var loc by remember { mutableStateOf(initial.loc) }
-                    var main by remember { mutableStateOf(initial.main) }
-                    var bg by remember { mutableStateOf(initial.bg) }
-                    var text by remember { mutableStateOf(initial.text) }
-                    val muted=Color(0xFFBBC4D2)
                     Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                         Text(uiText(R.string.wg_config_title),style=MaterialTheme.typography.titleLarge,color=Color(0xFFE8EAF0))
-                        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
-                        Text(uiText(R.string.wg_sky_main),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.ui_slnko_d4e0d075),uiText(R.string.ui_mesiac_3ca578fb)),if(main=="moon") 1 else 0,{ main=if(it==1) "moon" else "sun" })
-                        Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
-                        Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })
-                        Button(onClick={
-                            SkyWidgets.write(this@SkyWidgetConfigActivity,id,SkyWidgetConfig(loc,main,bg,text))
+                        SkyWidgetForm(locations,initial) { next ->
+                            SkyWidgets.write(this@SkyWidgetConfigActivity,id,next)
                             SkyWidgets.refresh(this@SkyWidgetConfigActivity)
                             SkyWidgets.schedule(this@SkyWidgetConfigActivity)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
-                        },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/** The settings of the Sun and Moon widget; shared by the screen that opens from the home screen and by the Settings of the app. */
+@Composable internal fun SkyWidgetForm(locations:List<Location>,initial:SkyWidgetConfig,onSave:(SkyWidgetConfig)->Unit) {
+    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    var loc by remember { mutableStateOf(initial.loc) }
+    var main by remember { mutableStateOf(initial.main) }
+    var bg by remember { mutableStateOf(initial.bg) }
+    var text by remember { mutableStateOf(initial.text) }
+    val muted=Color(0xFFBBC4D2)
+    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_sky_main),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.ui_slnko_d4e0d075),uiText(R.string.ui_mesiac_3ca578fb)),if(main=="moon") 1 else 0,{ main=if(it==1) "moon" else "sun" })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })
+        Button(onClick={ onSave(SkyWidgetConfig(loc,main,bg,text)) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
 }
