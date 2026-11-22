@@ -158,10 +158,15 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     val headH=if(small) 0f else iconPx.toFloat()
     val cloudOn="cloud" in show
     val bandH=6*dn
+    // The wind direction is a row of arrows below the cloud band; both stand between the weather icons and the plot.
+    val dirOn="direction" in show && s.any { it.direction.isFinite() }
+    val dirH=(if(small) 8 else 10)*dn
+    val stackH=(if(cloudOn) bandH+1*dn else 0f)+(if(dirOn) dirH+1*dn else 0f)
     // The plot starts below the axis icons, so that the top number of an axis does not touch its icon.
-    val top=max(headH+(if(cloudOn) bandH+1*dn else 0f)+3*dn,if(small) glyph+4.5f*dn else 0f);val bottom=hPx-13*dn
+    val top=max(headH+stackH+3*dn,if(small) glyph+4.5f*dn else 0f);val bottom=hPx-13*dn
     // At two cells the band is centred between the place in the header and the plot; the header keeps about 5 dp free below its text.
-    val bandTop=if(small) ((top-bandH-5*dn)/2).coerceAtLeast(0f) else headH
+    val bandTop=if(small) ((top-(stackH-1*dn)-5*dn)/2).coerceAtLeast(0f) else headH
+    val dirTop=bandTop+(if(cloudOn) bandH+1*dn else 0f)
     val plotH=max(bottom-top,8*dn)
     val stride=if(plotH<56*dn) 2 else 1
     val step=(plotR-plotL)/(s.size-1)
@@ -187,6 +192,22 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
             if(h.cloud.isFinite()) {
                 p.color=((30+h.cloud*2.0).toInt().coerceIn(0,255) shl 24) or rgb
                 cv.drawRect((x(i)-step/2).coerceAtLeast(plotL),bandTop,(x(i)+step/2).coerceAtMost(plotR),bandTop+bandH,p)
+            }
+        }
+    }
+    // Wind direction: arrows that point to where the wind blows to, in the shape of the arrows of the expanded day on the
+    // Forecast screen. An arrow is as tall as its row; as many hours are skipped as it takes for the arrows not to touch.
+    if(dirOn) {
+        val skip=listOf(1,2,3,6,12).firstOrNull { it*step>=dirH+2*dn } ?: 12
+        val arrow=Path().apply { moveTo(0f,-0.5f*dirH);lineTo(-0.23f*dirH,0.5f*dirH);lineTo(0f,0.27f*dirH);lineTo(0.23f*dirH,0.5f*dirH);close() }
+        p.style=Paint.Style.FILL;p.color=strong
+        s.forEachIndexed { i,h ->
+            if(i%skip==0 && h.direction.isFinite()) {
+                cv.save()
+                cv.translate(x(i).coerceIn(plotL+dirH/2,max(plotR-dirH/2,plotL+dirH/2)),dirTop+dirH/2)
+                cv.rotate(((h.direction+180)%360).toFloat())
+                cv.drawPath(arrow,p)
+                cv.restore()
             }
         }
     }

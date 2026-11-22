@@ -278,5 +278,5 @@ private fun restartApp(context:Context) {
     }
 }
 @Composable private fun SettingsChoices(title:String,labels:List<String>,selected:Int,enabled:Boolean=true,pick:(Int)->Unit) {
-    Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {Text(title,style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.onSurfaceVariant);PerunChips(labels,selected,pick,enabled=enabled)}
+    Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {Text(title,style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface);PerunChips(labels,selected,pick,enabled=enabled)}
 }

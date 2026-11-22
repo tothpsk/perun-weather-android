@@ -27,7 +27,7 @@ internal data class OutlookDay(
 
 internal data class OverviewAir(val aqi: Double, val pm25: Double, val pm10: Double, val pollen: Map<String, Double>)
 
-internal data class OverviewHour(val time: LocalDateTime, val temperature: Double, val code: Int, val probability: Double, val precipitation: Double, val cloud: Double = Double.NaN, val wind: Double = Double.NaN, val gust: Double = Double.NaN)
+internal data class OverviewHour(val time: LocalDateTime, val temperature: Double, val code: Int, val probability: Double, val precipitation: Double, val cloud: Double = Double.NaN, val wind: Double = Double.NaN, val gust: Double = Double.NaN, val direction: Double = Double.NaN)
 
 internal data class OverviewData(
     val time: LocalDateTime, val zone: ZoneId, val latitude: Double, val longitude: Double,
@@ -251,7 +251,7 @@ internal suspend fun loadOverview(location: Location, alertSource: String = "kde
         val upcoming = times.indices.mapNotNull { i ->
             val t = runCatching { LocalDateTime.parse(times[i]) }.getOrNull()
             if (t == null || !t.isAfter(hourNow)) null
-            else OverviewHour(t, temp[i], if (code[i].isFinite()) code[i].toInt() else -1, prob[i], precip[i], cloud[i], wind[i], gust[i])
+            else OverviewHour(t, temp[i], if (code[i].isFinite()) code[i].toInt() else -1, prob[i], precip[i], cloud[i], wind[i], gust[i], windDir[i])
         }
         val hours = upcoming.take(6)
         // An hour that cannot be parsed gets the epoch, so its window is long over and it never matches.
