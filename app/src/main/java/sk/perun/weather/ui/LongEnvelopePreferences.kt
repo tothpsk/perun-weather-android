@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
@@ -40,17 +41,17 @@ private fun readLongEnvelopePreferences(p:SharedPreferences):LongEnvelopePrefere
     val lo=lower.toIntOrNull();val hi=upper.toIntOrNull()
     val valid=lo!=null && hi!=null && lo in 0..100 && hi in 0..100 && lo<hi
     Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Text(uiText(R.string.ui_percentily_ensemble_obalky_a825c14f),style=MaterialTheme.typography.labelLarge)
+        Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+            Text(uiText(R.string.ui_percentily_ensemble_obalky_a825c14f),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge)
+            SettingsInfo(uiText(R.string.ui_rozsah_0100_dolny_percentil_musi_byt_mensi_nez_horny_p10p9_bb4d7ae0))
+        }
         Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             OutlinedTextField(value=lower,onValueChange={if(it.length<=3 && it.all(Char::isDigit)) lower=it},modifier=Modifier.weight(1f),label={Text(uiText(R.string.ui_dolny_percentil_4cf4ff75))},singleLine=true,isError=!valid,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number))
             OutlinedTextField(value=upper,onValueChange={if(it.length<=3 && it.all(Char::isDigit)) upper=it},modifier=Modifier.weight(1f),label={Text(uiText(R.string.ui_horny_percentil_8555fb69))},singleLine=true,isError=!valid,keyboardOptions=KeyboardOptions(keyboardType=KeyboardType.Number))
         }
-        Text(uiText(R.string.ui_rozsah_0100_dolny_percentil_musi_byt_mensi_nez_horny_p10p9_bb4d7ae0),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
         if(!valid) Text(uiText(R.string.ui_zadaj_dve_cisla_od_0_do_100_v_rastucom_poradi_79646f92),color=MaterialTheme.colorScheme.error,style=MaterialTheme.typography.bodySmall)
-        Row(horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-            TextButton(enabled=valid && (lo!=saved.lower || hi!=saved.upper),onClick={if(valid) prefs.edit().putInt("envelopeLower",lo!!).putInt("envelopeUpper",hi!!).apply()}) {Text(uiText(R.string.ui_ulozit_percentily_02eece4c))}
-            TextButton(onClick={lower="10";upper="90";prefs.edit().putInt("envelopeLower",10).putInt("envelopeUpper",90).apply()}) {Text(uiText(R.string.ui_obnovit_p10p90_7936736e))}
-        }
+        Button(enabled=valid && (lo!=saved.lower || hi!=saved.upper),onClick={if(valid) prefs.edit().putInt("envelopeLower",lo!!).putInt("envelopeUpper",hi!!).apply()},modifier=Modifier.fillMaxWidth()) {Text(uiText(R.string.ui_ulozit_percentily_02eece4c))}
+        OutlinedButton(onClick={lower="10";upper="90";prefs.edit().putInt("envelopeLower",10).putInt("envelopeUpper",90).apply()},modifier=Modifier.fillMaxWidth()) {Text(uiText(R.string.ui_obnovit_p10p90_7936736e))}
         Text(uiText(R.string.ui_ulozene_pasmo_pvaluepvalue_61b19643, saved.lower, saved.upper),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

@@ -48,7 +48,8 @@ internal enum class MarineOverviewTileId(val key:String,val label:String) {
 }
 internal fun overviewTileSelection(stored:Set<String>?):Set<OverviewTileId> =
     if(stored==null) OverviewTileId.entries.toSet() else OverviewTileId.entries.filter { it.key in stored }.toSet()
-internal fun defaultOverviewTileOrder():List<String> = OverviewTileId.entries.map { it.key }+MarineOverviewTileId.entries.map { it.orderKey }
+// The alerts are not a tile of the grid: they sit in the header of Now, so they are neither ordered nor switched off.
+internal fun defaultOverviewTileOrder():List<String> = OverviewTileId.entries.filter { it!=OverviewTileId.Alerts }.map { it.key }+MarineOverviewTileId.entries.map { it.orderKey }
 // Stored order is a JSON array of keys: unknown keys are dropped, missing keys are appended in default order.
 internal fun overviewTileOrder(stored:String?):List<String> {
     val defaults=defaultOverviewTileOrder()
