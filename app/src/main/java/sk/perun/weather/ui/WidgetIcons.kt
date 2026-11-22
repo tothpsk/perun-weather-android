@@ -79,6 +79,19 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
     return image.asAndroidBitmap()
 }
 
+/** The compass of the wind direction for the widgets: a ring and an arrow that points to where the wind blows to, as WindCompass in the app. */
+internal fun widgetCompassBitmap(direction:Double,color:Int,size:Int):Bitmap {
+    val px=size.coerceAtLeast(1);val c=Color(color)
+    val image=ImageBitmap(px,px)
+    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+        scale(px/24f,px/24f,Offset.Zero) {
+            drawCircle(c.copy(alpha=.55f),10f,Offset(12f,12f),style=Stroke(1.6f))
+            if(direction.isFinite()) rotate(((direction+180)%360).toFloat(),Offset(12f,12f)) { drawPath(iconPath("M12 4.5L8.4 18L12 15L15.6 18Z"),c) }
+        }
+    }
+    return image.asAndroidBitmap()
+}
+
 // The weather symbols of the app: the shapes and colours of WeatherSymbol in OverviewArt.kt, drawn still (no animation) in a 100 x 100 box.
 private val SymGold=Color(0xFFFFD166)
 private val SymMoon=Color(0xFFD2DEF5)

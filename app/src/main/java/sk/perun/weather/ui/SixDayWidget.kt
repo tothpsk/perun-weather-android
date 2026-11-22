@@ -88,6 +88,7 @@ internal object SixDayWidgets {
     private fun num(x:Double,dec:Int):String = if(x.isFinite()) weatherUnitNumber(x,dec) else "-"
     private fun t(u:WeatherUnits,x:Double):String = num(u.temperature.fromCelsius(x),0)+"\u00B0"
     private fun param(key:String,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits):String = when(key) {
+        "direction"->cardinal(d.direction)
         "wind"->num(u.wind.fromKmh(d.wind),0)+" "+u.wind.symbol
         "gust"->num(u.wind.fromKmh(d.gust),0)+" "+u.wind.symbol
         "rain"->num(u.precipitation.fromMillimetres(d.precipitation),1)+" "+u.precipitation.liquidSymbol
@@ -140,7 +141,7 @@ internal object SixDayWidgets {
         v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
         cfg.params.take(if(wide) 4 else 3).forEachIndexed { i,key ->
-            v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
+            v.setImageViewBitmap(CellIcon[i],if(key=="direction") widgetCompassBitmap(d.direction,fg,48) else widgetIconBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
             v.setTextViewText(CellValue[i],param(key,d,ex,u))
         }
         for(i in 0 until 6) {
