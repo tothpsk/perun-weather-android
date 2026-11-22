@@ -10,7 +10,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -47,28 +46,31 @@ import kotlin.math.sin
     }
 }
 
+// The day arc of the Sun and Moon widget (arc in SkyWidget.kt), with its colours and proportions: a faint arc over the horizon
+// from the sunrise on the left to the sunset on the right. The part of the day that has passed is in the colour of the Sun
+// and the Sun stands at its end; at night the arc stays empty.
 @Composable internal fun TkSunArc(sunrise:Instant?,sunset:Instant?,now:Instant,modifier:Modifier) {
     Canvas(modifier.aspectRatio(1.6f)) {
         val w=size.width
-        val h=size.height
-        val base=h-1.dp.toPx()
-        val r=min(w/2f-4.dp.toPx(),base-8.dp.toPx())
-        val cx=w/2f-0.5.dp.toPx()
-        drawLine(Color(0xFF8C9BB2),Offset(1.dp.toPx(),base),Offset(w-1.dp.toPx(),base),1.6.dp.toPx(),StrokeCap.Round)
-        drawArc(Color(0xFF4D5668),180f,180f,false,topLeft=Offset(cx-r,base-r),size=Size(2*r,2*r),style=Stroke(1.6.dp.toPx(),pathEffect=PathEffect.dashPathEffect(floatArrayOf(3.dp.toPx(),3.dp.toPx()))))
-        if(sunrise!=null && sunset!=null && sunset.isAfter(sunrise)) {
-            val p=(now.epochSecond-sunrise.epochSecond).toDouble()/(sunset.epochSecond-sunrise.epochSecond)
-            val day=p in 0.0..1.0
-            val a=PI*p.coerceIn(0.0,1.0)
-            val pos=Offset((cx-r*cos(a)).toFloat(),(base-r*sin(a)).toFloat())
-            if(day) {
-                drawCircle(Color(0xFFFFD166),6.dp.toPx(),pos)
-                drawCircle(Color(0xFF8A6D1F),6.dp.toPx(),pos,style=Stroke(1.4.dp.toPx()))
-            } else {
-                drawCircle(Color(0xFF2B3550),5.dp.toPx(),pos)
-                drawCircle(Color(0xFF8C9BB2),5.dp.toPx(),pos,style=Stroke(1.4.dp.toPx()))
-            }
+        val base=size.height-3.dp.toPx()
+        val r=min(w/2f-5.dp.toPx(),base-7.5.dp.toPx()).coerceAtLeast(1f)
+        val cx=w/2f
+        val thick=maxOf(2.dp.toPx(),r*0.09f)
+        val corner=Offset(cx-r,base-r)
+        val box=Size(2*r,2*r)
+        drawArc(Color(0x33FFFFFF),180f,180f,false,topLeft=corner,size=box,style=Stroke(thick,cap=StrokeCap.Round))
+        drawLine(Color(0xFFBBC4D2),Offset(cx-r-5.dp.toPx(),base),Offset(cx+r+5.dp.toPx(),base),1.dp.toPx(),StrokeCap.Round)
+        if(sunrise!=null && sunset!=null && sunset.isAfter(sunrise) && !now.isBefore(sunrise) && !now.isAfter(sunset)) {
+            val f=((now.epochSecond-sunrise.epochSecond).toFloat()/(sunset.epochSecond-sunrise.epochSecond)).coerceIn(0f,1f)
+            drawArc(Color(0xFFFFD166),180f,180f*f,false,topLeft=corner,size=box,style=Stroke(thick,cap=StrokeCap.Round))
+            val a=PI*(1-f)
+            val pos=Offset((cx+r*cos(a)).toFloat(),(base-r*sin(a)).toFloat())
+            val d=maxOf(3.5.dp.toPx(),r*0.13f)
+            drawCircle(Color(0x55FFD166),d*1.9f,pos)
+            drawCircle(Color(0xFFFFD166),d,pos)
         }
+        drawCircle(Color(0xFF66D17A),2.5.dp.toPx(),Offset(cx-r,base))
+        drawCircle(Color(0xFFFF8F6B),2.5.dp.toPx(),Offset(cx+r,base))
     }
 }
 
