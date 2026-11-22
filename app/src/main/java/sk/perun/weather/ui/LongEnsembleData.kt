@@ -20,6 +20,9 @@ internal data class LocationEnsembleData(
     val sources:Map<String,String> = emptyMap(),
 )
 
+/** The median of the members of a quantity is kept beside its band, under the key of the quantity with this ending. */
+internal const val LongMedianSuffix="#median"
+
 internal fun resolveLongEnsemble(weatherModel:String,selection:String):String {
     require(selection in LocationModelCatalogue.ensembleIds) {uiText(R.string.ui_neznamy_ensemble_model_value_6c24183b, selection)}
     if(selection!=LocationModelCatalogue.AutomaticEnsemble) return selection
@@ -61,6 +64,9 @@ internal fun parseLongEnsembleVariable(root:JSONObject,key:String,p:LongEnvelope
     val band=times.indices.mapNotNull {i->ensembleBand(values(i),p.lower,p.upper)?.let {times[i] to it}}
     val result=mutableMapOf<String,List<Pair<Long,EnsembleBand>>>()
     if(band.isNotEmpty()) result[key]=band
+    // The 50th percentile of the members; only its lower value is used.
+    val median=times.indices.mapNotNull {i->ensembleBand(values(i),50,51)?.let {times[i] to it}}
+    if(median.isNotEmpty()) result[key+LongMedianSuffix]=median
     if(key=="precipitation") {
         val probability=times.indices.mapNotNull {i->
             val finite=values(i).filter {it.isFinite() && it>=0.0}
@@ -133,5 +139,5 @@ internal suspend fun loadLongEnsemble(
         if(failed.isNotEmpty()) append(uiText(R.string.ui_poziadavka_zlyhala_alebo_ju_api_odmietlo_value_nie_je_to_p_61af315a, failed))
         if("precipitation_probability" in bands) append(uiText(R.string.ui_pasmo_pravdepodobnosti_zrazok_nie_je_percentilove_hranice_defaa900))
     }
-    LocationEnsembleData(bands,note,bands.keys.associateWith {source})
+    LocationEnsembleData(bands,note,bands.keys.filter {!it.endsWith(LongMedianSuffix)}.associateWith {source})
 }

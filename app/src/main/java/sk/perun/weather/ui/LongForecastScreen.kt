@@ -231,6 +231,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     val scroll=rememberScrollableState {delta->move(-delta.toDouble()*span/plotPixels);delta}
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
+    // With the envelope on, the line of the temperature is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
+    val median=remember(ens,showBand) {if(showBand) ens.bands[LongMetric.Temp.key+LongMedianSuffix].orEmpty().associate {it.first to it.second.lower} else emptyMap()}
+    fun lineRaw(m:LongMetric,i:Int):Double = (if(m==LongMetric.Temp) median[d.times[i]] else null) ?: d.value(m.key,i)
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -303,7 +306,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                                 }
                                 seg.clear()
                             }
-                            d.times.indices.forEach {i->val value=longValue(m,d.value(m.key,i),u)
+                            d.times.indices.forEach {i->val value=longValue(m,lineRaw(m,i),u)
                                 if(!value.isFinite()) flush() else {
                                     if(seg.isNotEmpty() && d.times[i]-lastTime!=3600L) flush()
                                     seg.add(Offset(x(d.times[i]),y(m,value)));lastTime=d.times[i]
@@ -331,8 +334,8 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 marker(now,LongText,uiText(R.string.ui_teraz_e6989b57)+Instant.ofEpochSecond(now).atZone(d.zone).format(DateTimeFormatter.ofPattern("HH:mm")),0f)
                 selected?.let {i->marker(d.times[i],RainBlue,Instant.ofEpochSecond(d.times[i]).atZone(d.zone).format(DateTimeFormatter.ofPattern(appPattern("d. M. HH:mm"),appLocale())),20.dp.toPx())
                     val xx=x(d.times[i]);val pad=3.dp.toPx();val gap=2.dp.toPx();var prevBottom=top-1000f
-                    shown.mapNotNull {m->val raw=d.value(m.key,i);if(raw.isFinite()) m to y(m,longValue(m,raw,u)).coerceIn(top,bottom) else null}.sortedBy {it.second}.forEach {(m,yy)->
-                        val raw=d.value(m.key,i);val c=longColor(m,raw)
+                    shown.mapNotNull {m->val raw=lineRaw(m,i);if(raw.isFinite()) m to y(m,longValue(m,raw,u)).coerceIn(top,bottom) else null}.sortedBy {it.second}.forEach {(m,yy)->
+                        val raw=lineRaw(m,i);val c=longColor(m,raw)
                         val r=tm.measure(weatherUnitNumber(longValue(m,raw,u),1)+" "+longUnit(m,u),TextStyle(fontSize=9.sp,color=c))
                         val w=r.size.width+2*pad;val h=r.size.height+2*pad
                         val cy=maxOf((yy-h/2).coerceIn(top,(bottom-h).coerceAtLeast(top)),prevBottom+gap);prevBottom=cy+h
