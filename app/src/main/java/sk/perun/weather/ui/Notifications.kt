@@ -646,7 +646,7 @@ internal fun notificationSummary(s:NotificationSettings):String {
 @Composable private fun SwitchRow(text:String,checked:Boolean,info:String?=null,onChange:(Boolean)->Unit) {
     Row(Modifier.fillMaxWidth().heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) { Text(text,Modifier.weight(1f));if(info!=null) SettingsInfo(info);Switch(checked,onChange) }
 }
-@Composable private fun Label(text:String) = Text(text,style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+@Composable private fun Label(text:String) = Text(text,style=MaterialTheme.typography.labelLarge,color=MaterialTheme.colorScheme.onSurfaceVariant)
 @Composable private fun Note(text:String) = Text(text,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
 private fun hourLabel(h:Int)=String.format(Locale.ROOT,"%d:00",h)
 private fun locationLabel(sel:String,locations:List<Location>):String =

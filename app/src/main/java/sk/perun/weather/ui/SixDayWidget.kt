@@ -68,6 +68,7 @@ internal object SixDayWidgets {
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
     private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
     private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
+    private val CellArrow=intArrayOf(R.id.wg_c0a,R.id.wg_c1a,R.id.wg_c2a,R.id.wg_c3a)
     private val DayName=intArrayOf(R.id.wg_h0t,R.id.wg_h1t,R.id.wg_h2t,R.id.wg_h3t,R.id.wg_h4t,R.id.wg_h5t)
     private val DayIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val DayMax=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
@@ -88,8 +89,8 @@ internal object SixDayWidgets {
     private fun num(x:Double,dec:Int):String = if(x.isFinite()) weatherUnitNumber(x,dec) else "-"
     private fun t(u:WeatherUnits,x:Double):String = num(u.temperature.fromCelsius(x),0)+"\u00B0"
     private fun param(key:String,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits):String = when(key) {
-        "wind"->num(u.wind.fromKmh(d.wind),0)+" "+u.wind.symbol+widgetWindArrow(d.direction)
-        "gust"->num(u.wind.fromKmh(d.gust),0)+" "+u.wind.symbol+widgetWindArrow(d.direction)
+        "wind"->num(u.wind.fromKmh(d.wind),0)+" "+u.wind.symbol
+        "gust"->num(u.wind.fromKmh(d.gust),0)+" "+u.wind.symbol
         "rain"->num(u.precipitation.fromMillimetres(d.precipitation),1)+" "+u.precipitation.liquidSymbol
         "prob"->num(d.probability,0)+" %"
         "uv"->num(d.uv,1)
@@ -142,6 +143,7 @@ internal object SixDayWidgets {
         cfg.params.take(if(wide) 4 else 3).forEachIndexed { i,key ->
             v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing) "snow" else key,fg,48))
             v.setTextViewText(CellValue[i],param(key,d,ex,u))
+            widgetWindArrowView(v,CellArrow[i],key,d.direction,fg)
         }
         for(i in 0 until 6) {
             val day=days.getOrNull(i)

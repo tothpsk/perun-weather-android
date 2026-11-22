@@ -155,6 +155,7 @@ internal object WidgetRender {
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
     private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
     private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
+    private val CellArrow=intArrayOf(R.id.wg_c0a,R.id.wg_c1a,R.id.wg_c2a,R.id.wg_c3a)
     private val HourTime=intArrayOf(R.id.wg_h0t,R.id.wg_h1t,R.id.wg_h2t,R.id.wg_h3t,R.id.wg_h4t,R.id.wg_h5t)
     private val HourIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val HourTemp=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
@@ -190,8 +191,8 @@ internal object WidgetRender {
         return d.sunTimes.any { at>=it.first && at<it.second }
     }
     private fun param(key:String,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits):String = when(key) {
-        "wind"->num(u.wind.fromKmh(d.wind),0)+" "+u.wind.symbol+widgetWindArrow(d.direction)
-        "gust"->num(u.wind.fromKmh(d.gust),0)+" "+u.wind.symbol+widgetWindArrow(d.direction)
+        "wind"->num(u.wind.fromKmh(d.wind),0)+" "+u.wind.symbol
+        "gust"->num(u.wind.fromKmh(d.gust),0)+" "+u.wind.symbol
         "rain"->num(u.precipitation.fromMillimetres(d.precipitation),1)+" "+u.precipitation.liquidSymbol
         "prob"->num(d.probability,0)+" %"
         "uv"->num(d.uv,1)
@@ -237,7 +238,7 @@ internal object WidgetRender {
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u) },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
@@ -248,9 +249,19 @@ internal object WidgetRender {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
+        // The arrow of the wind direction; it is drawn into the em space that ends the value of the wind or the gusts.
+        val windArrow=if(extraKey=="wind" || extraKey=="gust") widgetWindArrowBitmap(d.direction,pal.fg,64) else null
         fun font(size:Float,bold:Boolean) { p.textSize=size*dn;p.typeface=if(bold) Typeface.DEFAULT_BOLD else Typeface.DEFAULT }
         fun width(s:String,size:Float,bold:Boolean):Float { font(size,bold);return p.measureText(s) }
-        fun text(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) { font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,y,p) }
+        fun text(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean=false,align:Paint.Align=Paint.Align.LEFT) {
+            font(size,bold);p.color=color;p.textAlign=align;cv.drawText(s,x,y,p)
+            if(windArrow!=null && s.endsWith("\u2003")) {
+                val tw=p.measureText(s);val a=size*dn*0.95f
+                val end=when(align) { Paint.Align.RIGHT->x;Paint.Align.CENTER->x+tw/2;else->x+tw }
+                val mid=y-size*dn*0.36f
+                cv.drawBitmap(windArrow,null,RectF(end-a,mid-a/2,end,mid+a/2),p)
+            }
+        }
         fun fit(s:String,size:Float,bold:Boolean,room:Float):String {
             font(size,bold)
             if(p.measureText(s)<=room) return s
@@ -358,7 +369,7 @@ internal object WidgetRender {
         val wide=(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 250)>=PerunWidgets.WideDp
         v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
-        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u)) }
+        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u));widgetWindArrowView(v,CellArrow[i],key,d.direction,pal.fg) }
         d.hours.take(6).forEachIndexed { i,h ->
             v.setTextViewText(HourTime[i],h.time.format(Hm))
             v.setImageViewBitmap(HourIcon[i],widgetSymbolBitmap(h.code,dayAt(d,h.time),64))
@@ -438,17 +449,19 @@ private fun meteoLabel(key:String):String = when(key) {
     val options=Notifier.CurrentOptions
     val labels=options.map { Notifier.paramLabel(it) }
     val muted=Color(0xFFBBC4D2)
-    @Composable fun label(res:Int) = Text(uiText(res),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=Color(0xFFE8EAF0))
+    // Every section but the first starts with a divider, like the rows of the main list of the settings.
+    @Composable fun label(res:Int,first:Boolean=false) { if(!first) HorizontalDivider(color=Color(0x804B586C));Text(uiText(res),style=MaterialTheme.typography.labelLarge,color=muted) }
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        label(R.string.wg_location)
+        label(R.string.wg_location,true)
         PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
         if(kind.endsWith("NowWidget") || kind.endsWith("SixDayWidget")) {
             for(i in 0..3) {
+                HorizontalDivider(color=Color(0x804B586C))
                 // The fourth value is shown only on a wide widget; the note is behind the (i) button.
                 if(i==3) Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                    Text(uiText(R.string.wg_param_n,i+1),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=Color(0xFFE8EAF0))
+                    Text(uiText(R.string.wg_param_n,i+1),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
                     SettingsInfo(uiText(R.string.wg_param_wide))
-                } else Text(uiText(R.string.wg_param_n,i+1),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=Color(0xFFE8EAF0))
+                } else Text(uiText(R.string.wg_param_n,i+1),style=MaterialTheme.typography.labelLarge,color=muted)
                 PerunChips(labels,options.indexOf(params[i]).coerceAtLeast(0),{ pick ->
                     val next=params.toMutableList();val chosen=options[pick]
                     val other=next.indexOf(chosen);if(other>=0 && other!=i) next[other]=next[i]
@@ -518,7 +531,7 @@ private fun meteoLabel(key:String):String = when(key) {
     if(placed.isNotEmpty()) OutlinedButton(onClick={ PerunWidgets.refreshAll(c) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_refresh_all)) }
     // The note about adding from the home screen sits behind the (i) next to the heading, as in the background refresh settings.
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-        Text(uiText(R.string.wg_add_title),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=Color(0xFFE8EAF0))
+        Text(uiText(R.string.wg_add_title),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
         SettingsInfo(uiText(R.string.wg_add_note))
     }
     PerunWidgets.Listed.forEach { k -> OutlinedButton(onClick={ PerunWidgets.pin(c,k) },modifier=Modifier.fillMaxWidth()) { Text(PerunWidgets.kindName(k)) } }

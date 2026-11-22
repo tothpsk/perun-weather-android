@@ -79,12 +79,25 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
     return image.asAndroidBitmap()
 }
 
-/**
- * The arrow behind the wind speed of a widget: it points to where the wind blows to, in steps of 45 degrees. It is a character,
- * so that it has the colour and the size of the value and needs no place of its own in the layout. Empty without a direction.
- */
-internal fun widgetWindArrow(direction:Double):String =
-    if(!direction.isFinite()) "" else " "+"\u2191\u2197\u2192\u2198\u2193\u2199\u2190\u2196"[((((direction+180)%360+360)%360)/45.0+0.5).toInt()%8]
+/** The arrow of the wind direction for the widgets: it points to where the wind blows to, in the shape of the arrows of the Meteogram widget. An empty picture without a direction. */
+internal fun widgetWindArrowBitmap(direction:Double,color:Int,size:Int):Bitmap {
+    val px=size.coerceAtLeast(1)
+    val image=ImageBitmap(px,px)
+    if(!direction.isFinite()) return image.asAndroidBitmap()
+    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+        val a=px*0.94f;val m=px/2f
+        rotate(((direction+180)%360).toFloat(),Offset(m,m)) {
+            drawPath(Path().apply { moveTo(m,m-0.5f*a);lineTo(m-0.23f*a,m+0.5f*a);lineTo(m,m+0.27f*a);lineTo(m+0.23f*a,m+0.5f*a);close() },Color(color))
+        }
+    }
+    return image.asAndroidBitmap()
+}
+/** Shows the arrow behind the value of a cell for the wind and the gusts, and hides it for every other value. */
+internal fun widgetWindArrowView(v:android.widget.RemoteViews,id:Int,key:String,direction:Double,color:Int) {
+    val on=(key=="wind" || key=="gust") && direction.isFinite()
+    v.setViewVisibility(id,if(on) android.view.View.VISIBLE else android.view.View.GONE)
+    if(on) v.setImageViewBitmap(id,widgetWindArrowBitmap(direction,color,42))
+}
 
 // The weather symbols of the app: the shapes and colours of WeatherSymbol in OverviewArt.kt, drawn still (no animation) in a 100 x 100 box.
 private val SymGold=Color(0xFFFFD166)

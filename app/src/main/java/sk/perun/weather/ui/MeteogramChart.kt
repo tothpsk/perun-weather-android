@@ -200,7 +200,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     if(dirOn) {
         val skip=listOf(1,2,3,6,12).firstOrNull { it*step>=dirH+2*dn } ?: 12
         val arrow=Path().apply { moveTo(0f,-0.5f*dirH);lineTo(-0.23f*dirH,0.5f*dirH);lineTo(0f,0.27f*dirH);lineTo(0.23f*dirH,0.5f*dirH);close() }
-        p.style=Paint.Style.FILL;p.color=strong
+        p.style=Paint.Style.FILL;p.color=cWind
         s.forEachIndexed { i,h ->
             if(i%skip==0 && h.direction.isFinite()) {
                 cv.save()

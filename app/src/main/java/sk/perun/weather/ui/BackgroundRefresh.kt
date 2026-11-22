@@ -151,11 +151,11 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
     fun edit(block:SharedPreferences.Editor.()->Unit) { p.edit().apply(block).apply();BackgroundRefresh.schedule(context) }
     val muted=MaterialTheme.colorScheme.onSurfaceVariant
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-        Text(uiText(R.string.bg_interval),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+        Text(uiText(R.string.bg_interval),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
         SettingsInfo(uiText(R.string.bg_interval_note))
     }
     PerunChips(BackgroundRefresh.Intervals.map { backgroundIntervalLabel(it) },BackgroundRefresh.Intervals.indexOf(s.intervalMinutes).coerceAtLeast(0),{ edit { putInt("intervalMinutes",BackgroundRefresh.Intervals[it]) } })
-    Text(uiText(R.string.bg_locations),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+    Text(uiText(R.string.bg_locations),style=MaterialTheme.typography.labelLarge,color=muted)
     PerunChips(listOf(uiText(R.string.bg_scope_active),uiText(R.string.bg_scope_all),uiText(R.string.bg_scope_custom)),listOf("active","all","custom").indexOf(s.scope).coerceAtLeast(0),{ edit { putString("scope",listOf("active","all","custom")[it]) } })
     if(s.scope=="custom") Column {
         all.forEach { l ->
@@ -166,14 +166,14 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
             }
         }
     }
-    Text(uiText(R.string.bg_network),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+    Text(uiText(R.string.bg_network),style=MaterialTheme.typography.labelLarge,color=muted)
     PerunChips(listOf(uiText(R.string.bg_network_any),uiText(R.string.bg_network_wifi)),if(s.wifiOnly) 1 else 0,{ edit { putBoolean("wifiOnly",it==1) } })
-    Text(uiText(R.string.bg_battery),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+    Text(uiText(R.string.bg_battery),style=MaterialTheme.typography.labelLarge,color=muted)
     PerunChips(BackgroundRefresh.BatteryFloors.map { "$it %" },BackgroundRefresh.BatteryFloors.indexOf(s.batteryFloor).coerceAtLeast(0),{ edit { putInt("batteryFloor",BackgroundRefresh.BatteryFloors[it]) } })
     Row(Modifier.fillMaxWidth().heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) { Text(uiText(R.string.bg_allow_charging),Modifier.weight(1f));Switch(s.allowWhileCharging,{ edit { putBoolean("allowWhileCharging",it) } }) }
     Row(Modifier.fillMaxWidth().heightIn(min=48.dp),verticalAlignment=Alignment.CenterVertically) { Text(uiText(R.string.bg_pause_saver),Modifier.weight(1f));Switch(s.pauseInPowerSaver,{ edit { putBoolean("pauseInPowerSaver",it) } }) }
     HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))
-    Text(uiText(R.string.bg_status),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+    Text(uiText(R.string.bg_status),style=MaterialTheme.typography.labelLarge,color=muted)
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
         Text(if(s.lastSuccess>0) uiText(R.string.bg_last_success,clock(s.lastSuccess)) else uiText(R.string.bg_no_success),Modifier.weight(1f),style=MaterialTheme.typography.bodyMedium)
         SettingsInfo(uiText(R.string.bg_cache_note))
@@ -181,7 +181,7 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
     if(s.lastSkipReason.isNotBlank() && s.lastAttempt>0) Text(uiText(R.string.bg_last_skip,clock(s.lastAttempt),s.lastSkipReason),style=MaterialTheme.typography.bodySmall,color=Color(0xFFFFB74D))
     OutlinedButton(onClick={ BackgroundRefresh.refreshNow(context) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.bg_refresh_now)) }
     HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))
-    Text(uiText(R.string.bg_permissions),style=MaterialTheme.typography.labelLarge,fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold,color=MaterialTheme.colorScheme.onSurface)
+    Text(uiText(R.string.bg_permissions),style=MaterialTheme.typography.labelLarge,color=muted)
     val ignoring=rememberOnResume { BackgroundRefresh.ignoringBatteryOptimizations(context) }
     PerunStatusRow(ignoring,if(ignoring) uiText(R.string.bg_optimization_off) else uiText(R.string.bg_optimization_on))
     if(!ignoring) OutlinedButton(onClick={ runCatching { context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.bg_open_battery_settings)) }
