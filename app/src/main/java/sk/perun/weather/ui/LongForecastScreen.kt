@@ -110,7 +110,7 @@ private val LongTipPosition=object:PopupPositionProvider {
             HelpRow(Color.White,uiText(R.string.ui_sneh_27400f08),uiText(R.string.ui_uhrn_je_vo_vodnom_ekvivalente_nie_vyska_snehu_f9add673))
             HelpRow(Color(0xFFBA68C8),uiText(R.string.ui_dazd_so_snehom_586507c0),uiText(R.string.ui_zmiesane_zrazky_0c420ad6))
         }
-        LongMetric.Prob->{HelpText(uiText(R.string.ui_prerusovana_ciara_ukazuje_pravdepodobnost_zrazok_v_danej_h_5ac15e46));HelpText(uiText(R.string.long_help_probability_ensemble))}
+        LongMetric.Prob->HelpText(uiText(R.string.ui_prerusovana_ciara_ukazuje_pravdepodobnost_zrazok_v_danej_h_5ac15e46))
         LongMetric.Wind->HelpText(uiText(R.string.ui_vietor_vo_vyske_10_m_sipky_nad_grafom_ukazuju_kam_vietor_f_c7fac450))
         LongMetric.Gust->HelpText(uiText(R.string.ui_narazy_su_kratkodobe_maxima_rychlosti_vetra_pri_silnom_vet_fd7f47bd))
         LongMetric.Cloud->HelpText(uiText(R.string.ui_celkova_modelova_oblacnost_v_percentach_0_je_jasno_100_zam_fe810d8f))
@@ -233,14 +233,13 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
     // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
-    // The bars of precipitation and UV index are the median too; the line of the probability of precipitation is the share of the members with precipitation.
+    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median and stays the forecast of the model.
     val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
     fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
     // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
     val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
-    // The line of the precipitation probability is a share of the members, not a median, so the tip names it separately.
-    val probShare=showBand && LongMetric.Prob in metrics && medians.containsKey(LongMetric.Prob.key+LongMedianSuffix)
-    val tipNote=if(!showBand) "" else (if(metrics.any {it!=LongMetric.Prob && medians.containsKey(it.key+LongMedianSuffix)}) " "+uiText(R.string.long_tip_median) else "")+(if(probShare) " "+uiText(R.string.long_tip_probability) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
+    // With every quantity from the ensemble one sentence is enough; otherwise each quantity is named with what it shows.
+    val tipNote=if(!showBand) "" else if(modelOnly.isEmpty()) " "+uiText(R.string.long_tip_median) else metrics.joinToString("") {" "+it.label+": "+uiText(if(it in modelOnly) R.string.long_tip_model_short else R.string.long_tip_median_short)+"."}
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -376,9 +375,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Text(fullTitle,style=MaterialTheme.typography.titleLarge)
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
-                HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
+                if(!showBand) HelpText(uiText(R.string.long_line_model)) else if(metrics.any {it!=LongMetric.Rain && it!=LongMetric.Uv && it !in modelOnly}) HelpText(uiText(R.string.long_line_median))
                 if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_bars_band))
-                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model))}
+                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model_short)+".")}
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
         }
