@@ -415,7 +415,7 @@ internal object DayWidgets {
             val high=(finite.maxOrNull() ?: low).coerceAtLeast(low+1)
             val labelSpace=if(row=="pressure") 3*dn else 11*dn
             // The marks of snowfall stand under the bars of precipitation, as in the app; the row keeps their room only on a day with snow.
-            val snowSize=if(row=="rain" && day.hours.any { it.v("snowfall")>0 }) min(9*dn,rh*.28f).roundToInt().coerceAtLeast(6) else 0
+            val snowSize=if(row=="rain" && day.hours.any { it.v("snowfall")>0 }) min(11*dn,rh*.34f).roundToInt().coerceAtLeast(7) else 0
             val foot=if(snowSize>0) snowSize+2*dn else 3*dn
             val span=(rh-labelSpace-foot-dn).coerceAtLeast(1f)
             fun y(a:Double):Float = y1-foot-((a-low)/(high-low)*span).toFloat()
@@ -450,11 +450,11 @@ internal object DayWidgets {
             // Snowfall is marked under the precipitation line every three hours, as in the app.
             if(row=="rain") {
                 val ss=snowSize
-                // Only on a day with snow (ss is 0 otherwise): a snowflake, a drop for rain, or a small drop with a snowflake for rain with snow, as in the app.
+                // Only on a day with snow (ss is 0 otherwise): a snowflake, a drop for rain, or a drop beside a snowflake for rain with snow.
                 if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
                     val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
                     val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
-                    if(snowy && wet) { val half=(ss/2).coerceAtLeast(3);cv.drawBitmap(rowGlyph("rain",tone,half),gx,gy+(ss-half)/2f,null);cv.drawBitmap(rowGlyph("snow",tone,half),gx+half,gy+(ss-half)/2f,null) }
+                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss),px+ss,gy,null) }
                     else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
                 } }
             }
