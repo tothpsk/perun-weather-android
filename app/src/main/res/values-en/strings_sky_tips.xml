@@ -7,5 +7,4 @@
     <string name="sky_tip_day_shorter_before">The day is shorter than the day before</string>
     <string name="sky_tip_day_same_before">The day is as long as the day before</string>
     <string name="sky_tip_moon_up">Time the Moon is above the horizon</string>
-    <string name="sky_tip_phase">%1$s, lit share of the disc</string>
 </resources>

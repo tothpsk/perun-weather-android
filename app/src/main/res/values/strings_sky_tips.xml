@@ -7,5 +7,4 @@
     <string name="sky_tip_day_shorter_before">Deň je kratší než predchádzajúci deň</string>
     <string name="sky_tip_day_same_before">Deň je rovnako dlhý ako predchádzajúci deň</string>
     <string name="sky_tip_moon_up">Čas, počas ktorého je Mesiac nad obzorom</string>
-    <string name="sky_tip_phase">%1$s, osvetlená časť disku</string>
 </resources>

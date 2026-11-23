@@ -238,7 +238,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
     // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
     val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
-    val tipNote=if(!showBand) "" else (if(modelOnly.size<metrics.size) " "+uiText(R.string.long_tip_median) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
+    // The line of the precipitation probability is a share of the members, not a median, so the tip names it separately.
+    val probShare=showBand && LongMetric.Prob in metrics && medians.containsKey(LongMetric.Prob.key+LongMedianSuffix)
+    val tipNote=if(!showBand) "" else (if(metrics.any {it!=LongMetric.Prob && medians.containsKey(it.key+LongMedianSuffix)}) " "+uiText(R.string.long_tip_median) else "")+(if(probShare) " "+uiText(R.string.long_tip_probability) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="storm_help_cells" formatted="false">"The dots on the radar are storm cells; the larger one is the cell that the tile describes. The colour shows the highest radar reflectivity of the cell. The red dot with a white edge in the middle is your location."</string>
+    <string name="storm_cell_weak" formatted="false">"Green cell"</string>
+    <string name="storm_cell_weak_note" formatted="false">"below 30 dBZ, light precipitation"</string>
+    <string name="storm_cell_moderate" formatted="false">"Yellow cell"</string>
+    <string name="storm_cell_moderate_note" formatted="false">"30 to 39 dBZ, moderate precipitation"</string>
+    <string name="storm_cell_heavy" formatted="false">"Orange cell"</string>
+    <string name="storm_cell_heavy_note" formatted="false">"40 to 49 dBZ, heavy precipitation"</string>
+    <string name="storm_cell_intense" formatted="false">"Red cell"</string>
+    <string name="storm_cell_intense_note" formatted="false">"50 to 55 dBZ, very heavy precipitation"</string>
+    <string name="storm_cell_extreme" formatted="false">"Purple cell"</string>
+    <string name="storm_cell_extreme_note" formatted="false">"above 55 dBZ, extreme precipitation"</string>
+</resources>

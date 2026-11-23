@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="storm_help_cells" formatted="false">"Bodky na radare sú búrkové bunky; väčšia je bunka, ktorú dlaždica opisuje. Farba ukazuje najvyššiu radarovú odrazivosť bunky. Červená bodka s bielym okrajom v strede je vaša poloha."</string>
+    <string name="storm_cell_weak" formatted="false">"Zelená bunka"</string>
+    <string name="storm_cell_weak_note" formatted="false">"do 30 dBZ, slabé zrážky"</string>
+    <string name="storm_cell_moderate" formatted="false">"Žltá bunka"</string>
+    <string name="storm_cell_moderate_note" formatted="false">"30 až 39 dBZ, mierne zrážky"</string>
+    <string name="storm_cell_heavy" formatted="false">"Oranžová bunka"</string>
+    <string name="storm_cell_heavy_note" formatted="false">"40 až 49 dBZ, silné zrážky"</string>
+    <string name="storm_cell_intense" formatted="false">"Červená bunka"</string>
+    <string name="storm_cell_intense_note" formatted="false">"50 až 55 dBZ, veľmi silné zrážky"</string>
+    <string name="storm_cell_extreme" formatted="false">"Fialová bunka"</string>
+    <string name="storm_cell_extreme_note" formatted="false">"nad 55 dBZ, mimoriadne silné zrážky"</string>
+</resources>

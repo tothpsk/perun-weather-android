@@ -70,10 +70,14 @@ internal fun parseLongEnsembleVariable(root:JSONObject,key:String,p:LongEnvelope
     if(key=="precipitation") {
         val probability=times.indices.mapNotNull {i->
             val finite=values(i).filter {it.isFinite() && it>=0.0}
-            if(finite.size<2) null else {val share=100.0*finite.count {it>=0.1}/finite.size;times[i] to EnsembleBand(share,share,0.0,100.0,finite.size)}
+            if(finite.size<2) null else {val share=100.0*finite.count {it>=0.1}/finite.size;times[i] to EnsembleBand(100.0*finite.count {it>=1.0}/finite.size,share,0.0,100.0,finite.size)}
         }
-        // Kept as the line of the quantity: the share of the members with at least 0.1 mm in the hour. It has no band.
-        if(probability.isNotEmpty()) result["precipitation_probability"+LongMedianSuffix]=probability
+        // The band reaches from the share of the members with at least 1 mm in the hour up to the share with at least 0.1 mm.
+        // The line is the upper edge of the band; it is kept where the other quantities keep their median.
+        if(probability.isNotEmpty()) {
+            result["precipitation_probability"]=probability
+            result["precipitation_probability"+LongMedianSuffix]=probability.map {(t,b)->t to EnsembleBand(b.upper,b.upper,0.0,100.0,2)}
+        }
     }
     return result
 }

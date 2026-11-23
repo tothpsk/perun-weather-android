@@ -313,6 +313,13 @@ private fun DrawScope.ncBolt(p:Offset,k:Float,color:Color) {
                         HelpText(uiText(R.string.ui_burkove_bunky_a_blesky_v_okoli_100_km_pismeno_s_oznacuje_s_70b50c90))
                         HelpRow(Color(0xFFFFB74D),uiText(R.string.ui_burkova_bunka_v_okoli_ed6921f4),uiText(R.string.ui_pozor_na_vyvoj_situacie_256af0fc))
                         HelpRow(Color(0xFFFF7043),uiText(R.string.ui_blesky_do_25_km_ce2c4ebd),uiText(R.string.ui_burka_je_pri_lokalite_17b2f702))
+                        // The dots of the storm cells on the radar take the colour of the radar palette for their highest reflectivity.
+                        HelpText(uiText(R.string.storm_help_cells))
+                        HelpRow(Color(0xFF10E81D),uiText(R.string.storm_cell_weak),uiText(R.string.storm_cell_weak_note))
+                        HelpRow(Color(0xFFFFE80D),uiText(R.string.storm_cell_moderate),uiText(R.string.storm_cell_moderate_note))
+                        HelpRow(Color(0xFFFF8B00),uiText(R.string.storm_cell_heavy),uiText(R.string.storm_cell_heavy_note))
+                        HelpRow(Color(0xFFEF0F02),uiText(R.string.storm_cell_intense),uiText(R.string.storm_cell_intense_note))
+                        HelpRow(Color(0xFFE400B1),uiText(R.string.storm_cell_extreme),uiText(R.string.storm_cell_extreme_note))
                         HelpText(uiText(R.string.storm_help_direction))
                     })
                 }
