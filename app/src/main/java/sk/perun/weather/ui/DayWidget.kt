@@ -450,7 +450,13 @@ internal object DayWidgets {
             // Snowfall is marked under the precipitation line every three hours, as in the app.
             if(row=="rain") {
                 val ss=snowSize
-                day.hours.forEach { h -> if(h.v("snowfall")>0 && hourOf(h)%3==0) cv.drawBitmap(rowGlyph("snow",Color(color(row,h)),ss),(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left)),y1-ss-dn,null) }
+                // Only on a day with snow (ss is 0 otherwise): a snowflake, a drop for rain, or a small drop with a snowflake for rain with snow, as in the app.
+                if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
+                    val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
+                    val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
+                    if(snowy && wet) { val half=(ss/2).coerceAtLeast(3);cv.drawBitmap(rowGlyph("rain",tone,half),gx,gy+(ss-half)/2f,null);cv.drawBitmap(rowGlyph("snow",tone,half),gx+half,gy+(ss-half)/2f,null) }
+                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
+                } }
             }
         }
         for(k in 0..8) line(Grid,x(slot(k*3)),badge,x(slot(k*3)),bottom,.5f*dn)

@@ -469,7 +469,8 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val wc=h.v("weather_code")
                 Box(Modifier.offset(x=dx,y=40.dp).size(24.dp)) { WeatherSymbol(if(wc.isFinite()) wc.toInt() else -1,24.dp,isDay=h.v("is_day")==1.0) }
             }
-            if(h.v("snowfall")>0 && (Instant.ofEpochSecond(h.time).atZone(zone).hour%3==0 || selected?.let { day.hours[it].time==h.time }==true)) {
+            // On a day with snow, an hour of rain is marked too, with the drop.
+            if((h.v("snowfall")>0 || (h.v(FV.Rain.key)>0 && day.hours.any { it.v("snowfall")>0 })) && (Instant.ofEpochSecond(h.time).atZone(zone).hour%3==0 || selected?.let { day.hours[it].time==h.time }==true)) {
                 val snowX=(dx-6.dp).coerceIn(36.dp,(maxWidth-24.dp).coerceAtLeast(36.dp))
                 Box(Modifier.offset(x=snowX,y=(68+2*rowDp-13).dp).size(12.dp)) { ForecastPrecipGlyph(h,12.dp) }
             }
