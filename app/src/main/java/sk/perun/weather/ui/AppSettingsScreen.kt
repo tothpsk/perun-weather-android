@@ -89,8 +89,10 @@ private enum class SettingsPage(val titleRes:Int) {
                                 SettingsChoices(stringResource(R.string.settings_wind),WindSpeedUnit.entries.map {it.symbol},s.units.wind.ordinal) {prefs.edit().putString("windUnit",WindSpeedUnit.entries[it].name).apply()}
                                 SettingsChoices(stringResource(R.string.settings_pressure),PressureUnit.entries.map {it.symbol},s.units.pressure.ordinal) {prefs.edit().putString("pressureUnit",PressureUnit.entries[it].name).apply()}
                                 SettingsChoices(stringResource(R.string.settings_precipitation),listOf(stringResource(R.string.settings_precipitation_metric),stringResource(R.string.settings_precipitation_imperial)),s.units.precipitation.ordinal) {prefs.edit().putString("precipitationUnit",PrecipitationUnit.entries[it].name).apply()}
+                                HorizontalDivider(color=MaterialTheme.colorScheme.outline.copy(alpha=.5f))
+                                Text(stringResource(R.string.settings_air_pollen),style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold)
+                                AirQualitySettings()
                             }
-                            SettingsCategory(stringResource(R.string.settings_air_pollen)) {AirQualitySettings()}
                         }
                         SettingsPage.Overview->SettingsCategory("") {OverviewTileSettings()}
                         SettingsPage.Forecast->SettingsCategory(stringResource(R.string.settings_envelope_percentiles)) {LongEnvelopeSettings()}
