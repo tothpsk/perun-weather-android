@@ -171,7 +171,8 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
     drawText(layout,topLeft=Offset(cx-layout.size.width/2f,cy-layout.size.height/2f))
 }
 
-@Composable internal fun TkCompass(direction:Double,color:Color,modifier:Modifier=Modifier.size(62.dp)) {
+// northY and northSize: the centre and the size of the N in the 100 unit box of the compass.
+@Composable internal fun TkCompass(direction:Double,color:Color,modifier:Modifier=Modifier.size(62.dp),northY:Float=8f,northSize:Float=16f) {
     val measurer=rememberTextMeasurer()
     val description=uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction))
     Canvas(modifier.aspectRatio(1f).semantics { contentDescription=description }) {
@@ -181,7 +182,7 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
             if(direction.isFinite()) rotate(((direction+180)%360).toFloat(),Offset(50f,58f)) { drawPath(TkArrow,color) }
             drawCircle(Color(0xFFE8EAF0),4f,Offset(50f,58f))
         }
-        tkText(measurer,uiText(R.string.ui_s_8de0b3c4),50f*k,8f*k,(16f*k).toSp(),Color(0xFFE8EAF0),FontWeight.Bold)
+        tkText(measurer,uiText(R.string.ui_s_8de0b3c4),50f*k,northY*k,(northSize*k).toSp(),Color(0xFFE8EAF0),FontWeight.Bold)
     }
 }
 
