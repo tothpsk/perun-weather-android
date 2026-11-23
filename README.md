@@ -6,13 +6,13 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.1.1 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.2.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
 ### Now
 
-The current conditions for the selected location: temperature and what it feels like, the most serious active alert, a summary of the day and a grid of tiles for precipitation, wind, cloud cover, UV, humidity, air pressure and more. You choose which tiles are shown. When rain is expected within the next hour, a precipitation nowcast appears, and when there are storm cells or lightning nearby, a storms card shows their distance and direction.
+The current conditions for the selected location: temperature and what it feels like, the most serious active alert, a summary of the day and a grid of tiles for precipitation, wind, cloud cover, UV, humidity, air pressure and more. You choose which tiles are shown and in what order. When rain is expected within the next hour, a precipitation nowcast appears, and when there are storm cells or lightning nearby, a storms card shows their distance and direction.
 
 Swipe left or right to move between your saved locations. Every location can have its own weather model and alert sources. The list of saved locations marks every place that has an official alert.
 
@@ -26,7 +26,7 @@ A long press on the app icon offers shortcuts to Now, Forecast, Maps and Alerts.
 
 ### Forecast
 
-The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time. At the cursor, precipitation is shown as snow depth for snow, as an amount for rain, and as both for rain with snow.
+The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time. Precipitation is drawn as bars, and a swipe over the name of the day opens the next or the previous day. At the cursor, precipitation is shown as snow depth for snow, as an amount for rain, and as both for rain with snow.
 
 <p align="center">
   <img src="docs/screenshots/forecast-days.png" alt="Forecast by day for temperature" width="260">
@@ -35,7 +35,7 @@ The forecast lists the coming days for one parameter at a time. The bar at the t
 
 ### Charts and uncertainty
 
-The charts show several days at once. With the uncertainty band switched on, each curve is drawn together with the range of an ensemble forecast (percentiles P10 to P90 by default), so you can see how sure the forecast is, not only what it says. The touch cursor shows the values at the chosen time and the alerts active at that moment. When the selected weather model has no precipitation probability, the app fills it in from the Best match model and says so.
+The charts show several days at once. With the uncertainty band switched on, each curve shows the median of an ensemble forecast (P50) together with its range (percentiles P10 to P90 by default), so you can see how sure the forecast is, not only what it says. The touch cursor shows the values at the chosen time and the alerts active at that moment. When the selected weather model lacks a value, the app fills it in from the Best match model and says so.
 
 <p align="center">
   <img src="docs/screenshots/charts.png" alt="Temperature and precipitation charts with an uncertainty band" width="260">
@@ -98,7 +98,7 @@ Sunrise and sunset, the length of the day and its change, moonrise and moonset, 
 
 ### Widgets
 
-Seven home-screen widgets are available, each with its own settings:
+Seven home-screen widgets are available, each with its own settings, which open from the home screen and from the Settings of the app:
 
 - Compact: the current weather in one row.
 - Next 6 hours: the current conditions and the coming hours.
@@ -107,6 +107,8 @@ Seven home-screen widgets are available, each with its own settings:
 - 6 days: the forecast by day.
 - Air and pollen: the air quality index or the pollen, with pollutants or kinds of pollen at larger sizes.
 - Sun and Moon: the Sun or the Moon, with more values at larger sizes.
+
+The wind direction is an arrow that points to where the wind blows to: behind the wind speed in Compact, Next 6 hours and 6 days, and as a row above the chart in Meteogram.
 
 The widgets are new; their look and behaviour may still change.
 
