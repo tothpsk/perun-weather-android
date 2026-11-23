@@ -281,8 +281,9 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
                 drawRect(Color(0xFF18212C),Offset(0f,y0),Size(size.width,1.dp.toPx()))
                 val values=day.indices.map { aqValue(d,row,it,air.gas) }
                 val high=max(values.filter { it.isFinite() }.maxOrNull() ?: 0.0,aqMinTop(row,air.scale,air.gas))
-                val span=(rh-31.dp.toPx()).coerceAtLeast(1f)
-                fun ya(v:Double)=y0+rh-15.dp.toPx()-(v/high*span).toFloat()
+                // The scale starts at the bottom of the row, as in the expanded day of Forecast.
+                val span=(rh-19.dp.toPx()).coerceAtLeast(1f)
+                fun ya(v:Double)=y0+rh-3.dp.toPx()-(v/high*span).toFloat()
                 var previous:Int?=null
                 day.indices.forEachIndexed { pos,i->
                     val v=values[pos]

@@ -462,7 +462,7 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
             }
         },
         TkSpec(OverviewTileId.Wind,uiText(R.string.ui_vietor_8a3ebf26),windBeaufortColor(w.wind),windName,"wind") {
-            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) WindCompass(w.direction) }) {
+            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) WindArrow(w.direction,windBeaufortColor(w.wind)) }) {
                 ValueUnit(u.wind.fromKmh(w.wind),u.wind.symbol,windTint ?: OverviewText,windDecimals)
                 Sub(uiText(R.string.ui_narazy_3e1df66b)+overviewNumber(u.wind.fromKmh(w.gust),"",windDecimals),windAlert(w.gust) ?: ForecastMuted)
             }
@@ -559,21 +559,7 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
     Text(text,color=OverviewText,fontSize=size.value.sp,maxLines=1,softWrap=false,onTextLayout={ if(it.hasVisualOverflow && size.value>12f) size.value-=1f })
 }
 
-// Compass of the wind tile. The circle is as tall as the two rows of text: from the top of the digits of the value
-// to the baseline of the second row. The N stands above it and does not make the tile taller.
-@Composable private fun WindCompass(direction:Double) {
-    val measurer=rememberTextMeasurer()
-    val density=LocalDensity.current
-    val base=LocalTextStyle.current
-    val circle=remember(base,density) {
-        val value=measurer.measure("0",base.merge(TextStyle(fontSize=24.sp,fontWeight=FontWeight.SemiBold)))
-        val sub=measurer.measure("0",base.merge(TextStyle(fontSize=12.sp)))
-        // The digits are about .71 of the font size tall; 2 dp is the gap between the two rows.
-        with(density) { (value.size.height-value.firstBaseline+24.sp.toPx()*.71f+2.dp.toPx()+sub.firstBaseline).toDp() }
-    }
-    // The circle with its stroke takes .74 of the side of the compass.
-    val side=circle/.74f
-    Box(Modifier.height(circle).wrapContentHeight(Alignment.Bottom,unbounded=true)) {
-        TkFlush(side,side,side.inset(13f,100f),side.inset(5f,100f)) { TkCompass(direction,ForecastGreen,Modifier.size(side),12f,18f) }
-    }
+// Arrow of the wind tile: as tall as the two rows of text, it points where the wind blows.
+@Composable private fun WindArrow(direction:Double,color:Color) {
+    TkDirectionArrow(direction,color,rememberTileTextBox().height,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
 }

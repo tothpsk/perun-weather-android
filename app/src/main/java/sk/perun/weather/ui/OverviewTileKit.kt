@@ -171,8 +171,7 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
     drawText(layout,topLeft=Offset(cx-layout.size.width/2f,cy-layout.size.height/2f))
 }
 
-// northY and northSize: the centre and the size of the N in the 100 unit box of the compass.
-@Composable internal fun TkCompass(direction:Double,color:Color,modifier:Modifier=Modifier.size(62.dp),northY:Float=8f,northSize:Float=16f) {
+@Composable internal fun TkCompass(direction:Double,color:Color,modifier:Modifier=Modifier.size(62.dp)) {
     val measurer=rememberTextMeasurer()
     val description=uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction))
     Canvas(modifier.aspectRatio(1f).semantics { contentDescription=description }) {
@@ -182,7 +181,7 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
             if(direction.isFinite()) rotate(((direction+180)%360).toFloat(),Offset(50f,58f)) { drawPath(TkArrow,color) }
             drawCircle(Color(0xFFE8EAF0),4f,Offset(50f,58f))
         }
-        tkText(measurer,uiText(R.string.ui_s_8de0b3c4),50f*k,northY*k,(northSize*k).toSp(),Color(0xFFE8EAF0),FontWeight.Bold)
+        tkText(measurer,uiText(R.string.ui_s_8de0b3c4),50f*k,8f*k,(16f*k).toSp(),Color(0xFFE8EAF0),FontWeight.Bold)
     }
 }
 
@@ -250,5 +249,38 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
     // Same size as the "Teraz" pill on Sun & Moon.
     Box(Modifier.height(48.dp).clip(shape).background(Color(0xFF202833)).border(1.dp,Color(0xFF4B586C),shape).clickable(enabled=enabled,role=Role.Button,onClick=onClick).padding(horizontal=18.dp),contentAlignment=Alignment.Center) {
         Text(uiText(R.string.ui_teraz_6172392c),color=if(enabled) Color(0xFF4FC3F7) else Color(0xFF9AA6B7),fontSize=14.sp,fontWeight=FontWeight.SemiBold,maxLines=1)
+    }
+}
+
+// The room beside the two rows of text of a tile. height: from the top of the digits of the value to the baseline of
+// the second row. descent: from that baseline to the bottom of the text.
+internal class TileTextBox(val height:Dp,val descent:Dp)
+
+@Composable internal fun rememberTileTextBox():TileTextBox {
+    val measurer=rememberTextMeasurer()
+    val density=androidx.compose.ui.platform.LocalDensity.current
+    val base=LocalTextStyle.current
+    return remember(base,density) {
+        val value=measurer.measure("0",base.merge(TextStyle(fontSize=24.sp,fontWeight=FontWeight.SemiBold)))
+        val sub=measurer.measure("0",base.merge(TextStyle(fontSize=12.sp)))
+        // The digits are about .71 of the font size tall; 2 dp is the gap between the two rows.
+        with(density) { TileTextBox((value.size.height-value.firstBaseline+24.sp.toPx()*.71f+2.dp.toPx()+sub.firstBaseline).toDp(),(sub.size.height-sub.firstBaseline).toDp()) }
+    }
+}
+
+// Arrow of a direction with the shape of the arrow in the hourly chart of an expanded day. direction is where the wind
+// or the waves come from; the arrow points where they go, north is up.
+@Composable internal fun TkDirectionArrow(direction:Double,color:Color,length:Dp,description:String) {
+    Canvas(Modifier.size(length).semantics { contentDescription=description }) {
+        val angle=(direction+180)*PI/180
+        val v=Offset(sin(angle).toFloat(),-cos(angle).toFloat())
+        val stroke=size.width*.075f
+        val half=(size.width-stroke)/2
+        val tip=center+v*half
+        val base=tip-v*(half*4f/7f)
+        val side=Offset(-v.y,v.x)*(half*3f/7f)
+        drawLine(color,center-v*half,tip,stroke,StrokeCap.Round)
+        drawLine(color,tip,base+side,stroke,StrokeCap.Round)
+        drawLine(color,tip,base-side,stroke,StrokeCap.Round)
     }
 }
