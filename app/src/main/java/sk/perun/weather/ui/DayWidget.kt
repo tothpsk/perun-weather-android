@@ -414,8 +414,11 @@ internal object DayWidgets {
             val low=if(row in ZeroBased) 0.0 else finite.minOrNull() ?: 0.0
             val high=(finite.maxOrNull() ?: low).coerceAtLeast(low+1)
             val labelSpace=if(row=="pressure") 3*dn else 11*dn
-            val span=(rh-labelSpace-4*dn).coerceAtLeast(1f)
-            fun y(a:Double):Float = y1-3*dn-((a-low)/(high-low)*span).toFloat()
+            // The marks of snowfall stand under the bars of precipitation, as in the app; the row keeps their room only on a day with snow.
+            val snowSize=if(row=="rain" && day.hours.any { it.v("snowfall")>0 }) min(9*dn,rh*.28f).roundToInt().coerceAtLeast(6) else 0
+            val foot=if(snowSize>0) snowSize+2*dn else 3*dn
+            val span=(rh-labelSpace-foot-dn).coerceAtLeast(1f)
+            fun y(a:Double):Float = y1-foot-((a-low)/(high-low)*span).toFloat()
             var previous=-1
             day.hours.forEachIndexed { i,h ->
                 val a=values[i]
@@ -446,7 +449,7 @@ internal object DayWidgets {
             }
             // Snowfall is marked under the precipitation line every three hours, as in the app.
             if(row=="rain") {
-                val ss=min(11*dn,rh*.4f).roundToInt().coerceAtLeast(6)
+                val ss=snowSize
                 day.hours.forEach { h -> if(h.v("snowfall")>0 && hourOf(h)%3==0) cv.drawBitmap(rowGlyph("snow",Color(color(row,h)),ss),(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left)),y1-ss-dn,null) }
             }
         }

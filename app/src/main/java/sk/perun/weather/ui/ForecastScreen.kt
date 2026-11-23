@@ -160,7 +160,7 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
     val expanded=bundle?.days?.firstOrNull { it.date==open }
     BackHandler(enabled=expanded!=null) { open=null }
     if(expanded!=null && bundle!=null) {
-        ForecastExpandedDay(expanded,bundle,u) { open=null }
+        ForecastExpandedDay(expanded,bundle,u,{ step -> bundle.days.getOrNull(bundle.days.indexOf(expanded)+step)?.let { open=it.date } }) { open=null }
         return
     }
     PullToRefreshBox(isRefreshing=loading,onRefresh={if(!loading) { NetCache.invalidate();loading=true;refresh++ }},modifier=Modifier.fillMaxSize().background(Color(0xFF323E4F))) {
@@ -333,11 +333,12 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
     if(snow>0 && wet) Row(verticalAlignment=Alignment.CenterVertically) { SummaryGlyph(SummaryIcon.Rain,color,dimension/2);SummaryGlyph(SummaryIcon.Snow,color,dimension/2) }
     else SummaryGlyph(if(snow>0) SummaryIcon.Snow else SummaryIcon.Rain,color,dimension)
 }
-@Composable private fun ForecastExpandedDay(day:ForecastDay,bundle:ForecastBundle,u:WeatherUnits,onClose:()->Unit) {
+// onStep: a swipe over the name of the day; +1 opens the next day and -1 the previous one.
+@Composable private fun ForecastExpandedDay(day:ForecastDay,bundle:ForecastBundle,u:WeatherUnits,onStep:(Int)->Unit,onClose:()->Unit) {
     Surface(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=4.dp),color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
         Column(Modifier.fillMaxSize().padding(horizontal=6.dp)) {
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                ForecastDayTitle(day.date,bundle.zone,true,Modifier.weight(1f).padding(start=6.dp),17.sp,13.sp)
+                ForecastDayTitle(day.date,bundle.zone,true,Modifier.weight(1f).horizontalSwipe(day.date,onStep).heightIn(min=48.dp).wrapContentHeight(Alignment.CenterVertically).padding(start=6.dp),17.sp,13.sp)
                 TextButton(onClick=onClose) { Text(uiText(R.string.ui_zbalit_7f5c0896),color=RainBlue);ForecastChevron(true) }
             }
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {

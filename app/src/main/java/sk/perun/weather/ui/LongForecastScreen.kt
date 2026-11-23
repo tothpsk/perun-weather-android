@@ -213,7 +213,8 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 customGraphs.filter {it.visible}.forEach {g->key(g.id) {LongChart(d,g.metrics,g.title,prefs.units,start,span,now,cursor,{cursor=it},move,ens,showBand)}}
             }
             if(enabled.isEmpty() && customGraphs.none {it.visible}) Text(uiText(R.string.ui_vyber_aspon_jeden_graf_b3265ee1),color=LongText,fontSize=16.sp,fontWeight=FontWeight.SemiBold)
-            AttributionFooter()
+            // What the selected model lacks and Best match fills in is named here, as in the footer of Now.
+            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {it.label})})
         }
     }
 }
@@ -250,7 +251,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     Surface(color=LongPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,LongEdge)) {
         Column(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(2.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min=28.dp).scrollable(scroll,Orientation.Horizontal),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text(fullTitle,Modifier.weight(1f),color=LongText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                Text(title,Modifier.weight(1f),color=LongText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                 if(metrics.size>1) Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                     metrics.forEach {m->val on=m in shown
                         Row(Modifier.heightIn(min=28.dp).alpha(if(on) 1f else .4f).clickable(role=Role.Checkbox,onClickLabel=uiText(R.string.ui_prepnut_8ce4129e)+m.label,onClick={hidden=if(m in hidden) hidden-m else if(shown.size>1) hidden+m else hidden}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
