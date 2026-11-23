@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sky_tip_day_longer">The day is longer than yesterday</string>
+    <string name="sky_tip_day_shorter">The day is shorter than yesterday</string>
+    <string name="sky_tip_day_same">The day is as long as yesterday</string>
+    <string name="sky_tip_day_longer_before">The day is longer than the day before</string>
+    <string name="sky_tip_day_shorter_before">The day is shorter than the day before</string>
+    <string name="sky_tip_day_same_before">The day is as long as the day before</string>
+    <string name="sky_tip_moon_up">Time the Moon is above the horizon</string>
+    <string name="sky_tip_phase">%1$s, lit share of the disc</string>
+</resources>
