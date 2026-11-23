@@ -17,18 +17,21 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import org.json.JSONArray
 import java.util.Collections
+import kotlin.math.abs
+import kotlin.math.roundToInt
 
 internal enum class OverviewTileId(val key:String,val label:String) {
     Precipitation("precipitation",uiText(R.string.ui_zrazky_66d17319)), Wind("wind",uiText(R.string.ui_vietor_8a3ebf26)), Cloud("cloud",uiText(R.string.ui_oblacnost_b5a6e70c)), Uv("uv",uiText(R.string.ui_uv_027fcbbc)),
@@ -45,7 +48,8 @@ internal enum class MarineOverviewTileId(val key:String,val label:String) {
 }
 internal fun overviewTileSelection(stored:Set<String>?):Set<OverviewTileId> =
     if(stored==null) OverviewTileId.entries.toSet() else OverviewTileId.entries.filter { it.key in stored }.toSet()
-internal fun defaultOverviewTileOrder():List<String> = OverviewTileId.entries.map { it.key }+MarineOverviewTileId.entries.map { it.orderKey }
+// The alerts are not a tile of the grid: they sit in the header of Now, so they are neither ordered nor switched off.
+internal fun defaultOverviewTileOrder():List<String> = OverviewTileId.entries.filter { it!=OverviewTileId.Alerts }.map { it.key }+MarineOverviewTileId.entries.map { it.orderKey }
 // Stored order is a JSON array of keys: unknown keys are dropped, missing keys are appended in default order.
 internal fun overviewTileOrder(stored:String?):List<String> {
     val defaults=defaultOverviewTileOrder()
@@ -89,12 +93,13 @@ private fun readMarine(p:SharedPreferences)=p.getStringSet(MarineTilesKey,null)?
     val selected=rememberOverviewTiles()
     val marine=rememberForecastPreference(setOf(MarineTilesKey)) { readMarine(it) }
     val saved=rememberOverviewTileOrder()
-    val spacingPx=with(LocalDensity.current) { 8.dp.toPx() }
     // Drag state: a working copy of the order exists only while a handle is being dragged (same pattern as saved locations).
     var working by remember { mutableStateOf<List<String>?>(null) }
     var dragIndex by remember { mutableIntStateOf(-1) }
-    var dragOffset by remember { mutableFloatStateOf(0f) }
-    var rowHeight by remember { mutableFloatStateOf(0f) }
+    var dragX by remember { mutableFloatStateOf(0f) }
+    var dragY by remember { mutableFloatStateOf(0f) }
+    // The distance between two neighbouring cells of the grid in pixels, across and down; set when the grid is laid out.
+    val pitch=remember { FloatArray(2) }
     fun persist(list:List<String>) { p.edit().putString(OrderKey,JSONArray(list).toString()).apply() }
     fun move(tileKey:String,delta:Int) {
         val current=readOrder(p).toMutableList()
@@ -102,12 +107,16 @@ private fun readMarine(p:SharedPreferences)=p.getStringSet(MarineTilesKey,null)?
         if(i<0 || j !in current.indices) return
         Collections.swap(current,i,j);persist(current)
     }
+    // Whole cells a drag has passed. A cell is left only after 0.6 of the way to the next one, so that it does not jump back and forth at the half.
+    fun steps(distance:Float,size:Float):Int = if(size<=0f || abs(distance)<=size*0.6f) 0 else (distance/size).roundToInt()
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
         Text(uiText(R.string.ui_dlazdice_obrazovky_teraz_8ac7b973),Modifier.weight(1f),style=MaterialTheme.typography.titleMedium)
         SettingsInfo(uiText(R.string.tile_order_hint_v2))
     }
     val order=working ?: saved
-    Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
+    // Two columns in the order of the list, as the tiles are paired on Now. All cells have one parent, so a dragged cell
+    // keeps its gesture while it moves to another row.
+    Layout(content={
         order.forEachIndexed { index,tileKey ->
             key(tileKey) {
                 val marineTile=MarineOverviewTileId.entries.firstOrNull { it.orderKey==tileKey }
@@ -115,7 +124,7 @@ private fun readMarine(p:SharedPreferences)=p.getStringSet(MarineTilesKey,null)?
                 val label=marineTile?.label ?: weatherTile?.label ?: tileKey
                 val checked=if(marineTile!=null) marineTile.key in marine else weatherTile!=null && weatherTile in selected
                 val dragging=working!=null && index==dragIndex
-                TileOrderRow(label,marineTile!=null,checked,dragging,if(dragging) dragOffset else 0f,
+                TileOrderCell(label,checked,dragging,if(dragging) dragX else 0f,if(dragging) dragY else 0f,
                     onToggle={ on ->
                         if(marineTile!=null) {
                             val next=readMarine(p).toMutableSet();if(on) next.add(marineTile.key) else next.remove(marineTile.key)
@@ -126,44 +135,59 @@ private fun readMarine(p:SharedPreferences)=p.getStringSet(MarineTilesKey,null)?
                         }
                     },
                     onMoveUp={ move(tileKey,-1) },onMoveDown={ move(tileKey,1) },
-                    onHeight={ rowHeight=it+spacingPx },
                     handle=Modifier.pointerInput(Unit) {
                         detectDragGestures(
-                            onDragStart={ val base=readOrder(p);working=base;dragIndex=base.indexOf(tileKey);dragOffset=0f },
-                            onDragEnd={ working?.let { persist(it) };working=null;dragIndex=-1;dragOffset=0f },
-                            onDragCancel={ working=null;dragIndex=-1;dragOffset=0f },
+                            onDragStart={ val base=readOrder(p);working=base;dragIndex=base.indexOf(tileKey);dragX=0f;dragY=0f },
+                            onDragEnd={ working?.let { persist(it) };working=null;dragIndex=-1;dragX=0f;dragY=0f },
+                            onDragCancel={ working=null;dragIndex=-1;dragX=0f;dragY=0f },
                             onDrag={ change,amount ->
                                 change.consume()
                                 val current=working
-                                if(current!=null && rowHeight>0f) {
-                                    dragOffset+=amount.y
-                                    val list=current.toMutableList();var at=dragIndex
-                                    while(dragOffset>rowHeight/2 && at<list.lastIndex) { Collections.swap(list,at,at+1);at++;dragOffset-=rowHeight }
-                                    while(dragOffset< -rowHeight/2 && at>0) { Collections.swap(list,at,at-1);at--;dragOffset+=rowHeight }
-                                    dragIndex=at;working=list
+                                val at=dragIndex
+                                if(current!=null && at in current.indices) {
+                                    dragX+=amount.x;dragY+=amount.y
+                                    val column=(at%2+steps(dragX,pitch[0])).coerceIn(0,1)
+                                    val row=(at/2+steps(dragY,pitch[1])).coerceIn(0,current.lastIndex/2)
+                                    val target=(row*2+column).coerceAtMost(current.lastIndex)
+                                    if(target!=at) {
+                                        // The tile is taken out and put in at the new place; the tiles between move by one.
+                                        val list=current.toMutableList()
+                                        val moved=list.removeAt(at)
+                                        list.add(target,moved)
+                                        dragX-=(target%2-at%2)*pitch[0];dragY-=(target/2-at/2)*pitch[1]
+                                        dragIndex=target;working=list
+                                    }
                                 }
                             },
                         )
                     })
             }
         }
+    },modifier=Modifier.fillMaxWidth()) { measurables,constraints ->
+        val gap=8.dp.roundToPx()
+        val cell=((constraints.maxWidth-gap)/2).coerceAtLeast(0)
+        val height=measurables.maxOfOrNull { it.maxIntrinsicHeight(cell) } ?: 0
+        val placeables=measurables.map { it.measure(Constraints.fixed(cell,height)) }
+        pitch[0]=(cell+gap).toFloat();pitch[1]=(height+gap).toFloat()
+        val rows=(placeables.size+1)/2
+        layout(constraints.maxWidth,rows*height+(rows-1).coerceAtLeast(0)*gap) {
+            placeables.forEachIndexed { i,placeable -> placeable.place((i%2)*(cell+gap),(i/2)*(height+gap)) }
+        }
     }
-    TextButton({ p.edit().remove(TileKey).remove(OutlookKey).remove(MarineTilesKey).remove(OrderKey).apply() }) { Text(uiText(R.string.tile_order_reset)) }
+    OutlinedButton(onClick={ p.edit().remove(TileKey).remove(OutlookKey).remove(MarineTilesKey).remove(OrderKey).apply() },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.tile_order_reset)) }
 }
-@Composable private fun TileOrderRow(label:String,marine:Boolean,checked:Boolean,dragging:Boolean,dragOffset:Float,onToggle:(Boolean)->Unit,onMoveUp:()->Unit,onMoveDown:()->Unit,onHeight:(Float)->Unit,handle:Modifier) {
+@Composable private fun TileOrderCell(label:String,checked:Boolean,dragging:Boolean,dragX:Float,dragY:Float,onToggle:(Boolean)->Unit,onMoveUp:()->Unit,onMoveDown:()->Unit,handle:Modifier) {
     val shape=RoundedCornerShape(14.dp)
     val up=uiText(R.string.ui_posunut_vyssie_f4e2d086);val down=uiText(R.string.ui_posunut_nizsie_ee019ae9)
     Row(
-        Modifier.fillMaxWidth().zIndex(if(dragging) 1f else 0f).graphicsLayer { translationY=dragOffset }.onSizeChanged { onHeight(it.height.toFloat()) }
+        Modifier.zIndex(if(dragging) 1f else 0f).graphicsLayer { translationX=dragX;translationY=dragY }
             .semantics { customActions=listOf(CustomAccessibilityAction(up) { onMoveUp();true },CustomAccessibilityAction(down) { onMoveDown();true }) }
             .clip(shape).background(if(dragging) Color(0xFF283241) else Color(0xFF1A1D24)).border(1.dp,if(dragging) Color(0xFF4FC3F7) else Color(0xFF414958),shape),
         verticalAlignment=Alignment.CenterVertically,
     ) {
-        Box(handle.size(48.dp),contentAlignment=Alignment.Center) { Icon(PerunIcons.Drag,uiText(R.string.tile_drag_handle),tint=ForecastMuted) }
-        Row(Modifier.weight(1f).heightIn(min=48.dp).toggleable(value=checked,role=Role.Checkbox,onValueChange=onToggle).padding(end=8.dp),verticalAlignment=Alignment.CenterVertically) {
-            Column(Modifier.weight(1f)) {
-                Text(label,color=MaterialTheme.colorScheme.onSurface)
-            }
+        Box(handle.width(40.dp).heightIn(min=52.dp),contentAlignment=Alignment.Center) { Icon(PerunIcons.Drag,uiText(R.string.tile_drag_handle),tint=ForecastMuted) }
+        Row(Modifier.weight(1f).heightIn(min=52.dp).toggleable(value=checked,role=Role.Checkbox,onValueChange=onToggle).padding(end=6.dp),verticalAlignment=Alignment.CenterVertically) {
+            Text(label,Modifier.weight(1f),color=MaterialTheme.colorScheme.onSurface,fontSize=14.sp,lineHeight=17.sp,maxLines=2,overflow=TextOverflow.Ellipsis)
             Checkbox(checked=checked,onCheckedChange=null)
         }
     }

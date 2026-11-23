@@ -357,31 +357,43 @@ class AirWidgetConfigActivity:ComponentActivity() {
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
-                    var loc by remember { mutableStateOf(initial.loc) }
-                    var main by remember { mutableStateOf(initial.main) }
-                    var bg by remember { mutableStateOf(initial.bg) }
-                    var text by remember { mutableStateOf(initial.text) }
-                    val muted=Color(0xFFBBC4D2)
                     Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                         Text(uiText(R.string.wg_config_title),style=MaterialTheme.typography.titleLarge,color=Color(0xFFE8EAF0))
-                        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
-                        Text(uiText(R.string.wg_air_main),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.wg_air_quality),uiText(R.string.wg_air_pollen)),if(main=="pollen") 1 else 0,{ main=if(it==1) "pollen" else "air" })
-                        Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
-                        Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })
-                        Button(onClick={
-                            AirWidgets.write(this@AirWidgetConfigActivity,id,AirWidgetConfig(loc,main,bg,text))
+                        AirWidgetForm(locations,initial) { next ->
+                            AirWidgets.write(this@AirWidgetConfigActivity,id,next)
                             AirWidgets.refresh(this@AirWidgetConfigActivity)
                             AirWidgets.schedule(this@AirWidgetConfigActivity)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
-                        },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/** The settings of the Air and pollen widget; shared by the screen that opens from the home screen and by the Settings of the app. */
+@Composable internal fun AirWidgetForm(locations:List<Location>,initial:AirWidgetConfig,onSave:(AirWidgetConfig)->Unit) {
+    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    var loc by remember { mutableStateOf(initial.loc) }
+    var main by remember { mutableStateOf(initial.main) }
+    var bg by remember { mutableStateOf(initial.bg) }
+    var text by remember { mutableStateOf(initial.text) }
+    val muted=Color(0xFFBBC4D2)
+    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_air_main),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.wg_air_quality),uiText(R.string.wg_air_pollen)),if(main=="pollen") 1 else 0,{ main=if(it==1) "pollen" else "air" })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })
+        Button(onClick={ onSave(AirWidgetConfig(loc,main,bg,text)) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
 }

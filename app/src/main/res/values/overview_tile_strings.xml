@@ -43,7 +43,7 @@
     <string name="tile_order_reset">Obnoviť predvolené zobrazenie a poradie</string>
     <string name="tile_order_notice_v2">Dlaždice sa na obrazovke Teraz skladajú v tomto poradí do dvojíc. Dostupná morská dlaždica vyplní miesto vedľa bežnej; prázdne miesto ostane najviac jedno na konci mriežky.</string>
     <string name="tiles_summary_v2">%1$d z %2$d zapnutých</string>
-    <string name="tile_order_hint_v2">Jeden spoločný zoznam bežných aj morských dlaždíc. Zaškrtnutie určuje viditeľnosť, úchyt vľavo potiahni a pusť na novom mieste. Morské dlaždice sa zobrazia len pri zapnutých morských údajoch a použiteľných dátach; svoje miesto v poradí si pamätajú.</string>
+    <string name="tile_order_hint_v2">Zaškrtnuté dlaždice sa zobrazia na obrazovke Teraz. Poradie zmeníš potiahnutím za úchyt vľavo. Morské dlaždice sa zobrazia len pri zapnutých morských údajoch.</string>
     <string name="tile_drag_handle">Presunúť dlaždicu</string>
     <string name="backup_description">Export uloží lokality a ich poradie, modely a zdroje lokalít, jednotky, zobrazenie a poradie dlaždíc, nastavenia grafov a vlastné grafy do jedného súboru JSON. API kľúče sa neexportujú.</string>
     <string name="backup_export">Exportovať konfiguráciu</string>

@@ -281,6 +281,12 @@
     <string name="ui_nowcast_zrazok_753057c8" formatted="false">"Precipitation nowcast"</string>
     <string name="ui_obalka_3db174bd" formatted="false">"Uncertainty band"</string>
     <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"The uncertainty band is off."</string>
+    <string name="long_line_median" formatted="false">"The uncertainty band is on. The line shows the middle scenario, the median (P50): half of the ensemble runs come out higher and half lower. The band around the line shows how far the runs differ; the narrower it is, the more certain the forecast."</string>
+    <string name="long_bars_band" formatted="false">"A bar shows the median (P50). The light band above and behind it reaches from the lower to the upper percentile of the band; the taller it is, the more the runs differ."</string>
+    <string name="long_fallback_note">"Filled in from the Best match model: %1$s."</string>
+    <string name="long_tip_median" formatted="false">"The ensemble median (P50) is shown."</string>
+    <string name="long_tip_model" formatted="false">"the ensemble does not have this quantity; the forecast of the model is shown."</string>
+    <string name="long_line_model" formatted="false">"The uncertainty band is off. The line shows the forecast of the selected model. With the band on you see the middle scenario of many runs and how certain the forecast is."</string>
     <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"The uncertainty band is not available"</string>
     <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Precipitation probability uncertainty band: the ensemble does not provide probability directly, so it is derived from the members. The lower bound is the share of members with at least 1 mm of precipitation per hour, the upper bound the share with at least 0.1 mm."</string>
     <string name="ui_obalka_sa_pocita_samostatne_pre_kazdu_velicinu_a_hodinu_as_b5f39ef8" formatted="false">" The uncertainty band is calculated separately for each variable and hour from at least two different available members. It is the spread of the members, not a guarantee around the main forecast."</string>
@@ -486,7 +492,7 @@
     <string name="ui_teplota_mora_0e2349bf" formatted="false">"Sea temperature"</string>
     <string name="ui_teplota_stav_pocasia_a_suhrn_dna_zostavaju_vzdy_skrytie_vy_e1ee5b22" formatted="false">"Temperature, weather condition and day summary always remain. Hiding alerts does not turn off alerts or their screen."</string>
     <string name="ui_teplota_vzduchu_vo_vyske_2_m_0bd0b14b" formatted="false">"Air temperature at a height of 2 m."</string>
-    <string name="ui_teplota_vzduchu_vo_vyske_2_m_z_hodinovej_predpovede_modelu_77ed797a" formatted="false">"Air temperature at a height of 2 m from the hourly model forecast. Choose the unit in Settings."</string>
+    <string name="ui_teplota_vzduchu_vo_vyske_2_m_z_hodinovej_predpovede_modelu_77ed797a" formatted="false">"Air temperature at a height of 2 m. Choose the unit in Settings."</string>
     <string name="ui_teraz_6172392c" formatted="false">"Now"</string>
     <string name="ui_teraz_e6989b57" formatted="false">"Now "</string>
     <string name="ui_tlak_vzduchu_cc4c1846" formatted="false">"Air pressure"</string>

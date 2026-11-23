@@ -160,7 +160,7 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
     val expanded=bundle?.days?.firstOrNull { it.date==open }
     BackHandler(enabled=expanded!=null) { open=null }
     if(expanded!=null && bundle!=null) {
-        ForecastExpandedDay(expanded,bundle,u) { open=null }
+        ForecastExpandedDay(expanded,bundle,u,{ step -> bundle.days.getOrNull(bundle.days.indexOf(expanded)+step)?.let { open=it.date } }) { open=null }
         return
     }
     PullToRefreshBox(isRefreshing=loading,onRefresh={if(!loading) { NetCache.invalidate();loading=true;refresh++ }},modifier=Modifier.fillMaxSize().background(Color(0xFF323E4F))) {
@@ -333,11 +333,12 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
     if(snow>0 && wet) Row(verticalAlignment=Alignment.CenterVertically) { SummaryGlyph(SummaryIcon.Rain,color,dimension/2);SummaryGlyph(SummaryIcon.Snow,color,dimension/2) }
     else SummaryGlyph(if(snow>0) SummaryIcon.Snow else SummaryIcon.Rain,color,dimension)
 }
-@Composable private fun ForecastExpandedDay(day:ForecastDay,bundle:ForecastBundle,u:WeatherUnits,onClose:()->Unit) {
+// onStep: a swipe over the name of the day; +1 opens the next day and -1 the previous one.
+@Composable private fun ForecastExpandedDay(day:ForecastDay,bundle:ForecastBundle,u:WeatherUnits,onStep:(Int)->Unit,onClose:()->Unit) {
     Surface(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=4.dp),color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
         Column(Modifier.fillMaxSize().padding(horizontal=6.dp)) {
             Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
-                ForecastDayTitle(day.date,bundle.zone,true,Modifier.weight(1f).padding(start=6.dp),17.sp,13.sp)
+                ForecastDayTitle(day.date,bundle.zone,true,Modifier.weight(1f).horizontalSwipe(day.date,onStep).heightIn(min=48.dp).wrapContentHeight(Alignment.CenterVertically).padding(start=6.dp),17.sp,13.sp)
                 TextButton(onClick=onClose) { Text(uiText(R.string.ui_zbalit_7f5c0896),color=RainBlue);ForecastChevron(true) }
             }
             BoxWithConstraints(Modifier.weight(1f).fillMaxWidth()) {
@@ -355,7 +356,7 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
             FV.Prob->Umbrella(Color.White)
             FV.Gust->GustGlyph(Color.White,22.dp)
-            FV.Direction->TkCompass(0.0,ForecastGreen,Modifier.size(26.dp))
+            FV.Direction->TkCompass(0.0,Color.White,Modifier.size(26.dp))
             FV.Dew->DewPointGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
         }
@@ -399,7 +400,13 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val low=if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
                 val high=(values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
                 fun y(a:Double)=y1-15.dp.toPx()-((a-low)/(high-low)*(rh-31.dp.toPx()).coerceAtLeast(1f)).toFloat()
-                if(v!=FV.Direction) {
+                if(v==FV.Rain) {
+                    // Precipitation: a bar for every hour, in the colour of its kind.
+                    val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
+                    day.hours.forEach { h->val a=convert(v,h.v(row.key),u)
+                        if(a.isFinite() && a>0) { val l=(x(h.time)-bw/2).coerceAtLeast(left);val r=(x(h.time)+bw/2).coerceAtMost(right);val yy=minOf(y(a),base-1.dp.toPx());drawRect(col(h),Offset(l,yy),Size((r-l).coerceAtLeast(0f),base-yy)) }
+                    }
+                } else if(v!=FV.Direction) {
                     var previous:ForecastHour?=null
                     day.hours.forEach { h->val a=convert(v,h.v(row.key),u);val p=previous
                         if(a.isFinite()) {
@@ -462,9 +469,12 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val wc=h.v("weather_code")
                 Box(Modifier.offset(x=dx,y=40.dp).size(24.dp)) { WeatherSymbol(if(wc.isFinite()) wc.toInt() else -1,24.dp,isDay=h.v("is_day")==1.0) }
             }
-            if(h.v("snowfall")>0 && (Instant.ofEpochSecond(h.time).atZone(zone).hour%3==0 || selected?.let { day.hours[it].time==h.time }==true)) {
-                val snowX=(dx-6.dp).coerceIn(36.dp,(maxWidth-24.dp).coerceAtLeast(36.dp))
-                Box(Modifier.offset(x=snowX,y=(68+2*rowDp-13).dp).size(12.dp)) { ForecastPrecipGlyph(h,12.dp) }
+            // On a day with snow, an hour of rain is marked too, with the drop.
+            if((h.v("snowfall")>0 || (h.v(FV.Rain.key)>0 && day.hours.any { it.v("snowfall")>0 })) && (Instant.ofEpochSecond(h.time).atZone(zone).hour%3==0 || selected?.let { day.hours[it].time==h.time }==true)) {
+                // Rain with snow: a drop beside a snowflake, each as large as a single mark.
+                val mixed=h.v("snowfall")>0 && (h.v("rain")>0 || h.v("showers")>0);val markW=if(mixed) 24.dp else 12.dp
+                val snowX=(dx-markW/2).coerceIn(36.dp,(maxWidth-24.dp).coerceAtLeast(36.dp))
+                Box(Modifier.offset(x=snowX,y=(68+2*rowDp-13).dp).size(markW,12.dp)) { ForecastPrecipGlyph(h,markW) }
             }
         }
         rows.forEachIndexed { i,row->

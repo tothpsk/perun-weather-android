@@ -42,7 +42,7 @@
     <string name="tile_order_reset">"Restore the default display and order"</string>
     <string name="tile_order_notice_v2">"Tiles on the Now screen are arranged in pairs in this order. An available sea tile fills the space next to a regular one; at most one empty space remains at the end of the grid."</string>
     <string name="tiles_summary_v2">"%1$d of %2$d enabled"</string>
-    <string name="tile_order_hint_v2">"One shared list of regular and sea tiles. The tick sets visibility; drag the handle on the left and drop it in a new place. Sea tiles are shown only when sea data is turned on and usable data are available; they remember their place in the order."</string>
+    <string name="tile_order_hint_v2">"Ticked tiles are shown on Now. Drag the handle on the left to change their order. Sea tiles are shown only when sea data is turned on."</string>
     <string name="tile_drag_handle">"Move tile"</string>
     <string name="backup_description">"Export saves locations and their order, models and location sources, units, display and tile order, chart settings and custom charts into one JSON file. API keys are not exported."</string>
     <string name="backup_export">"Export configuration"</string>

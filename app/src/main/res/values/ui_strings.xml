@@ -287,6 +287,12 @@
     <string name="ui_o3_1903ec79" translatable="false" formatted="false">"O₃"</string>
     <string name="ui_obalka_3db174bd" formatted="false">"Obálka"</string>
     <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"Obálka je vypnutá."</string>
+    <string name="long_line_median" formatted="false">"Obálka je zapnutá. Čiara ukazuje stredný scenár, medián (P50): polovica výpočtov ensemble vychádza vyššie a polovica nižšie. Pásmo okolo čiary ukazuje, ako veľmi sa výpočty rozchádzajú; čím je užšie, tým je predpoveď istejšia."</string>
+    <string name="long_bars_band" formatted="false">"Stĺpec ukazuje medián (P50). Svetlé pásmo nad ním a za ním siaha od dolného po horný percentil obálky; čím je vyššie, tým sa výpočty viac rozchádzajú."</string>
+    <string name="long_fallback_note">"Doplnené z modelu Best match: %1$s."</string>
+    <string name="long_tip_median" formatted="false">"Zobrazený je medián ensemble (P50)."</string>
+    <string name="long_tip_model" formatted="false">"ensemble túto veličinu nemá, zobrazená je predpoveď modelu."</string>
+    <string name="long_line_model" formatted="false">"Obálka je vypnutá. Čiara ukazuje predpoveď zvoleného modelu. Po zapnutí obálky uvidíš stredný scenár z mnohých výpočtov a to, aká istá predpoveď je."</string>
     <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"Obálka nie je dostupná"</string>
     <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Obálka pravdepodobnosti zrážok: ensemble neposkytuje priamo pravdepodobnosť, preto je odvodená z členov. Dolná hranica je podiel členov so zrážkami aspoň 1 mm za hodinu, horná podiel členov s aspoň 0,1 mm."</string>
     <string name="ui_obalka_sa_pocita_samostatne_pre_kazdu_velicinu_a_hodinu_as_b5f39ef8" formatted="false">" Obálka sa počíta samostatne pre každú veličinu a hodinu aspoň z dvoch rôznych dostupných členov. Je to rozptyl členov, nie záruka okolo hlavnej predpovede."</string>
@@ -495,7 +501,7 @@
     <string name="ui_teplota_mora_0e2349bf" formatted="false">"Teplota mora"</string>
     <string name="ui_teplota_stav_pocasia_a_suhrn_dna_zostavaju_vzdy_skrytie_vy_e1ee5b22" formatted="false">"Teplota, stav počasia a súhrn dňa zostávajú vždy. Skrytie výstrah nevypína výstrahy ani ich obrazovku."</string>
     <string name="ui_teplota_vzduchu_vo_vyske_2_m_0bd0b14b" formatted="false">"Teplota vzduchu vo výške 2 m."</string>
-    <string name="ui_teplota_vzduchu_vo_vyske_2_m_z_hodinovej_predpovede_modelu_77ed797a" formatted="false">"Teplota vzduchu vo výške 2 m z hodinovej predpovede modelu. Jednotku zvolíš v Nastaveniach."</string>
+    <string name="ui_teplota_vzduchu_vo_vyske_2_m_z_hodinovej_predpovede_modelu_77ed797a" formatted="false">"Teplota vzduchu vo výške 2 m. Jednotku zvolíš v Nastaveniach."</string>
     <string name="ui_teraz_6172392c" formatted="false">"Teraz"</string>
     <string name="ui_teraz_e6989b57" formatted="false">"Teraz "</string>
     <string name="ui_tlak_vzduchu_cc4c1846" formatted="false">"Tlak vzduchu"</string>

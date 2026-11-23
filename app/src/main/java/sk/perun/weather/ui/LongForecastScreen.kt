@@ -213,7 +213,8 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 customGraphs.filter {it.visible}.forEach {g->key(g.id) {LongChart(d,g.metrics,g.title,prefs.units,start,span,now,cursor,{cursor=it},move,ens,showBand)}}
             }
             if(enabled.isEmpty() && customGraphs.none {it.visible}) Text(uiText(R.string.ui_vyber_aspon_jeden_graf_b3265ee1),color=LongText,fontSize=16.sp,fontWeight=FontWeight.SemiBold)
-            AttributionFooter()
+            // What the selected model lacks and Best match fills in is named here, as in the footer of Now.
+            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {it.label})})
         }
     }
 }
@@ -231,6 +232,13 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     val scroll=rememberScrollableState {delta->move(-delta.toDouble()*span/plotPixels);delta}
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
+    // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
+    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median.
+    val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
+    fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
+    // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
+    val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
+    val tipNote=if(!showBand) "" else (if(modelOnly.size<metrics.size) " "+uiText(R.string.long_tip_median) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -243,7 +251,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     Surface(color=LongPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,LongEdge)) {
         Column(Modifier.fillMaxWidth().padding(horizontal=12.dp,vertical=8.dp),verticalArrangement=Arrangement.spacedBy(2.dp)) {
             Row(Modifier.fillMaxWidth().heightIn(min=28.dp).scrollable(scroll,Orientation.Horizontal),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
-                Text(fullTitle,Modifier.weight(1f),color=LongText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
+                Text(title,Modifier.weight(1f),color=LongText,fontSize=14.sp,fontWeight=FontWeight.Bold,maxLines=1,overflow=TextOverflow.Ellipsis)
                 if(metrics.size>1) Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(10.dp)) {
                     metrics.forEach {m->val on=m in shown
                         Row(Modifier.heightIn(min=28.dp).alpha(if(on) 1f else .4f).clickable(role=Role.Checkbox,onClickLabel=uiText(R.string.ui_prepnut_8ce4129e)+m.label,onClick={hidden=if(m in hidden) hidden-m else if(shown.size>1) hidden+m else hidden}),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
@@ -276,13 +284,15 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                     indices.forEach {i->if(d.value("is_day",i)==1.0) {val a=x(d.times[i]);val b=x(d.times[i]+3600);drawRect(Color(0x0CFFFFFF),Offset(a,top),Size((b-a).coerceAtLeast(0f),bottom-top))}}
                     for(k in 0..4) {val yy=top+(bottom-top)*k/4;drawLine(LongEdge.copy(alpha=.5f),Offset(left,yy),Offset(right,yy),.5.dp.toPx())}
                     if(showBand) shown.forEach {m->val points=ens.bands[m.key].orEmpty()
-                        points.zipWithNext().forEach {(a,b)->if(b.first>=start && a.first<=start+span && b.first-a.first in 1..3600) {
+                        // A bar covers the hour before its time, so its band is drawn hour by hour over the same width.
+                        if(m==LongMetric.Rain || m==LongMetric.Uv) points.forEach {(t,band)->if(t>=start && t-3600<=start+span) {val hi=y(m,longValue(m,band.upper,u)).coerceIn(top,bottom);val lo=y(m,longValue(m,band.lower,u)).coerceIn(top,bottom);drawRect(longColor(m,3.0).copy(alpha=.23f),Offset(x(t-3600),hi),Size(x(t)-x(t-3600),lo-hi))}}
+                        else points.zipWithNext().forEach {(a,b)->if(b.first>=start && a.first<=start+span && b.first-a.first in 1..3600) {
                             val p=Path().apply {moveTo(x(a.first),y(m,longValue(m,a.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.upper,u)));lineTo(x(a.first),y(m,longValue(m,a.second.upper,u)));close()}
                             drawPath(p,longColor(m,3.0).copy(alpha=.23f))
                         }}
                     }
                     shown.forEach {m->
-                        if(m==LongMetric.Rain || m==LongMetric.Uv) indices.forEach {i->val raw=d.value(m.key,i);if(raw.isFinite() && raw>0) {
+                        if(m==LongMetric.Rain || m==LongMetric.Uv) indices.forEach {i->val raw=lineRaw(m,i);if(raw.isFinite() && raw>0) {
                             val a=x(d.times[i]-3600);val b=x(d.times[i]);val yy=y(m,longValue(m,raw,u));val c=if(m==LongMetric.Uv) uvColor(raw) else {
                                 val snow=d.value("snowfall",i)>0;val rain=d.value("rain",i)>0 || d.value("showers",i)>0
                                 if(snow && rain) precipitationType(1.0,0.0,1.0) ?: Color(0xFFBA68C8) else if(snow) Color.White else RainBlue
@@ -303,7 +313,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                                 }
                                 seg.clear()
                             }
-                            d.times.indices.forEach {i->val value=longValue(m,d.value(m.key,i),u)
+                            d.times.indices.forEach {i->val value=longValue(m,lineRaw(m,i),u)
                                 if(!value.isFinite()) flush() else {
                                     if(seg.isNotEmpty() && d.times[i]-lastTime!=3600L) flush()
                                     seg.add(Offset(x(d.times[i]),y(m,value)));lastTime=d.times[i]
@@ -331,8 +341,8 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 marker(now,LongText,uiText(R.string.ui_teraz_e6989b57)+Instant.ofEpochSecond(now).atZone(d.zone).format(DateTimeFormatter.ofPattern("HH:mm")),0f)
                 selected?.let {i->marker(d.times[i],RainBlue,Instant.ofEpochSecond(d.times[i]).atZone(d.zone).format(DateTimeFormatter.ofPattern(appPattern("d. M. HH:mm"),appLocale())),20.dp.toPx())
                     val xx=x(d.times[i]);val pad=3.dp.toPx();val gap=2.dp.toPx();var prevBottom=top-1000f
-                    shown.mapNotNull {m->val raw=d.value(m.key,i);if(raw.isFinite()) m to y(m,longValue(m,raw,u)).coerceIn(top,bottom) else null}.sortedBy {it.second}.forEach {(m,yy)->
-                        val raw=d.value(m.key,i);val c=longColor(m,raw)
+                    shown.mapNotNull {m->val raw=lineRaw(m,i);if(raw.isFinite()) m to y(m,longValue(m,raw,u)).coerceIn(top,bottom) else null}.sortedBy {it.second}.forEach {(m,yy)->
+                        val raw=lineRaw(m,i);val c=longColor(m,raw)
                         val r=tm.measure(weatherUnitNumber(longValue(m,raw,u),1)+" "+longUnit(m,u),TextStyle(fontSize=9.sp,color=c))
                         val w=r.size.width+2*pad;val h=r.size.height+2*pad
                         val cy=maxOf((yy-h/2).coerceIn(top,(bottom-h).coerceAtLeast(top)),prevBottom+gap);prevBottom=cy+h
@@ -348,10 +358,10 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Box(Modifier.align(Alignment.BottomEnd).offset(y=6.dp).size(28.dp).combinedClickable(role=Role.Button,onClickLabel=uiText(R.string.ui_strucny_popis_e8d7e5f7),onLongClickLabel=uiText(R.string.ui_pomocnik_c68b7b84),onLongClick={help=true},onClick={tip=true}).semantics {contentDescription=uiText(R.string.ui_informacie_o_grafe_37b2a71e)+fullTitle},contentAlignment=Alignment.Center) {
                 Text("ⓘ",color=ForecastMuted,fontSize=16.sp)
                 if(tip) {
-                    LaunchedEffect(tip) {delay(2600);tip=false}
+                    LaunchedEffect(tip) {delay(if(showBand) 6000 else 2600);tip=false}
                     Popup(popupPositionProvider=LongTipPosition,onDismissRequest={tip=false},properties=PopupProperties(focusable=true)) {
                         Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=LongText,border=BorderStroke(1.dp,RainBlue),shadowElevation=4.dp) {
-                            Text(metrics.joinToString(" ") {longTip(it)},Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
+                            Text(metrics.joinToString(" ") {longTip(it)}+tipNote,Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
                         }
                     }
                 }
@@ -364,6 +374,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Text(fullTitle,style=MaterialTheme.typography.titleLarge)
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
+                HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
+                if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_bars_band))
+                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model))}
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
         }

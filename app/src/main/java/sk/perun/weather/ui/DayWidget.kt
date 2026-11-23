@@ -395,7 +395,7 @@ internal object DayWidgets {
             rect(Divider,0f,y0,wPx.toFloat(),y0+dn)
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
-                "direction"->compassGlyph(ForecastGreen,(gs*1.15f).roundToInt())
+                "direction"->compassGlyph(Color.White,(gs*1.15f).roundToInt())
                 "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
                 "rain"->rowGlyph(row,Color.White,gs)
                 "gust"->rowGlyph(row,Color.White,gs)
@@ -414,15 +414,24 @@ internal object DayWidgets {
             val low=if(row in ZeroBased) 0.0 else finite.minOrNull() ?: 0.0
             val high=(finite.maxOrNull() ?: low).coerceAtLeast(low+1)
             val labelSpace=if(row=="pressure") 3*dn else 11*dn
-            val span=(rh-labelSpace-4*dn).coerceAtLeast(1f)
-            fun y(a:Double):Float = y1-3*dn-((a-low)/(high-low)*span).toFloat()
+            // The marks of snowfall stand under the bars of precipitation, as in the app; the row keeps their room only on a day with snow.
+            val snowSize=if(row=="rain" && day.hours.any { it.v("snowfall")>0 }) min(11*dn,rh*.34f).roundToInt().coerceAtLeast(7) else 0
+            val foot=if(snowSize>0) snowSize+2*dn else 3*dn
+            val span=(rh-labelSpace-foot-dn).coerceAtLeast(1f)
+            fun y(a:Double):Float = y1-foot-((a-low)/(high-low)*span).toFloat()
             var previous=-1
             day.hours.forEachIndexed { i,h ->
                 val a=values[i]
                 if(a.isFinite()) {
                     val tone=color(row,h)
-                    if(previous>=0 && h.time-day.hours[previous].time<=3600L) line(tone,x(day.hours[previous].time),y(values[previous]),x(h.time),y(a),1.4f*dn)
-                    p.style=Paint.Style.FILL;p.color=tone;cv.drawCircle(x(h.time),y(a),1.3f*dn,p)
+                    if(row=="rain") {
+                        // Precipitation: a bar for every hour, as in the expanded day of the app.
+                        val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
+                        if(a>0) { p.style=Paint.Style.FILL;p.color=tone;cv.drawRect((x(h.time)-bw/2).coerceAtLeast(left),minOf(y(a),base-dn),(x(h.time)+bw/2).coerceAtMost(right),base,p) }
+                    } else {
+                        if(previous>=0 && h.time-day.hours[previous].time<=3600L) line(tone,x(day.hours[previous].time),y(values[previous]),x(h.time),y(a),1.4f*dn)
+                        p.style=Paint.Style.FILL;p.color=tone;cv.drawCircle(x(h.time),y(a),1.3f*dn,p)
+                    }
                     previous=i
                 } else previous=-1
             }
@@ -440,8 +449,14 @@ internal object DayWidgets {
             }
             // Snowfall is marked under the precipitation line every three hours, as in the app.
             if(row=="rain") {
-                val ss=min(11*dn,rh*.4f).roundToInt().coerceAtLeast(6)
-                day.hours.forEach { h -> if(h.v("snowfall")>0 && hourOf(h)%3==0) cv.drawBitmap(rowGlyph("snow",Color(color(row,h)),ss),(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left)),y1-ss-dn,null) }
+                val ss=snowSize
+                // Only on a day with snow (ss is 0 otherwise): a snowflake, a drop for rain, or a drop beside a snowflake for rain with snow.
+                if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
+                    val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
+                    val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
+                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss),px+ss,gy,null) }
+                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
+                } }
             }
         }
         for(k in 0..8) line(Grid,x(slot(k*3)),badge,x(slot(k*3)),bottom,.5f*dn)
@@ -526,31 +541,44 @@ class DayWidgetConfigActivity:ComponentActivity() {
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
-                    var loc by remember { mutableStateOf(startLoc) }
-                    var rows by remember { mutableStateOf(startRows) }
-                    val muted=Color(0xFFBBC4D2)
                     Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(20.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
                         Text(uiText(R.string.wg_config_title),style=MaterialTheme.typography.titleLarge,color=Color(0xFFE8EAF0))
-                        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-                        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
-                        Text(uiText(R.string.wg_day_rows),style=MaterialTheme.typography.labelLarge,color=muted)
-                        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-                            DayWidgetRows.forEach { key ->
-                                PerunChip(dayWidgetRowLabel(key),key in rows) { rows=if(key in rows) rows-key else DayWidgetRows.filter { it in rows || it==key } }
-                            }
-                        }
-                        Text(uiText(R.string.wg_day_rows_note),style=MaterialTheme.typography.bodySmall,color=muted)
-                        Button(onClick={
-                            DayWidgets.write(this@DayWidgetConfigActivity,id,loc,rows.ifEmpty { DayWidgetRows })
+                        DayWidgetForm(locations,startLoc,startRows) { loc,rows ->
+                            DayWidgets.write(this@DayWidgetConfigActivity,id,loc,rows)
                             runCatching { DayWidgets.draw(this@DayWidgetConfigActivity,id) }
                             DayWidgets.refresh(this@DayWidgetConfigActivity)
                             DayWidgets.schedule(this@DayWidgetConfigActivity)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
-                        },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+/** The settings of the Day by hours widget; shared by the screen that opens from the home screen and by the Settings of the app. */
+@OptIn(ExperimentalLayoutApi::class)
+@Composable internal fun DayWidgetForm(locations:List<Location>,startLoc:String,startRows:List<String>,onSave:(String,List<String>)->Unit) {
+    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    var loc by remember { mutableStateOf(startLoc) }
+    var rows by remember { mutableStateOf(startRows) }
+    val muted=Color(0xFFBBC4D2)
+    Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
+        Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        HorizontalDivider(color=Color(0x804B586C))
+        Row(Modifier.fillMaxWidth(),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
+            Text(uiText(R.string.wg_day_rows),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
+            SettingsInfo(uiText(R.string.wg_day_rows_note))
+        }
+        FlowRow(horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
+            DayWidgetRows.forEach { key ->
+                PerunChip(dayWidgetRowLabel(key),key in rows) { rows=if(key in rows) rows-key else DayWidgetRows.filter { it in rows || it==key } }
+            }
+        }
+        Button(onClick={ onSave(loc,rows.ifEmpty { DayWidgetRows }) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
 }

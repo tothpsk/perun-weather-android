@@ -79,6 +79,26 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
     return image.asAndroidBitmap()
 }
 
+/** The arrow of the wind direction for the widgets: it points to where the wind blows to, in the shape of the arrows of the expanded day on the Forecast screen. An empty picture without a direction. */
+internal fun widgetWindArrowBitmap(direction:Double,color:Int,size:Int):Bitmap {
+    val px=size.coerceAtLeast(1)
+    val image=ImageBitmap(px,px)
+    if(!direction.isFinite()) return image.asAndroidBitmap()
+    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+        val a=px*0.86f;val m=px/2f
+        rotate(((direction+180)%360).toFloat(),Offset(m,m)) {
+            drawPath(Path().apply { moveTo(m,m+0.5f*a);lineTo(m,m-0.5f*a);moveTo(m-0.214f*a,m-0.214f*a);lineTo(m,m-0.5f*a);lineTo(m+0.214f*a,m-0.214f*a) },Color(color),style=Stroke(0.11f*a,cap=StrokeCap.Round,join=StrokeJoin.Round))
+        }
+    }
+    return image.asAndroidBitmap()
+}
+/** Shows the arrow behind the value of a cell for the wind and the gusts, and hides it for every other value. */
+internal fun widgetWindArrowView(v:android.widget.RemoteViews,id:Int,key:String,direction:Double,color:Int) {
+    val on=(key=="wind" || key=="gust") && direction.isFinite()
+    v.setViewVisibility(id,if(on) android.view.View.VISIBLE else android.view.View.GONE)
+    if(on) v.setImageViewBitmap(id,widgetWindArrowBitmap(direction,color,42))
+}
+
 // The weather symbols of the app: the shapes and colours of WeatherSymbol in OverviewArt.kt, drawn still (no animation) in a 100 x 100 box.
 private val SymGold=Color(0xFFFFD166)
 private val SymMoon=Color(0xFFD2DEF5)

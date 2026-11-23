@@ -149,7 +149,8 @@ private fun moonPhase(date:Instant):String {
                 if(data==null && !loading) Text(uiText(R.string.ui_predpoved_nie_je_dostupna_obnovis_ju_potiahnutim_nadol_b6b1e2f8))
                 val marineCells=rememberMarineCells(marine,units) { help=it }
                 data?.let { w ->
-                    Hero(w,units,OverviewTileId.Alerts in selected) { help=it }
+                    // The alerts have a fixed place in the header and are always shown.
+                    Hero(w,units,true) { help=it }
                     DaySummary(w,units)
                     val n=nowcast
                     if(n!=null && n.wet) NowcastTile(n,w.zone) { help=it }

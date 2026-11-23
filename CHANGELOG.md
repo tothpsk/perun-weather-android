@@ -2,6 +2,27 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.2.0] - 2026-11-23
+
+### Added
+
+- Settings: the Day by hours, Air and pollen, and Sun and Moon widgets can be set in the app, with the same form as on the screen that opens from the home screen.
+- Meteogram widget: the wind direction as a row of arrows above the plot, in the colour of the wind line; it is chosen in the widget settings.
+- Compact, Next 6 hours and 6 days widgets: an arrow behind the wind speed and the gusts points to where the wind blows to.
+- Ensemble: with the uncertainty band on, the lines and bars show the ensemble median (P50). The tip and the help of a chart say so and name the quantities that the ensemble does not have and that are taken from the model.
+- Forecast, expanded day: a swipe to the left or right over the name of the day opens the next or the previous day.
+
+### Changed
+
+- Now: the Sun tile draws the day arc of the Sun and Moon widget. In both, the Sun is drawn over the sunrise and sunset dots, and in the widget it stays inside the picture.
+- Now: the alerts in the header are always shown; they are no longer an item in the list of tiles.
+- Settings, tiles of Now: the tiles are listed in two columns and are dragged across and down; the help text is shorter.
+- Settings: the notes of background refresh, charts and forecast, notifications and the widget settings are behind (i) buttons, and the buttons are pills across the width.
+- Widget settings: dividers between the sections; the note about refreshing is left out.
+- Forecast, expanded day, and the Day by hours widget: precipitation is drawn as bars. On a day with snow, marks under the bars show the kind of precipitation: a snowflake, a drop, or a drop with a snowflake for rain with snow.
+- Forecast, expanded day, and the Day by hours widget: the compass icon of the wind direction row is white.
+- Ensemble: the quantities filled in from Best match are named in the footer of the screen instead of the header of every chart.
+
 ## [1.1.1] - 2026-11-21
 
 ### Changed

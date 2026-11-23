@@ -71,7 +71,7 @@ private enum class SettingsPage(val titleRes:Int) {
                                     SettingsPage.Background->backgroundSummary(bgRefresh)
                                     SettingsPage.Language->languageSummary()
                                     SettingsPage.Units->stringResource(R.string.settings_units_summary,s.units.temperature.symbol,s.units.wind.symbol,s.units.pressure.symbol,air.scale.label)
-                                    SettingsPage.Overview->stringResource(R.string.tiles_summary_v2,tiles.size,OverviewTileId.entries.size)
+                                    SettingsPage.Overview->stringResource(R.string.tiles_summary_v2,tiles.count {it!=OverviewTileId.Alerts},OverviewTileId.entries.size-1)
                                     SettingsPage.Forecast->stringResource(R.string.settings_envelope_summary,envelope.lower,envelope.upper)
                                     SettingsPage.Notifications->notificationSummary(rememberNotificationSettings())
                                     SettingsPage.Widgets->widgetSummary()

@@ -818,17 +818,16 @@ private val DialogEdge=Color(0xFF4B586C)
     if(s.rules.isEmpty()) Note(uiText(R.string.nt_rules_empty))
     OutlinedButton(onClick={ adding=true },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.nt_rule_add)) }
     HorizontalDivider(color=divider)
-    SwitchRow(uiText(R.string.nt_daily),s.daily) { edit { putBoolean("daily",it) } }
+    SwitchRow(uiText(R.string.nt_daily),s.daily,uiText(R.string.nt_summary_note)) { edit { putBoolean("daily",it) } }
     if(s.daily) {
         PerunChips(Notifier.DailyHours.map { hourLabel(it) },Notifier.DailyHours.indexOf(s.dailyHour).coerceAtLeast(0),{ edit { putInt("dailyHour",Notifier.DailyHours[it]) } })
         LocationPicker(uiText(R.string.nt_location),locations,s.dailyLoc) { edit { putString("dailyLoc",it) } }
     }
-    SwitchRow(uiText(R.string.nt_tomorrow),s.tomorrow) { edit { putBoolean("tomorrow",it) } }
+    SwitchRow(uiText(R.string.nt_tomorrow),s.tomorrow,uiText(R.string.nt_summary_note)) { edit { putBoolean("tomorrow",it) } }
     if(s.tomorrow) {
         PerunChips(Notifier.TomorrowHours.map { hourLabel(it) },Notifier.TomorrowHours.indexOf(s.tomorrowHour).coerceAtLeast(0),{ edit { putInt("tomorrowHour",Notifier.TomorrowHours[it]) } })
         LocationPicker(uiText(R.string.nt_location),locations,s.tomorrowLoc) { edit { putString("tomorrowLoc",it) } }
     }
-    Note(uiText(R.string.nt_summary_note))
     val dialogRule=editing
     if(adding || dialogRule!=null) RuleDialog(dialogRule,units,gas,locations,onDismiss={ adding=false;editing=null },onSave={ rule ->
         val list=if(s.rules.any { it.id==rule.id }) s.rules.map { if(it.id==rule.id) rule else it } else s.rules+rule

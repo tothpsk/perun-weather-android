@@ -150,9 +150,11 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
     val custom=p.getStringSet("customLocations",null) ?: emptySet()
     fun edit(block:SharedPreferences.Editor.()->Unit) { p.edit().apply(block).apply();BackgroundRefresh.schedule(context) }
     val muted=MaterialTheme.colorScheme.onSurfaceVariant
-    Text(uiText(R.string.bg_interval),style=MaterialTheme.typography.labelLarge,color=muted)
+    Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+        Text(uiText(R.string.bg_interval),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
+        SettingsInfo(uiText(R.string.bg_interval_note))
+    }
     PerunChips(BackgroundRefresh.Intervals.map { backgroundIntervalLabel(it) },BackgroundRefresh.Intervals.indexOf(s.intervalMinutes).coerceAtLeast(0),{ edit { putInt("intervalMinutes",BackgroundRefresh.Intervals[it]) } })
-    Text(uiText(R.string.bg_interval_note),style=MaterialTheme.typography.bodySmall,color=muted)
     Text(uiText(R.string.bg_locations),style=MaterialTheme.typography.labelLarge,color=muted)
     PerunChips(listOf(uiText(R.string.bg_scope_active),uiText(R.string.bg_scope_all),uiText(R.string.bg_scope_custom)),listOf("active","all","custom").indexOf(s.scope).coerceAtLeast(0),{ edit { putString("scope",listOf("active","all","custom")[it]) } })
     if(s.scope=="custom") Column {
@@ -182,6 +184,6 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
     Text(uiText(R.string.bg_permissions),style=MaterialTheme.typography.labelLarge,color=muted)
     val ignoring=rememberOnResume { BackgroundRefresh.ignoringBatteryOptimizations(context) }
     PerunStatusRow(ignoring,if(ignoring) uiText(R.string.bg_optimization_off) else uiText(R.string.bg_optimization_on))
-    if(!ignoring) TextButton(onClick={ runCatching { context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }) { Text(uiText(R.string.bg_open_battery_settings)) }
-    TextButton(onClick={ runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } }) { Text(uiText(R.string.bg_open_system_settings)) }
+    if(!ignoring) OutlinedButton(onClick={ runCatching { context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.bg_open_battery_settings)) }
+    OutlinedButton(onClick={ runCatching { context.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,Uri.parse("package:"+context.packageName)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.bg_open_system_settings)) }
 }
