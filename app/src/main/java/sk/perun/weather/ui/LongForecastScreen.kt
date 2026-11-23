@@ -232,9 +232,14 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
     // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
-    // Precipitation and UV index are bars of the model, and the probability of precipitation has no median.
+    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median.
     val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
-    fun lineRaw(m:LongMetric,i:Int):Double = (if(m==LongMetric.Rain || m==LongMetric.Uv) null else medians[m.key+LongMedianSuffix]?.get(d.times[i])) ?: d.value(m.key,i)
+    fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
+    // The band of every quantity by the hour, for the error bars of the bars.
+    val bandAt=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {!it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.toMap()} else emptyMap()}
+    // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
+    val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
+    val tipNote=if(!showBand) "" else (if(modelOnly.size<metrics.size) " "+uiText(R.string.long_tip_median) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -279,20 +284,29 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 clipRect(left,top,right,bottom) {
                     indices.forEach {i->if(d.value("is_day",i)==1.0) {val a=x(d.times[i]);val b=x(d.times[i]+3600);drawRect(Color(0x0CFFFFFF),Offset(a,top),Size((b-a).coerceAtLeast(0f),bottom-top))}}
                     for(k in 0..4) {val yy=top+(bottom-top)*k/4;drawLine(LongEdge.copy(alpha=.5f),Offset(left,yy),Offset(right,yy),.5.dp.toPx())}
-                    if(showBand) shown.forEach {m->val points=ens.bands[m.key].orEmpty()
+                    if(showBand) shown.filter {it!=LongMetric.Rain && it!=LongMetric.Uv}.forEach {m->val points=ens.bands[m.key].orEmpty()
                         points.zipWithNext().forEach {(a,b)->if(b.first>=start && a.first<=start+span && b.first-a.first in 1..3600) {
                             val p=Path().apply {moveTo(x(a.first),y(m,longValue(m,a.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.upper,u)));lineTo(x(a.first),y(m,longValue(m,a.second.upper,u)));close()}
                             drawPath(p,longColor(m,3.0).copy(alpha=.23f))
                         }}
                     }
                     shown.forEach {m->
-                        if(m==LongMetric.Rain || m==LongMetric.Uv) indices.forEach {i->val raw=d.value(m.key,i);if(raw.isFinite() && raw>0) {
+                        if(m==LongMetric.Rain || m==LongMetric.Uv) indices.forEach {i->val raw=lineRaw(m,i);if(raw.isFinite() && raw>0) {
                             val a=x(d.times[i]-3600);val b=x(d.times[i]);val yy=y(m,longValue(m,raw,u));val c=if(m==LongMetric.Uv) uvColor(raw) else {
                                 val snow=d.value("snowfall",i)>0;val rain=d.value("rain",i)>0 || d.value("showers",i)>0
                                 if(snow && rain) precipitationType(1.0,0.0,1.0) ?: Color(0xFFBA68C8) else if(snow) Color.White else RainBlue
                             }
                             drawRect(c,Offset(a+.25.dp.toPx(),yy),Size((b-a-.5.dp.toPx()).coerceAtLeast(.5.dp.toPx()),(bottom-yy).coerceAtLeast(0f)))
-                        }} else {
+                            }
+                            // The error bar: from the lower to the upper percentile of the ensemble, also over an hour without a bar.
+                            bandAt[m.key]?.get(d.times[i])?.let {band->if(band.upper>0) {
+                                val a=x(d.times[i]-3600);val b=x(d.times[i]);val cx=(a+b)/2;val cap=((b-a)*.3f).coerceAtMost(3.dp.toPx())
+                                val hi=y(m,longValue(m,band.upper,u)).coerceIn(top,bottom);val lo=y(m,longValue(m,band.lower,u)).coerceIn(top,bottom)
+                                drawLine(LongText,Offset(cx,hi),Offset(cx,lo),.8.dp.toPx())
+                                drawLine(LongText,Offset(cx-cap,hi),Offset(cx+cap,hi),.8.dp.toPx())
+                                if(band.lower>0) drawLine(LongText,Offset(cx-cap,lo),Offset(cx+cap,lo),.8.dp.toPx())
+                            }}
+                        } else {
                             val path=Path();val seg=ArrayList<Offset>();var lastTime=0L
                             fun flush() {
                                 if(seg.size>=2) {
@@ -352,10 +366,10 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Box(Modifier.align(Alignment.BottomEnd).offset(y=6.dp).size(28.dp).combinedClickable(role=Role.Button,onClickLabel=uiText(R.string.ui_strucny_popis_e8d7e5f7),onLongClickLabel=uiText(R.string.ui_pomocnik_c68b7b84),onLongClick={help=true},onClick={tip=true}).semantics {contentDescription=uiText(R.string.ui_informacie_o_grafe_37b2a71e)+fullTitle},contentAlignment=Alignment.Center) {
                 Text("ⓘ",color=ForecastMuted,fontSize=16.sp)
                 if(tip) {
-                    LaunchedEffect(tip) {delay(2600);tip=false}
+                    LaunchedEffect(tip) {delay(if(showBand) 6000 else 2600);tip=false}
                     Popup(popupPositionProvider=LongTipPosition,onDismissRequest={tip=false},properties=PopupProperties(focusable=true)) {
                         Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=LongText,border=BorderStroke(1.dp,RainBlue),shadowElevation=4.dp) {
-                            Text(metrics.joinToString(" ") {longTip(it)},Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
+                            Text(metrics.joinToString(" ") {longTip(it)}+tipNote,Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
                         }
                     }
                 }
@@ -369,6 +383,8 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
                 HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
+                if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_error_bars))
+                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model))}
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
         }

@@ -399,7 +399,13 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val low=if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
                 val high=(values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
                 fun y(a:Double)=y1-15.dp.toPx()-((a-low)/(high-low)*(rh-31.dp.toPx()).coerceAtLeast(1f)).toFloat()
-                if(v!=FV.Direction) {
+                if(v==FV.Rain) {
+                    // Precipitation: a bar for every hour, in the colour of its kind.
+                    val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
+                    day.hours.forEach { h->val a=convert(v,h.v(row.key),u)
+                        if(a.isFinite() && a>0) { val l=(x(h.time)-bw/2).coerceAtLeast(left);val r=(x(h.time)+bw/2).coerceAtMost(right);val yy=minOf(y(a),base-1.dp.toPx());drawRect(col(h),Offset(l,yy),Size((r-l).coerceAtLeast(0f),base-yy)) }
+                    }
+                } else if(v!=FV.Direction) {
                     var previous:ForecastHour?=null
                     day.hours.forEach { h->val a=convert(v,h.v(row.key),u);val p=previous
                         if(a.isFinite()) {

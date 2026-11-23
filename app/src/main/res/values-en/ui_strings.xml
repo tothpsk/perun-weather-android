@@ -281,7 +281,10 @@
     <string name="ui_nowcast_zrazok_753057c8" formatted="false">"Precipitation nowcast"</string>
     <string name="ui_obalka_3db174bd" formatted="false">"Uncertainty band"</string>
     <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"The uncertainty band is off."</string>
-    <string name="long_line_median" formatted="false">"The uncertainty band is on. The line shows the middle scenario: half of the ensemble runs come out higher and half lower. The band around the line shows how far the runs differ; the narrower it is, the more certain the forecast. The bars of precipitation and UV index and the precipitation probability keep the forecast of the model."</string>
+    <string name="long_line_median" formatted="false">"The uncertainty band is on. The line shows the middle scenario, the median (P50): half of the ensemble runs come out higher and half lower. The band around the line shows how far the runs differ; the narrower it is, the more certain the forecast."</string>
+    <string name="long_error_bars" formatted="false">"A bar shows the median (P50). The vertical mark above it reaches from the lower to the upper percentile of the band; the longer it is, the more the runs differ."</string>
+    <string name="long_tip_median" formatted="false">"The ensemble median (P50) is shown."</string>
+    <string name="long_tip_model" formatted="false">"the ensemble does not have this quantity; the forecast of the model is shown."</string>
     <string name="long_line_model" formatted="false">"The uncertainty band is off. The line shows the forecast of the selected model. With the band on you see the middle scenario of many runs and how certain the forecast is."</string>
     <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"The uncertainty band is not available"</string>
     <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Precipitation probability uncertainty band: the ensemble does not provide probability directly, so it is derived from the members. The lower bound is the share of members with at least 1 mm of precipitation per hour, the upper bound the share with at least 0.1 mm."</string>

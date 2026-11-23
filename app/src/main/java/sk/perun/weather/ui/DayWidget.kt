@@ -421,8 +421,14 @@ internal object DayWidgets {
                 val a=values[i]
                 if(a.isFinite()) {
                     val tone=color(row,h)
-                    if(previous>=0 && h.time-day.hours[previous].time<=3600L) line(tone,x(day.hours[previous].time),y(values[previous]),x(h.time),y(a),1.4f*dn)
-                    p.style=Paint.Style.FILL;p.color=tone;cv.drawCircle(x(h.time),y(a),1.3f*dn,p)
+                    if(row=="rain") {
+                        // Precipitation: a bar for every hour, as in the expanded day of the app.
+                        val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
+                        if(a>0) { p.style=Paint.Style.FILL;p.color=tone;cv.drawRect((x(h.time)-bw/2).coerceAtLeast(left),minOf(y(a),base-dn),(x(h.time)+bw/2).coerceAtMost(right),base,p) }
+                    } else {
+                        if(previous>=0 && h.time-day.hours[previous].time<=3600L) line(tone,x(day.hours[previous].time),y(values[previous]),x(h.time),y(a),1.4f*dn)
+                        p.style=Paint.Style.FILL;p.color=tone;cv.drawCircle(x(h.time),y(a),1.3f*dn,p)
+                    }
                     previous=i
                 } else previous=-1
             }

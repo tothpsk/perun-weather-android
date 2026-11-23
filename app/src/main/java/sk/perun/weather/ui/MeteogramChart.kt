@@ -199,14 +199,16 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
     // Forecast screen. An arrow is as tall as its row; as many hours are skipped as it takes for the arrows not to touch.
     if(dirOn) {
         val skip=listOf(1,2,3,4,6,12).firstOrNull { it*step>=15*dn } ?: 12
-        val arrow=Path().apply { moveTo(0f,-0.5f*dirH);lineTo(-0.23f*dirH,0.5f*dirH);lineTo(0f,0.27f*dirH);lineTo(0.23f*dirH,0.5f*dirH);close() }
+        // A shaft with an open head, as the arrows of the expanded day on the Forecast screen.
+        val arrow=Path().apply { moveTo(0f,0.5f*dirH);lineTo(0f,-0.5f*dirH);moveTo(-0.214f*dirH,-0.214f*dirH);lineTo(0f,-0.5f*dirH);lineTo(0.214f*dirH,-0.214f*dirH) }
+        p.strokeWidth=0.12f*dirH;p.strokeCap=Paint.Cap.ROUND;p.strokeJoin=Paint.Join.ROUND
         p.style=Paint.Style.FILL;p.color=cWind
         s.forEachIndexed { i,h ->
             if(i%skip==0 && h.direction.isFinite()) {
                 cv.save()
                 cv.translate(x(i).coerceIn(plotL+dirH/2,max(plotR-dirH/2,plotL+dirH/2)),dirTop+dirH/2)
                 cv.rotate(((h.direction+180)%360).toFloat())
-                cv.drawPath(arrow,p)
+                p.style=Paint.Style.STROKE;cv.drawPath(arrow,p);p.style=Paint.Style.FILL
                 cv.restore()
             }
         }
