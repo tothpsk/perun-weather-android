@@ -455,8 +455,7 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
                 if(!known) ValueUnit(Double.NaN,"")
                 else if(!has) ValueUnit(0.0,u.precipitation.liquidSymbol,ForecastMuted,0)
                 else if(liquid>0 && snow>0) {
-                    ValueUnit(u.precipitation.fromMillimetres(liquid),u.precipitation.liquidSymbol,tint,liquidDecimals,20.sp)
-                    ValueUnit(u.precipitation.fromSnowCentimetres(snow),u.precipitation.snowSymbol,OverviewText,snowDecimals,16.sp)
+                    PrecipPair(weatherUnitNumber(u.precipitation.fromMillimetres(liquid),liquidDecimals),u.precipitation.liquidSymbol,tint,weatherUnitNumber(u.precipitation.fromSnowCentimetres(snow),snowDecimals),u.precipitation.snowSymbol)
                 } else if(liquid>0) ValueUnit(u.precipitation.fromMillimetres(liquid),u.precipitation.liquidSymbol,tint,liquidDecimals)
                 else ValueUnit(u.precipitation.fromSnowCentimetres(snow),u.precipitation.snowSymbol,OverviewText,snowDecimals)
                 ProbRow(prob,liquid>0 && snow>0)
@@ -544,3 +543,18 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
     TkTile(s.title,s.dot,s.ring,s.tooltip,modifier,{ onHelp(HelpSpec(s.title) { TileHelp(s.id) }) },open) { s.content(this) }
 }
 
+// Rain and snow of the precipitation tile on one line, separated by a comma.
+// The line starts at the size of a single value and shrinks until it fits the tile.
+@Composable private fun PrecipPair(liquid:String,liquidUnit:String,tint:Color,snow:String,snowUnit:String) {
+    val size=androidx.compose.runtime.remember(liquid,snow) { androidx.compose.runtime.mutableStateOf(20f) }
+    val bold=androidx.compose.ui.text.SpanStyle(fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+    val small=androidx.compose.ui.text.SpanStyle(color=ForecastMuted,fontSize=androidx.compose.ui.unit.TextUnit(.62f,androidx.compose.ui.unit.TextUnitType.Em))
+    val text=androidx.compose.ui.text.AnnotatedString.Builder().apply {
+        pushStyle(bold.copy(color=tint));append(liquid);pop()
+        pushStyle(small);append(" "+liquidUnit);pop()
+        append(", ")
+        pushStyle(bold);append(snow);pop()
+        pushStyle(small);append(" "+snowUnit);pop()
+    }.toAnnotatedString()
+    Text(text,color=OverviewText,fontSize=size.value.sp,maxLines=1,softWrap=false,onTextLayout={ if(it.hasVisualOverflow && size.value>12f) size.value-=1f })
+}
