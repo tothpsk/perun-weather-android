@@ -235,8 +235,6 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     // The bars of precipitation and UV index are the median too; the probability of precipitation has no median.
     val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
     fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
-    // The band of every quantity by the hour, for the error bars of the bars.
-    val bandAt=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {!it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.toMap()} else emptyMap()}
     // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
     val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
     val tipNote=if(!showBand) "" else (if(modelOnly.size<metrics.size) " "+uiText(R.string.long_tip_median) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
@@ -284,8 +282,10 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                 clipRect(left,top,right,bottom) {
                     indices.forEach {i->if(d.value("is_day",i)==1.0) {val a=x(d.times[i]);val b=x(d.times[i]+3600);drawRect(Color(0x0CFFFFFF),Offset(a,top),Size((b-a).coerceAtLeast(0f),bottom-top))}}
                     for(k in 0..4) {val yy=top+(bottom-top)*k/4;drawLine(LongEdge.copy(alpha=.5f),Offset(left,yy),Offset(right,yy),.5.dp.toPx())}
-                    if(showBand) shown.filter {it!=LongMetric.Rain && it!=LongMetric.Uv}.forEach {m->val points=ens.bands[m.key].orEmpty()
-                        points.zipWithNext().forEach {(a,b)->if(b.first>=start && a.first<=start+span && b.first-a.first in 1..3600) {
+                    if(showBand) shown.forEach {m->val points=ens.bands[m.key].orEmpty()
+                        // A bar covers the hour before its time, so its band is drawn hour by hour over the same width.
+                        if(m==LongMetric.Rain || m==LongMetric.Uv) points.forEach {(t,band)->if(t>=start && t-3600<=start+span) {val hi=y(m,longValue(m,band.upper,u)).coerceIn(top,bottom);val lo=y(m,longValue(m,band.lower,u)).coerceIn(top,bottom);drawRect(longColor(m,3.0).copy(alpha=.23f),Offset(x(t-3600),hi),Size(x(t)-x(t-3600),lo-hi))}}
+                        else points.zipWithNext().forEach {(a,b)->if(b.first>=start && a.first<=start+span && b.first-a.first in 1..3600) {
                             val p=Path().apply {moveTo(x(a.first),y(m,longValue(m,a.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.lower,u)));lineTo(x(b.first),y(m,longValue(m,b.second.upper,u)));lineTo(x(a.first),y(m,longValue(m,a.second.upper,u)));close()}
                             drawPath(p,longColor(m,3.0).copy(alpha=.23f))
                         }}
@@ -297,16 +297,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                                 if(snow && rain) precipitationType(1.0,0.0,1.0) ?: Color(0xFFBA68C8) else if(snow) Color.White else RainBlue
                             }
                             drawRect(c,Offset(a+.25.dp.toPx(),yy),Size((b-a-.5.dp.toPx()).coerceAtLeast(.5.dp.toPx()),(bottom-yy).coerceAtLeast(0f)))
-                            }
-                            // The error bar: from the lower to the upper percentile of the ensemble, also over an hour without a bar.
-                            bandAt[m.key]?.get(d.times[i])?.let {band->if(band.upper>0) {
-                                val a=x(d.times[i]-3600);val b=x(d.times[i]);val cx=(a+b)/2;val cap=((b-a)*.3f).coerceAtMost(3.dp.toPx())
-                                val hi=y(m,longValue(m,band.upper,u)).coerceIn(top,bottom);val lo=y(m,longValue(m,band.lower,u)).coerceIn(top,bottom)
-                                drawLine(LongText,Offset(cx,hi),Offset(cx,lo),.8.dp.toPx())
-                                drawLine(LongText,Offset(cx-cap,hi),Offset(cx+cap,hi),.8.dp.toPx())
-                                if(band.lower>0) drawLine(LongText,Offset(cx-cap,lo),Offset(cx+cap,lo),.8.dp.toPx())
-                            }}
-                        } else {
+                        }} else {
                             val path=Path();val seg=ArrayList<Offset>();var lastTime=0L
                             fun flush() {
                                 if(seg.size>=2) {
@@ -383,7 +374,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
                 HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
-                if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_error_bars))
+                if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_bars_band))
                 modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model))}
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
