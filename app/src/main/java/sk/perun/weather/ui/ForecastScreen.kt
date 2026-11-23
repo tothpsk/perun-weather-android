@@ -471,8 +471,10 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             }
             // On a day with snow, an hour of rain is marked too, with the drop.
             if((h.v("snowfall")>0 || (h.v(FV.Rain.key)>0 && day.hours.any { it.v("snowfall")>0 })) && (Instant.ofEpochSecond(h.time).atZone(zone).hour%3==0 || selected?.let { day.hours[it].time==h.time }==true)) {
-                val snowX=(dx-6.dp).coerceIn(36.dp,(maxWidth-24.dp).coerceAtLeast(36.dp))
-                Box(Modifier.offset(x=snowX,y=(68+2*rowDp-13).dp).size(12.dp)) { ForecastPrecipGlyph(h,12.dp) }
+                // Rain with snow: a drop beside a snowflake, each as large as a single mark.
+                val mixed=h.v("snowfall")>0 && (h.v("rain")>0 || h.v("showers")>0);val markW=if(mixed) 24.dp else 12.dp
+                val snowX=(dx-markW/2).coerceIn(36.dp,(maxWidth-24.dp).coerceAtLeast(36.dp))
+                Box(Modifier.offset(x=snowX,y=(68+2*rowDp-13).dp).size(markW,12.dp)) { ForecastPrecipGlyph(h,markW) }
             }
         }
         rows.forEachIndexed { i,row->
