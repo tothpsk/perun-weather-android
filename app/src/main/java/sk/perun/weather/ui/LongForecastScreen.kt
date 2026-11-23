@@ -110,7 +110,7 @@ private val LongTipPosition=object:PopupPositionProvider {
             HelpRow(Color.White,uiText(R.string.ui_sneh_27400f08),uiText(R.string.ui_uhrn_je_vo_vodnom_ekvivalente_nie_vyska_snehu_f9add673))
             HelpRow(Color(0xFFBA68C8),uiText(R.string.ui_dazd_so_snehom_586507c0),uiText(R.string.ui_zmiesane_zrazky_0c420ad6))
         }
-        LongMetric.Prob->HelpText(uiText(R.string.ui_prerusovana_ciara_ukazuje_pravdepodobnost_zrazok_v_danej_h_5ac15e46))
+        LongMetric.Prob->{HelpText(uiText(R.string.ui_prerusovana_ciara_ukazuje_pravdepodobnost_zrazok_v_danej_h_5ac15e46));HelpText(uiText(R.string.long_help_probability_ensemble))}
         LongMetric.Wind->HelpText(uiText(R.string.ui_vietor_vo_vyske_10_m_sipky_nad_grafom_ukazuju_kam_vietor_f_c7fac450))
         LongMetric.Gust->HelpText(uiText(R.string.ui_narazy_su_kratkodobe_maxima_rychlosti_vetra_pri_silnom_vet_fd7f47bd))
         LongMetric.Cloud->HelpText(uiText(R.string.ui_celkova_modelova_oblacnost_v_percentach_0_je_jasno_100_zam_fe810d8f))
@@ -214,7 +214,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             }
             if(enabled.isEmpty() && customGraphs.none {it.visible}) Text(uiText(R.string.ui_vyber_aspon_jeden_graf_b3265ee1),color=LongText,fontSize=16.sp,fontWeight=FontWeight.SemiBold)
             // What the selected model lacks and Best match fills in is named here, as in the footer of Now.
-            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {it.label})})
+            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label})})
         }
     }
 }
@@ -233,7 +233,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
     // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
-    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median.
+    // The bars of precipitation and UV index are the median too; the line of the probability of precipitation is the share of the members with precipitation.
     val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
     fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
     // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.

@@ -289,7 +289,7 @@
     <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"Obálka je vypnutá."</string>
     <string name="long_line_median" formatted="false">"Obálka je zapnutá. Čiara ukazuje stredný scenár, medián (P50): polovica výpočtov ensemble vychádza vyššie a polovica nižšie. Pásmo okolo čiary ukazuje, ako veľmi sa výpočty rozchádzajú; čím je užšie, tým je predpoveď istejšia."</string>
     <string name="long_bars_band" formatted="false">"Stĺpec ukazuje medián (P50). Svetlé pásmo nad ním a za ním siaha od dolného po horný percentil obálky; čím je vyššie, tým sa výpočty viac rozchádzajú."</string>
-    <string name="long_fallback_note">"Doplnené z modelu Best match: %1$s."</string>
+    <string name="long_fallback_note">"Doplnené z Best match: %1$s"</string>
     <string name="long_tip_median" formatted="false">"Zobrazený je medián ensemble (P50)."</string>
     <string name="long_tip_model" formatted="false">"ensemble túto veličinu nemá, zobrazená je predpoveď modelu."</string>
     <string name="long_line_model" formatted="false">"Obálka je vypnutá. Čiara ukazuje predpoveď zvoleného modelu. Po zapnutí obálky uvidíš stredný scenár z mnohých výpočtov a to, aká istá predpoveď je."</string>

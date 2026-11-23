@@ -74,7 +74,7 @@ private data class AqRow(val key:String,val symbol:String,val name:String,val ki
 private data class AqDay(val date:LocalDate,val indices:List<Int>,val start:Long,val end:Long)
 
 private fun aqRows(mode:AqMode,scale:AirQualityScale):List<AqRow> =
-    if(mode==AqMode.Pollen) AirPollenTypes.map { AqRow(it.key,it.name,uiText(R.string.ui_pel_9ee1ac34)+it.name,AqKind.Pollen) }
+    if(mode==AqMode.Pollen) AirPollenTypes.map { AqRow(it.key,it.name,it.name,AqKind.Pollen) }
     else listOf(AqRow(scale.apiVariable,uiText(R.string.ui_aqi_43cb31d0),scale.label,AqKind.Aqi))+AirPollutants.map { AqRow(it.key,it.symbol,it.name,AqKind.Gas) }
 private fun aqDays(d:AirQualityData):List<AqDay> = d.times.indices.groupBy { Instant.ofEpochSecond(d.times[it]).atZone(d.zone).toLocalDate() }.toSortedMap()
     .map { (date,ix)->AqDay(date,ix,date.atStartOfDay(d.zone).toEpochSecond(),date.plusDays(1).atStartOfDay(d.zone).toEpochSecond()) }
@@ -221,7 +221,8 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
         DropdownMenu(expanded=show,onDismissRequest={ show=false }) { Text(description,modifier=Modifier.widthIn(max=260.dp).padding(12.dp),fontSize=13.sp) }
     }
 }
-@Composable private fun AqExpandedDay(day:AqDay,d:AirQualityData,mode:AqMode,air:AirPreferences,location:Location,onClose:()->Unit) {
+@Composable private fun AqExpandedDay(day:AqDay,d:AirQualityData,mode:AqMode,air:AirPreferences,location:Location,onStep:(Int)->Unit,onClose:()->Unit) {
+    val step by rememberUpdatedState(onStep)
     val rows=aqRows(mode,air.scale)
     val daylight=remember(day,location.latitude,location.longitude) {
         buildList<Pair<Long,Long>> {
@@ -235,7 +236,8 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
     }
     Surface(Modifier.fillMaxSize().padding(horizontal=6.dp,vertical=4.dp),color=AqPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,AqEdge)) {
         Column(Modifier.fillMaxSize().padding(horizontal=6.dp)) {
-            Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) {
+            // A swipe over the header opens the next day (to the left) or the previous one (to the right).
+            Row(Modifier.fillMaxWidth().pointerInput(day.date) { var total=0f;detectHorizontalDragGestures(onDragStart={ total=0f },onDragEnd={ if(total<-40.dp.toPx()) step(1) else if(total>40.dp.toPx()) step(-1) }) { c,amount->c.consume();total+=amount } },verticalAlignment=Alignment.CenterVertically) {
                 AqDayTitle(day.date,d.zone,true,Modifier.weight(1f).padding(start=6.dp),17.sp,13.sp)
                 TextButton(onClick=onClose) { Text(uiText(R.string.ui_zbalit_7f5c0896),color=AqBlue);AqChevron(true) }
             }
@@ -343,7 +345,7 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
     val expanded=days.firstOrNull { it.date==open }
     BackHandler(enabled=expanded!=null) { open=null }
     if(expanded!=null && d!=null) {
-        AqExpandedDay(expanded,d,mode,air,location) { open=null }
+        AqExpandedDay(expanded,d,mode,air,location,{ step->days.getOrNull(days.indexOf(expanded)+step)?.let { open=it.date } }) { open=null }
         return
     }
     val weekMax=if(d==null || mode==AqMode.Index || mode==AqMode.Pollen) 0.0 else days.maxOfOrNull { day->day.indices.map { airConvert(mode.key,d.at(mode.key,it),air.gas) }.filter { it.isFinite() }.maxOrNull() ?: 0.0 } ?: 0.0

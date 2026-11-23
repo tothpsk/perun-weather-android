@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="long_help_probability_ensemble" formatted="false">"With the band on, the line of the precipitation probability is the share of the ensemble members that give at least 0.1 mm of precipitation in the hour. It has no band."</string>
+</resources>

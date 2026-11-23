@@ -171,10 +171,12 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
             "rain","showers","snowfall" -> LongMetric.Rain.label
             "wind_direction_10m" -> LongMetric.Wind.label
             "weather_code","is_day" -> null
-            else -> LongMetric.entries.firstOrNull { it.key==key }?.label
+            else -> LongMetric.entries.firstOrNull { it.key==key }?.let { if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label }
         }
     }.distinct()
-    return if(labels.isEmpty()) null else "Best match: "+labels.joinToString(", ")
+    // The same wording and order as in the footer of Ensemble.
+    val order=LongMetric.entries.map { if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label }
+    return if(labels.isEmpty()) null else uiText(R.string.long_fallback_note,labels.sortedBy { label->order.indexOf(label).let { i->if(i<0) order.size else i } }.joinToString(", "))
 }
 
 @Composable private fun Attribution() {

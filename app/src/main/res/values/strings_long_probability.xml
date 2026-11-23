@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="long_help_probability_ensemble" formatted="false">"Pri zapnutej obálke je čiara pravdepodobnosti zrážok podiel členov ensemble, ktoré v danej hodine dávajú aspoň 0,1 mm zrážok. Pásmo sa pri nej nekreslí."</string>
+</resources>
