@@ -462,7 +462,7 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
             }
         },
         TkSpec(OverviewTileId.Wind,uiText(R.string.ui_vietor_8a3ebf26),windBeaufortColor(w.wind),windName,"wind") {
-            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) TkFlush(62.dp,62.dp,62.dp.inset(13f,100f),62.dp.inset(5f,100f)) { TkCompass(w.direction,ForecastGreen,Modifier.size(62.dp)) } }) {
+            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) Box(Modifier.height(40.dp).wrapContentHeight(Alignment.Bottom,unbounded=true)) { TkFlush(62.dp,62.dp,62.dp.inset(13f,100f),62.dp.inset(5f,100f)) { TkCompass(w.direction,ForecastGreen,Modifier.size(62.dp)) } } }) {
                 ValueUnit(u.wind.fromKmh(w.wind),u.wind.symbol,windTint ?: OverviewText,windDecimals)
                 Sub(uiText(R.string.ui_narazy_3e1df66b)+overviewNumber(u.wind.fromKmh(w.gust),"",windDecimals),windAlert(w.gust) ?: ForecastMuted)
             }
@@ -546,9 +546,9 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
 // Rain and snow of the precipitation tile on one line, separated by a comma.
 // The line starts at the size of a single value and shrinks until it fits the tile.
 @Composable private fun PrecipPair(liquid:String,liquidUnit:String,tint:Color,snow:String,snowUnit:String) {
-    val size=androidx.compose.runtime.remember(liquid,snow) { androidx.compose.runtime.mutableStateOf(20f) }
+    val size=androidx.compose.runtime.remember(liquid,snow) { androidx.compose.runtime.mutableStateOf(24f) }
     val bold=androidx.compose.ui.text.SpanStyle(fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
-    val small=androidx.compose.ui.text.SpanStyle(color=ForecastMuted,fontSize=androidx.compose.ui.unit.TextUnit(.62f,androidx.compose.ui.unit.TextUnitType.Em))
+    val small=androidx.compose.ui.text.SpanStyle(color=ForecastMuted,fontSize=androidx.compose.ui.unit.TextUnit(.54f,androidx.compose.ui.unit.TextUnitType.Em))
     val text=androidx.compose.ui.text.AnnotatedString.Builder().apply {
         pushStyle(bold.copy(color=tint));append(liquid);pop()
         pushStyle(small);append(" "+liquidUnit);pop()

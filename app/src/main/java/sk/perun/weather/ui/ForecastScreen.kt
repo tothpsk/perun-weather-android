@@ -73,7 +73,7 @@ internal fun forecastWindParts(w:Double,g:Double,max:Double):Pair<Double,Double>
     val a=(w/max).coerceIn(0.0,1.0)
     return a to if(g.isFinite()) ((g/max).coerceIn(a,1.0)-a) else 0.0
 }
-private data class ForecastBundle(val days:List<ForecastDay>,val zone:ZoneId,val note:String)
+private data class ForecastBundle(val days:List<ForecastDay>,val zone:ZoneId,val note:String,val filledNote:String?=null)
 private val FText=Color(0xFFE8EAF0)
 private val FPanel=Color(0xFF202833)
 private val FEdge=Color(0xFF4B586C)
@@ -121,25 +121,25 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
     val today=Instant.now().atZone(z).toLocalDate();val start=today.atStartOfDay(z).toEpochSecond()
     val last=hours.lastOrNull { it.time>=start && it.v("temperature_2m").isFinite() }?.time ?: error(uiText(R.string.ui_model_nevratil_predpoved_pre_lokalitu_f9977c57))
     hours=hours.filter { it.time<=last }
-    var note=uiText(R.string.ui_rozsah_podla_dostupnej_teplotnej_predpovede_zvoleneho_mode_b54cf840)
+    var note=uiText(R.string.ui_rozsah_podla_dostupnej_teplotnej_predpovede_zvoleneho_mode_b54cf840);var fromBestMatch:String?=null;var fromGfs:String?=null
     if(hours.any { it.time>=start && !it.v("uv_index").isFinite() }) try {
         val uv=request("&models=gfs_seamless&hourly=uv_index").getJSONObject("hourly");val ut=uv.getJSONArray("time");val ua=uv.getJSONArray("uv_index")
         val ix=(0 until ut.length()).associate { i->ut.getLong(i) to if(ua.isNull(i)) Double.NaN else ua.optDouble(i,Double.NaN) }
         var filled=0
         hours=hours.map { row->val a=ix[row.time] ?: Double.NaN;if(!row.v("uv_index").isFinite() && a.isFinite()) { filled++;row.copy(values=row.values+("uv_index" to a)) } else row }
-        if(filled>0) note+=uiText(R.string.ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f)
+        if(filled>0) { note+=uiText(R.string.ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f);fromGfs=uiText(R.string.fallback_gfs_note,FV.Uv.label) }
     } catch(e:CancellationException) { throw e } catch(e:Exception) { note+=uiText(R.string.ui_nahradne_uv_nie_je_dostupne_d90ceb69) }
     if(model!="best_match" && hours.any { it.time>=start && !it.v("precipitation_probability").isFinite() }) try {
         val pr=request("&hourly=precipitation_probability").getJSONObject("hourly");val pt=pr.getJSONArray("time");val pa=pr.getJSONArray("precipitation_probability")
         val px=(0 until pt.length()).associate { i->pt.getLong(i) to if(pa.isNull(i)) Double.NaN else pa.optDouble(i,Double.NaN) }
         var filledProb=0
         hours=hours.map { row->val a=px[row.time] ?: Double.NaN;if(!row.v("precipitation_probability").isFinite() && a.isFinite()) { filledProb++;row.copy(values=row.values+("precipitation_probability" to a)) } else row }
-        if(filledProb>0) note+=uiText(R.string.forecast_prob_filled)
+        if(filledProb>0) { note+=uiText(R.string.forecast_prob_filled);fromBestMatch=uiText(R.string.long_fallback_note,FV.Prob.label) }
     } catch(e:CancellationException) { throw e } catch(e:Exception) { }
     val ix=hours.associateBy { it.time }
     hours=hours.map { it.copy(values=it.values+("pressure_trend" to forecastTrend(it,ix))) }
     val days=hours.filter { it.time>=start }.groupBy { Instant.ofEpochSecond(it.time).atZone(z).toLocalDate() }.toSortedMap().map { (date,rows)->ForecastDay(date,date.atStartOfDay(z).toEpochSecond(),date.plusDays(1).atStartOfDay(z).toEpochSecond(),rows) }
-    ForecastBundle(days,z,note)
+    ForecastBundle(days,z,note,listOfNotNull(fromBestMatch,fromGfs).joinToString("\n").ifEmpty { null })
 }
 
 // targetDay is an ISO date such as 2026-11-20: that day opens expanded (the tap on the Day by hours widget); empty opens the list.
@@ -181,7 +181,7 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
         if(bundle!=null) items(bundle.days,key={it.date.toString()}) { day->Surface(color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
             ForecastDayRow(day,bundle,mode,u,false) { open=day.date }
         } }
-        item { AttributionFooter() }
+        item { AttributionFooter(bundle?.filledNote) }
     }
     }
 }
@@ -399,7 +399,9 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val values=day.values(row.key).map { convert(v,it,u) }.filter(Double::isFinite)
                 val low=if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
                 val high=(values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
-                fun y(a:Double)=y1-15.dp.toPx()-((a-low)/(high-low)*(rh-31.dp.toPx()).coerceAtLeast(1f)).toFloat()
+                // The scale starts at the bottom of the row; the precipitation row of a day with snow keeps the room for the marks under the bars.
+                val base=(if(v==FV.Rain && day.hours.any { it.v("snowfall")>0 }) 15 else 3).dp.toPx()
+                fun y(a:Double)=y1-base-((a-low)/(high-low)*(rh-base-16.dp.toPx()).coerceAtLeast(1f)).toFloat()
                 if(v==FV.Rain) {
                     // Precipitation: a bar for every hour, in the colour of its kind.
                     val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
