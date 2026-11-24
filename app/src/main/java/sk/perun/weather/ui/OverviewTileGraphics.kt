@@ -47,6 +47,7 @@ private fun tileBounds(g:Glyph):Rect=when(g) {
     Glyph.Snow->Rect(4.96f,3.88f,19.04f,20.13f)
     Glyph.EyeTile->Rect(3.09f,4.88f,20.91f,19.12f)
     Glyph.Trend->Rect(2.61f,2.61f,21.39f,21.39f)
+    Glyph.Pressure->Rect(2.83f,2.83f,21.17f,21.17f)
     Glyph.Uv->Rect(6.3f,2.79f,17.7f,21.13f)
     Glyph.Temp->Rect(8.06f,2.87f,15.96f,21.1f)
     else->Rect(0f,0f,24f,24f)

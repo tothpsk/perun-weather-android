@@ -17,29 +17,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
@@ -50,11 +38,6 @@ import kotlin.math.cos
 import kotlin.math.sin
 
 internal class HelpSpec(val title:String,val body:@Composable ColumnScope.()->Unit)
-
-private fun tkPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
-private val TkArrow=tkPath("M50 28L38 80L50 68L62 80Z")
-private val TkDrop=tkPath("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z")
-private val TkEye=tkPath("M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8Z")
 
 internal enum class SummaryIcon { Temp, Rain, Snow, Wind, Uv }
 
@@ -110,11 +93,6 @@ internal enum class SummaryIcon { Temp, Rain, Snow, Wind, Uv }
     }
 }
 
-private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float,fontSize:TextUnit,color:Color,weight:FontWeight=FontWeight.Normal) {
-    val layout=measurer.measure(text,TextStyle(color=color,fontSize=fontSize,fontWeight=weight))
-    drawText(layout,topLeft=Offset(cx-layout.size.width/2f,cy-layout.size.height/2f))
-}
-
 
 @Composable internal fun TkFlakeGraphic(strength:Double,color:Color,long:Dp=TileLong) {
     TkGlyph(Glyph.Snow,color.copy(alpha=(.35+.65*strength.coerceIn(0.0,1.0)).toFloat()),long)
@@ -123,6 +101,7 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
 @Composable internal fun TkEyeGraphic(color:Color) { TkGlyph(Glyph.EyeTile,color,muted=Color(0xFFBBC4D2)) }
 
 @Composable internal fun TkTrendGraphic(change:Double,color:Color) {
+    if(!change.isFinite()) { TkGlyph(Glyph.Pressure,color,muted=Color(0xFF8C9BB2));return }
     val angle=if(change.isFinite()) (-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat() else 0f
     TkGlyph(Glyph.Trend,color,muted=Color(0xFF8C9BB2),turn=angle)
 }

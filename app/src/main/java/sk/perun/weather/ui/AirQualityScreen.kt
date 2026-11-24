@@ -24,8 +24,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.Layout
 import androidx.compose.ui.semantics.Role
@@ -50,7 +48,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.max
 
 private val AqText=Color(0xFFE8EAF0)
@@ -61,7 +58,6 @@ private val AqNeutral=Color(0xFF8294AD)
 private val AqColors=listOf(Color(0xFF50D7B7),Color(0xFF9CCC65),Color(0xFFFFCA28),Color(0xFFFF8A65),Color(0xFFEF5350),Color(0xFFAB47BC))
 private fun aqColor(value:Double,scale:AirQualityScale)=airQualityLevel(value,scale)?.let { AqColors[it.band] } ?: AqNeutral
 private fun aqNum(value:Double,decimals:Int)=weatherUnitNumber(value,decimals)
-private fun aqPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
 
 private enum class AqMode(val label:String,val symbol:String,val key:String) {
     Index(uiText(R.string.ui_index_kvality_ovzdusia_d9bab98d),uiText(R.string.ui_aqi_43cb31d0),""),Pm25(uiText(R.string.ui_jemne_castice_pm2_5_d3f95b57),uiText(R.string.ui_pm2_5_7d02b735),"pm2_5"),Pm10(uiText(R.string.ui_prachove_castice_pm10_7e459420),uiText(R.string.ui_pm10_dca32eb0),"pm10"),

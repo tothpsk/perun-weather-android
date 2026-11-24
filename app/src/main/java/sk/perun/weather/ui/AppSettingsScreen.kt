@@ -18,11 +18,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.scale
@@ -127,13 +124,6 @@ private enum class SettingsPage(val titleRes:Int) {
         SettingsPage.Overview->Glyph.SetOverview;SettingsPage.Forecast->Glyph.SetForecast;SettingsPage.Notifications->Glyph.SetNotifications
         SettingsPage.Widgets->Glyph.SetWidgets;SettingsPage.About->Glyph.SetAbout;SettingsPage.Backup->Glyph.SetBackup
     },MaterialTheme.colorScheme.primary,24.dp)
-}
-
-@Composable private fun SettingsNotice(title:String,description:String) {
-    Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        Text(title,style=MaterialTheme.typography.titleMedium)
-        Text(description,style=MaterialTheme.typography.bodyMedium,color=MaterialTheme.colorScheme.onSurfaceVariant)
-    }
 }
 
 // Small (i) button: the explanation opens in a dialog instead of occupying space under the control.

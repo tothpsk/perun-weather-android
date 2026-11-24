@@ -20,16 +20,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,10 +37,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 private val TileBackground=Color(0xFF202833)
@@ -176,34 +170,6 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
     // The same wording and order as in the footer of Ensemble.
     val order=LongMetric.entries.map { if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label }
     return if(labels.isEmpty()) null else uiText(R.string.long_fallback_note,labels.sortedBy { label->order.indexOf(label).let { i->if(i<0) order.size else i } }.joinToString(", "))
-}
-
-@Composable private fun Attribution() {
-    val dim=ForecastMuted.copy(alpha=.75f)
-    val year=LocalDate.now().year
-    val uri=LocalUriHandler.current
-    var open by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(top=6.dp)) {
-        Row(Modifier.fillMaxWidth().padding(vertical=6.dp),verticalAlignment=Alignment.CenterVertically) {
-            Text("Open-Meteo.com · CC BY 4.0",Modifier.weight(1f,fill=false).clickable { runCatching { uri.openUri("https://open-meteo.com/") } },fontSize=12.sp,color=ForecastMuted,textDecoration=TextDecoration.Underline)
-            Spacer(Modifier.weight(1f))
-            Text(uiText(R.string.ui_dalsie_zdroje_0e84da7e)+(if(open) "▾" else "▸"),Modifier.clickable { open=!open }.padding(start=12.dp,top=6.dp,bottom=6.dp),fontSize=12.sp,color=ForecastMuted)
-        }
-        if(open) Column(verticalArrangement=Arrangement.spacedBy(5.dp)) {
-            listOf(
-                uiText(R.string.ui_predpoved_20fdfd9d) to "Open-Meteo.com · CC BY 4.0",
-                uiText(R.string.ui_ovzdusie_a_pel_89f8f42d) to "Contains modified Copernicus Atmosphere Monitoring Service information $year",
-                uiText(R.string.ui_vystrahy_d88f15ec) to "MeteoAlarm · KDE FOSS Public Alert Server",
-                uiText(R.string.ui_radar_a_burky_4218b3cf) to "LibreWXR",
-            ).forEach { (label,source) ->
-                Row(Modifier.fillMaxWidth()) {
-                    Text(label,Modifier.width(100.dp),fontSize=11.sp,color=dim)
-                    Text(source,Modifier.weight(1f),fontSize=11.sp,color=ForecastMuted)
-                }
-            }
-            Text(uiText(R.string.ui_europska_komisia_ani_ecmwf_nezodpovedaju_za_pouzitie_infor_0e8269e6),fontSize=11.sp,color=dim,modifier=Modifier.padding(top=2.dp))
-        }
-    }
 }
 
 @Composable internal fun InfoDot(color:Color,label:String,ring:Boolean=false,onClick:()->Unit) {
@@ -530,7 +496,7 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
 // Rain and snow of the precipitation tile on one line, separated by a comma.
 // The line starts at the size of a single value and shrinks until it fits the tile.
 @Composable private fun PrecipPair(liquid:String,liquidUnit:String,tint:Color,snow:String,snowUnit:String) {
-    val size=androidx.compose.runtime.remember(liquid,snow) { androidx.compose.runtime.mutableStateOf(24f) }
+    val size=androidx.compose.runtime.remember(liquid,snow,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp,LocalDensity.current.fontScale) { androidx.compose.runtime.mutableStateOf(24f) }
     val bold=androidx.compose.ui.text.SpanStyle(fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
     val small=androidx.compose.ui.text.SpanStyle(color=ForecastMuted,fontSize=androidx.compose.ui.unit.TextUnit(.54f,androidx.compose.ui.unit.TextUnitType.Em))
     val text=androidx.compose.ui.text.AnnotatedString.Builder().apply {

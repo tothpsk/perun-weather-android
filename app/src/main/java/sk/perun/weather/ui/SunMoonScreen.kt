@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,9 +19,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -48,7 +44,6 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 private val SkyText=Color(0xFFE8EAF0)
@@ -63,7 +58,6 @@ private val SkySet=Color(0xFFFF8F6B)
 private val SkyLocale=appLocale()
 private val SkyMin=LocalDate.of(1950,1,1)
 private val SkyMax=LocalDate.of(2100,12,31)
-private fun skyPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
 private fun skyNumber(v:Double)=weatherUnitNumber(v,1)
 
 private data class SkySunDay(val rise:Instant?,val set:Instant?,val seconds:Long)

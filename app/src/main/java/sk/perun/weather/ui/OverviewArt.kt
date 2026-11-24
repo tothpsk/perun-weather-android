@@ -18,13 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -33,19 +31,10 @@ import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -68,8 +57,6 @@ private val CloudPath = parsed("M23 73a18 18 0 0 1-2-36 27 27 0 0 1 51-5 21 21 0
 private val DropsPath = parsed("M28 75l-5 12m28-12l-5 12m28-12l-5 12")
 private val BoltPath = parsed("M52 60L35 83h15l-6 16 26-27H54l8-12Z")
 private val FogPath = parsed("M12 82h75M18 92h63")
-private val UmbrellaDome = parsed("M2.5 12a9.5 9.5 0 0 1 19 0Z")
-private val UmbrellaHandle = parsed("M12 12v6.2a2.1 2.1 0 0 1-4.2 0")
 
 private enum class Kind { Clear, Part, Cloud, Rain, Snow, Storm, Fog }
 
@@ -249,11 +236,6 @@ internal fun pollenLevel(key: String, v: Double): Int {
 internal fun pollenRatio(key: String, v: Double): Double = v / (PollenThresholds[key]?.second ?: 1.0)
 
 // ---- Graphics ----
-
-private fun DrawScope.centeredText(measurer: TextMeasurer, text: String, cx: Float, cy: Float, fontSize: TextUnit, color: Color, weight: FontWeight = FontWeight.Normal) {
-    val layout = measurer.measure(text, TextStyle(color = color, fontSize = fontSize, fontWeight = weight))
-    drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, cy - layout.size.height / 2f))
-}
 
 internal fun cardinal(degrees: Double): String =
     if (!degrees.isFinite()) "—" else listOf(uiText(R.string.ui_s_8de0b3c4), uiText(R.string.ui_sv_a4cd8b4d), uiText(R.string.ui_v_de5a6f78), uiText(R.string.ui_jv_002b53e7), uiText(R.string.ui_j_6da43b94), uiText(R.string.ui_jz_f296f166), uiText(R.string.ui_z_bbeebd87), uiText(R.string.ui_sz_c29f2aa3))[((degrees / 45.0 + 0.5).toInt() % 8 + 8) % 8]

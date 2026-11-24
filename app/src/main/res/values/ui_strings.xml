@@ -265,7 +265,6 @@
     <string name="long_bars_band" formatted="false">"Stĺpec ukazuje medián (P50). Svetlé pásmo nad ním a za ním siaha od dolného po horný percentil obálky; čím je vyššie, tým sa výpočty viac rozchádzajú."</string>
     <string name="long_fallback_note">"Doplnené z Best match: %1$s"</string>
     <string name="long_tip_median" formatted="false">"Zobrazený je medián ensemble (P50)."</string>
-    <string name="long_tip_model" formatted="false">"ensemble túto veličinu nemá, zobrazená je predpoveď modelu."</string>
     <string name="long_line_model" formatted="false">"Obálka je vypnutá. Čiara ukazuje predpoveď zvoleného modelu. Po zapnutí obálky uvidíš stredný scenár z mnohých výpočtov a to, aká istá predpoveď je."</string>
     <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"Obálka nie je dostupná"</string>
     <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Obálka pravdepodobnosti zrážok: ensemble neposkytuje priamo pravdepodobnosť, preto je odvodená z členov. Dolná hranica je podiel členov so zrážkami aspoň 1 mm za hodinu, horná podiel členov s aspoň 0,1 mm."</string>

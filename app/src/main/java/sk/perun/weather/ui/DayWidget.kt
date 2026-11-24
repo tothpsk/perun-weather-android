@@ -12,7 +12,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -24,25 +23,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path as ComposePath
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -525,17 +509,5 @@ class DayWidgetConfigActivity:ComponentActivity() {
     }
 }
 
-private fun dayDirectionRowArrow(size:Int):android.graphics.Bitmap {
-    val n=size.coerceAtLeast(1)
-    val bitmap=android.graphics.Bitmap.createBitmap(n,n,android.graphics.Bitmap.Config.ARGB_8888)
-    val canvas=android.graphics.Canvas(bitmap)
-    canvas.scale(n/20f,n/20f)
-    canvas.rotate(45f,10f,10f)
-    val pen=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
-        color=android.graphics.Color.WHITE;strokeWidth=1.5f;strokeCap=android.graphics.Paint.Cap.ROUND
-    }
-    canvas.drawLine(10f,19.25f,10f,.75f,pen)
-    canvas.drawLine(10f,.75f,6.04f,6.04f,pen)
-    canvas.drawLine(10f,.75f,13.96f,6.04f,pen)
-    return bitmap
-}
+// The arrow of the other widgets, pointing to the north-east as the label of the row.
+private fun dayDirectionRowArrow(size:Int):android.graphics.Bitmap = widgetWindArrowBitmap(225.0,android.graphics.Color.WHITE,size)
