@@ -207,7 +207,7 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
                 if(v==FV.Visibility) {
                     val p=Path().apply { moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close() };drawPath(p,color,style=s);drawCircle(color,3.5f,Offset(12f,12f))
                 } else {
-                    drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
+                    drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round);drawCircle(color,1.7f,Offset(12f,12f))
                 }
             }
         }
