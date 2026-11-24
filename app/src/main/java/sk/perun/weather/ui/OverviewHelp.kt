@@ -58,6 +58,7 @@ private fun bftRange(i:Int):String {
         }
         OverviewTileId.Cloud -> {
             HelpText(uiText(R.string.ui_celkova_modelova_oblacnost_v_percentach_oblak_sa_naplna_zd_83740492))
+            HelpText(uiText(R.string.cloud_median_note))
             HelpRow(Color(0xFFB8C4D8),uiText(R.string.ui_jasno_e78eee64),uiText(R.string.ui_menej_ako_12_5_8952dd78))
             HelpRow(Color(0xFFA0AEC4),uiText(R.string.ui_prevazne_jasno_7331ba47),"12,5 – 37,5 %")
             HelpRow(Color(0xFF8294AD),uiText(R.string.ui_polooblacno_83f2c354),"37,5 – 62,5 %")
