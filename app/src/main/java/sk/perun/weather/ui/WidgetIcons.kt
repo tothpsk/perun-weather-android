@@ -68,9 +68,8 @@ internal fun widgetIconBitmap(key:String,color:Int,size:Int):Bitmap {
                 }
                 "pressure"->{
                     drawCircle(c,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-                    drawLine(c,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round)
-                    drawLine(c,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round)
-                    drawLine(c,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
+                    drawLine(c,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round)
+                    drawCircle(c,1.7f,Offset(12f,12f))
                 }
                 else->Unit
             }
@@ -142,6 +141,24 @@ internal fun widgetSymbolBitmap(code:Int,day:Boolean,size:Int):Bitmap {
                 }
                 else -> drawPath(SymCloudPath,SymCloud)
             }
+        }
+    }
+    return image.asAndroidBitmap()
+}
+
+/** The icon of a value in a cell of a widget: the arrow of the trend for the pressure when its change is known, otherwise the icon of the quantity. */
+internal fun widgetParamIcon(key:String,color:Int,size:Int,pressureChange:Double):Bitmap =
+    if(key=="pressure" && pressureChange.isFinite()) widgetPressureTrendBitmap(pressureChange,color,size) else widgetIconBitmap(key,color,size)
+
+/** The trend of the pressure as on the Now screen (TkTrendGraphic): a ring and an arrow turned up by a rise and down by a fall, 60 degrees at 3 hPa in 3 hours. */
+internal fun widgetPressureTrendBitmap(change:Double,color:Int,size:Int):Bitmap {
+    val px=size.coerceAtLeast(1);val c=Color(color)
+    val image=ImageBitmap(px,px)
+    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+        scale(px/24f,px/24f,Offset.Zero) {
+            drawCircle(c.copy(alpha=.6f),10.5f,Offset(12f,12f),style=Stroke(1.4f))
+            val angle=(-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat()
+            rotate(angle,Offset(12f,12f)) { drawPath(iconPath("M5 12h14M14 7l5 5-5 5"),c,style=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
         }
     }
     return image.asAndroidBitmap()

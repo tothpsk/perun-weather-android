@@ -177,10 +177,10 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
                 }
             }
         }
-        item { if(mode!=FV.Cloud) Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold) else Row(verticalAlignment=Alignment.CenterVertically) {
-            Text(mode.label,color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold)
-            var openInfo by remember { mutableStateOf(false) }; val info=uiText(R.string.cloud_median_note)
-            Box { IconButton(onClick={openInfo=true},modifier=Modifier.semantics { contentDescription=info }) { Text("ⓘ",color=ForecastMuted) }; DropdownMenu(expanded=openInfo,onDismissRequest={openInfo=false}) { Text(info,modifier=Modifier.widthIn(max=260.dp).padding(12.dp)) } }
+        item { Box(Modifier.fillMaxWidth()) {
+            Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold)
+            // The visible circle of the (i) ends at the edge of the cards: the 36 dp button reaches 9 dp beyond it and does not change the height of the title.
+            if(mode==FV.Cloud) Box(Modifier.matchParentSize(),contentAlignment=Alignment.CenterEnd) { Box(Modifier.requiredSize(36.dp).offset(x=9.dp,y=2.dp)) { SettingsInfo(uiText(R.string.cloud_median_note)) } }
         } }
         if(bundle!=null) items(bundle.days,key={it.date.toString()}) { day->Surface(color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
             ForecastDayRow(day,bundle,mode,u,false) { open=day.date }

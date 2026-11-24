@@ -238,14 +238,14 @@ internal object WidgetRender {
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
         return v
     }
     /** The picture and whether the refresh button of the layout has its room in it. */
-    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,updated:String,pal:Palette):Pair<Bitmap,Boolean> {
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,updated:String,pal:Palette,pressureChange:Double=Double.NaN):Pair<Bitmap,Boolean> {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -272,7 +272,7 @@ internal object WidgetRender {
         }
         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
         fun weather(x:Float,y:Float,size:Float) = pic(widgetSymbolBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
-        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetIconBitmap(key,pal.fg,size.roundToInt().coerceAtLeast(1)),x,y,size)
+        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange),x,y,size)
         val hasAlert=alertEvent!=null && alertLevel!=null
         fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
         // The place at 15 sp, bold and in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
@@ -370,7 +370,7 @@ internal object WidgetRender {
         val wide=(o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 250)>=PerunWidgets.WideDp
         v.setViewVisibility(R.id.wg_c3,if(wide) View.VISIBLE else View.GONE)
         v.setViewVisibility(R.id.wg_c3s,if(wide) View.VISIBLE else View.GONE)
-        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetIconBitmap(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48));v.setTextViewText(CellValue[i],param(key,d,ex,u));widgetWindArrowView(v,CellArrow[i],key,d.direction,pal.fg) }
+        w.params.take(if(wide) 4 else 3).forEachIndexed { i,key -> v.setImageViewBitmap(CellIcon[i],widgetParamIcon(if(key=="rain" && snowing(d)) "snow" else key,pal.fg,48,ex?.pressureChange ?: Double.NaN));v.setTextViewText(CellValue[i],param(key,d,ex,u));widgetWindArrowView(v,CellArrow[i],key,d.direction,pal.fg) }
         d.hours.take(6).forEachIndexed { i,h ->
             v.setTextViewText(HourTime[i],h.time.format(Hm))
             v.setImageViewBitmap(HourIcon[i],widgetSymbolBitmap(h.code,dayAt(d,h.time),64))

@@ -58,12 +58,12 @@ private fun bftRange(i:Int):String {
         }
         OverviewTileId.Cloud -> {
             HelpText(uiText(R.string.ui_celkova_modelova_oblacnost_v_percentach_oblak_sa_naplna_zd_83740492))
-            HelpText(uiText(R.string.cloud_median_note))
             HelpRow(Color(0xFFB8C4D8),uiText(R.string.ui_jasno_e78eee64),uiText(R.string.ui_menej_ako_12_5_8952dd78))
             HelpRow(Color(0xFFA0AEC4),uiText(R.string.ui_prevazne_jasno_7331ba47),"12,5 – 37,5 %")
             HelpRow(Color(0xFF8294AD),uiText(R.string.ui_polooblacno_83f2c354),"37,5 – 62,5 %")
             HelpRow(Color(0xFF66758C),uiText(R.string.ui_prevazne_oblacno_e5122573),"62,5 – 87,5 %")
             HelpRow(Color(0xFF4B586C),uiText(R.string.ui_zamracene_829159bb),uiText(R.string.ui_viac_ako_87_5_105ed338))
+            HelpText(uiText(R.string.cloud_median_note))
         }
         OverviewTileId.Humidity -> {
             HelpText(uiText(R.string.ui_relativna_vlhkost_vzduchu_a_rosny_bod_rosny_bod_je_teplota_c1b0a236))
