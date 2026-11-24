@@ -280,7 +280,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             }
         },graphic={
             if(!a.isFinite()) Text("—",color=ForecastMuted,fontSize=24.sp) else when(v) {
-                FV.Wind->TkCompass(direction,ForecastGreen,Modifier.size(52.dp))
+                FV.Wind->if(direction.isFinite() && wind>0) TkDirectionArrow(direction,windBeaufortColor(wind),38.dp,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(direction))) else Text("—",color=ForecastMuted)
                 FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(42.dp))
                 FV.Visibility->TkEyeGraphic(color,Modifier.size(44.dp))
                 FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(44.dp)) else Text("—",color=ForecastMuted)
@@ -356,7 +356,7 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
             FV.Prob->Umbrella(Color.White)
             FV.Gust->GustGlyph(Color.White,22.dp)
-            FV.Direction->TkCompass(0.0,Color.White,Modifier.size(26.dp))
+            FV.Direction->TkDirectionArrow(225.0,Color.White,20.dp,row.label)
             FV.Dew->DewPointGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
         }
