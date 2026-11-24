@@ -60,45 +60,8 @@ private val TkUvText=tkPath("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7
 private val TkDrop=tkPath("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z")
 private val TkEye=tkPath("M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8Z")
 private val TkWind=tkPath("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7")
-private val TkStorm=tkPath("M13 2L5 14h6l-1 8l8-12h-6Z")
-private val TkRain=tkPath("M7 6l-2 6m7-6l-2 6m7-6l-2 6M7 14l-2 6m7-6l-2 6m7-6l-2 6")
 private val TkSnow=tkPath("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9")
 private val TkHeat=tkPath("M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z")
-private val TkFog=tkPath("M4 8h16M2 12h16M6 16h14")
-private val TkOther=tkPath("M12 3L2 21h20ZM12 10v5M12 18v.5")
-
-internal enum class AlertKind { Wind, Storm, Rain, Snow, Heat, Fog, Other }
-
-internal fun alertKind(text:String):AlertKind {
-    val t=text.lowercase()
-    fun has(vararg words:String)=words.any { it in t }
-    return when {
-        has("thunder","búrk","orage","gewitter") -> AlertKind.Storm
-        has("wind","gust","vietor","vent","sturm") -> AlertKind.Wind
-        has("rain","precip","flood","dážď","zrážk","pluie","regen") -> AlertKind.Rain
-        has("snow","ice","sneh","poľadov","ľad","neige","schnee","glatteis","cold","frost","low temp","chlad","mráz","froid") -> AlertKind.Snow
-        has("heat","high temp","horúč","hitze","canicule") -> AlertKind.Heat
-        has("fog","hmla","mist","brouillard","nebel") -> AlertKind.Fog
-        has("storm") -> AlertKind.Storm
-        else -> AlertKind.Other
-    }
-}
-
-@Composable internal fun AlertGlyph(kind:AlertKind,color:Color,dimension:Dp=18.dp) {
-    val path=when(kind) {
-        AlertKind.Wind -> TkWind
-        AlertKind.Storm -> TkStorm
-        AlertKind.Rain -> TkRain
-        AlertKind.Snow -> TkSnow
-        AlertKind.Heat -> TkHeat
-        AlertKind.Fog -> TkFog
-        AlertKind.Other -> TkOther
-    }
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) { drawPath(path,color,style=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-    }
-}
 
 internal enum class SummaryIcon { Temp, Rain, Snow, Wind, Uv }
 

@@ -287,7 +287,7 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
         Modifier.fillMaxWidth().clip(shape).background(surface?.first ?: TileBackground).border(1.dp,surface?.second ?: TileBorder,shape).clickable(onClick=onOpen).padding(horizontal=10.dp,vertical=6.dp),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp),
     ) {
-        AlertGlyph(alertKind(first.event+" "+g.label),color,20.dp)
+        AlertGlyph(alertHazard(first.event+" "+g.label,first.awareness),color,20.dp)
         Column(Modifier.weight(1f)) {
             Text(AlertLocalNames[g.label] ?: g.label,fontSize=13.sp,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis,lineHeight=16.sp)
             Text(alertLevelName(level)+if(first.local) uiText(R.string.ui_odhad_5dde2d79) else "",fontSize=11.sp,color=color,maxLines=1,overflow=TextOverflow.Ellipsis)

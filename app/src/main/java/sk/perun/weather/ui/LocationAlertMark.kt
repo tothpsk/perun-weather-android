@@ -64,7 +64,7 @@ internal suspend fun loadLocationAlerts(context: Context, places: List<Location>
         Modifier.padding(end = 4.dp).semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        AlertGlyph(alertKind(first.items.first().event + " " + first.label), color, 22.dp)
+        AlertGlyph(alertHazard(first.items.first().event + " " + first.label, first.items.first().awareness), color, 22.dp)
         if (rest.isNotEmpty()) Box(Modifier.border(1.dp, moreColor, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
             Text("+" + rest.size, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = moreColor)
         }

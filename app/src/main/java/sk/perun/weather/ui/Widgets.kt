@@ -210,7 +210,7 @@ internal object WidgetRender {
         val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
         if(a==null) { v.setViewVisibility(R.id.wg_alert,View.GONE);return }
         v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-        v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(a.event,a.level,54))
+        v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(a.event,a.level,54,a.awareness))
         v.setContentDescription(R.id.wg_alert,a.event)
     }
     private fun snowing(d:OverviewData):Boolean = (d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)

@@ -161,7 +161,7 @@ internal object SixDayWidgets {
         val alert=d.alerts.filter { !it.local && it.level in Levels && it.start?.isAfter(now)!=true && (it.end?.isAfter(now) ?: true) }.minByOrNull { Levels.indexOf(it.level) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54))
+            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))
             v.setContentDescription(R.id.wg_alert,alert.event)
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })

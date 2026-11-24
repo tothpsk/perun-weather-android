@@ -226,43 +226,8 @@ private fun alertView(c:Context,icon:Bitmap,line:String,detail:String?):RemoteVi
     return v
 }
 private fun alertColor(level:String):Int = when(level) {"red"->0xFFE53935.toInt();"orange"->0xFFFB8C00.toInt();"yellow"->0xFFF2B600.toInt();else->0xFF8294AD.toInt()}
-private val AlertPaths=mapOf(
-    "storm" to "M7 14h-.5a4 4 0 0 1 0-8a6 6 0 0 1 11.3 1.5A3.5 3.5 0 0 1 17.5 14H17M13 11l-3 5h4l-3 5",
-    "rain" to "M7 13a4 4 0 0 1 0-8a6 6 0 0 1 11.3 1.5A3.5 3.5 0 0 1 17.5 13M8 16l-1 3m5-3l-1 3m5-3l-1 3",
-    "snow" to "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2l3-2M9 20l3-2l3 2",
-    "cold" to "M8 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0ZM18 3v8M14.5 5l7 4M14.5 9l7-4",
-    "fire" to "M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7c0 2 1 3 2 3c0-3 0-5 1-8Z",
-    "flood" to "M2 17c2 0 2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5M2 21c2 0 2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5M12 3v9M8.5 8.5L12 12l3.5-3.5",
-    "avalanche" to "M3 20L10 7l4 6l2-3l5 10Z",
-    "generic" to "M12 3L22 20H2ZM12 10v4M12 17v.01",
-)
-/** Keywords are ASCII; diacritics are stripped from the alert name first, so Slovak and Czech names match too. */
-private fun alertGlyphKind(event:String):String {
-    val e=java.text.Normalizer.normalize(event,java.text.Normalizer.Form.NFD).filter { Character.getType(it)!=Character.NON_SPACING_MARK.toInt() }.lowercase(Locale.ROOT)
-    fun has(vararg k:String)=k.any { it in e }
-    return when {
-        has("avalanche","lavin")->"avalanche"
-        has("fire","poziar")->"fire"
-        has("flood","povod","zaplav")->"flood"
-        has("thunder","burk","bour","storm")->"storm"
-        has("snow","sneh","snih","icing","poladov","freezing")->"snow"
-        has("wind","gust","vietor","vetr","vitr","naraz")->"wind"
-        has("rain","precip","dazd","zrazk","dest","srazk")->"rain"
-        has("cold","chlad","mraz","frost","nizk","low temp")->"cold"
-        has("heat","horuc","vysok","high temp","tepl")->"heat"
-        has("fog","hmla","mlha")->"fog"
-        else->"generic"
-    }
-}
-private fun alertIcon(event:String,color:Int,size:Int):Bitmap {
-    val bmp=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
-    cv.scale(size/24f,size/24f)
-    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=2.2f;strokeCap=Paint.Cap.ROUND;strokeJoin=Paint.Join.ROUND;this.color=color }
-    val kind=alertGlyphKind(event)
-    val data=AlertPaths[kind] ?: GlyphPaths[kind] ?: AlertPaths.getValue("generic")
-    runCatching { cv.drawPath(PathParser.createPathFromPathData(data),p) }
-    return bmp
-}
+/** The warning icon of the app (AlertHazards.kt) in the colour of the level. */
+private fun alertIcon(event:String,color:Int,size:Int,awareness:String=""):Bitmap = alertHazardBitmap(alertHazard(event,awareness),color,size)
 private fun levelName(level:String):String = when(level) {"red"->uiText(R.string.ui_cervena_f1d8f5c8);"orange"->uiText(R.string.ui_oranzova_ab35bb41);"yellow"->uiText(R.string.ui_zlta_64273c3a);else->uiText(R.string.ui_informacia_b277d884)}
 private fun localAlertName(event:String):String = when(event) {
     "Thunderstorm risk"->uiText(R.string.ui_riziko_burok_8fa6514a);"Strong wind gusts"->uiText(R.string.ui_silne_narazy_vetra_7b7b006f);"Heavy precipitation"->uiText(R.string.ui_silne_zrazky_2630cc03)
@@ -543,7 +508,7 @@ internal object Notifier {
         show(c,ChCurrent,IdStatus,l.name+" · "+temp(u,d.temperature),overviewCondition(d.code)+" · "+text,null,null,ongoing=true,icon=textIcon(short),location=BackgroundRefresh.locationKey(l))
     }
     private fun postAlert(c:Context,l:Location,d:OverviewData,a:AlertItem,id:Int) {
-        val color=alertColor(a.level);val icon=alertIcon(a.event,color,72)
+        val color=alertColor(a.level);val icon=alertIcon(a.event,color,72,a.awareness)
         val event=if(a.local) localAlertName(a.event) else a.event
         val line=event+" · "+levelName(a.level)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")
         val zone=d.zone
@@ -839,7 +804,7 @@ private val DialogEdge=Color(0xFF4B586C)
 /** Shared with the home-screen widgets. */
 internal fun widgetWeatherBitmap(code:Int,day:Boolean,size:Int):Bitmap = weatherBitmap(code,day,size)
 internal fun widgetGlyphBitmap(param:String,color:Int,size:Int):Bitmap = glyphBitmap(param,color,size)
-internal fun widgetAlertBitmap(event:String,level:String,size:Int):Bitmap = alertIcon(event,alertColor(level),size)
+internal fun widgetAlertBitmap(event:String,level:String,size:Int,awareness:String=""):Bitmap = alertIcon(event,alertColor(level),size,awareness)
 
 /** Same chevron as the day rows of the Forecast screen: points down when closed, up when open. */
 @Composable private fun PickerChevron(open:Boolean) {
