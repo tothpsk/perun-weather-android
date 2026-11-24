@@ -128,19 +128,7 @@ private fun skyMainName(kind:Int)=when(kind) { 0->uiText(R.string.ui_nov_3e630d2
 
 private enum class SkyIcon { Noon,DayLength,TrendUp,TrendDown,MoonUp }
 @Composable private fun SkyGlyph(icon:SkyIcon,color:Color,dimension:Dp=22.dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            val s=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            when(icon) {
-                SkyIcon.Noon->{ drawPath(skyPath("M2.5 19h19 M4 19a8 8 0 0 1 16 0 M12 3.5v2.5"),color,style=s);drawCircle(color,3f,Offset(12f,11f)) }
-                SkyIcon.DayLength->{ drawCircle(color,9f,Offset(12f,12f),style=s);drawPath(skyPath("M12 7v5l3 2"),color,style=s) }
-                SkyIcon.TrendUp->drawPath(skyPath("M3 17l6-6 4 4 8-8 M15 7h6v6"),color,style=s)
-                SkyIcon.TrendDown->drawPath(skyPath("M3 7l6 6 4-4 8 8 M15 17h6v-6"),color,style=s)
-                SkyIcon.MoonUp->{ drawPath(skyPath("M2.5 19h19"),color,style=s);drawCircle(color,4.5f,Offset(12f,10f),style=s) }
-            }
-        }
-    }
+    GlyphIcon(when(icon) { SkyIcon.Noon->Glyph.SkyNoon;SkyIcon.DayLength->Glyph.SkyDayLength;SkyIcon.TrendUp->Glyph.SkyLonger;SkyIcon.TrendDown->Glyph.SkyShorter;SkyIcon.MoonUp->Glyph.SkyMoonUp },color,dimension)
 }
 
 private val SkyTipPosition=object:PopupPositionProvider {

@@ -196,21 +196,9 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
         FV.Wind->SummaryGlyph(SummaryIcon.Wind,color,22.dp)
         FV.Uv->SummaryGlyph(SummaryIcon.Uv,color,22.dp)
         FV.Humidity->HumidityGlyph(color,22.dp)
-        FV.Cloud->Canvas(Modifier.size(24.dp)) {
-            val k=size.width/24f;scale(k,k,Offset.Zero) {
-                val p=Path().apply { moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close() };drawPath(p,color,style=Stroke(1.8f,join=StrokeJoin.Round))
-            }
-        }
-        FV.Visibility,FV.Pressure->Canvas(Modifier.size(22.dp)) {
-            val k=size.width/24f;scale(k,k,Offset.Zero) {
-                val s=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-                if(v==FV.Visibility) {
-                    val p=Path().apply { moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close() };drawPath(p,color,style=s);drawCircle(color,3.5f,Offset(12f,12f))
-                } else {
-                    drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round);drawCircle(color,1.7f,Offset(12f,12f))
-                }
-            }
-        }
+        FV.Cloud->GlyphIcon(Glyph.Cloud,color,22.dp)
+        FV.Visibility->GlyphIcon(Glyph.Visibility,color,22.dp)
+        FV.Pressure->PressureGaugeGlyph(color,22.dp)
         else->Unit
     }
 }
@@ -271,7 +259,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             when(v) {
                 FV.Temp->ForecastLine(uiText(R.string.ui_pocitovo_b1afb67c)+degrees(feelsPeriod(day,true),u)+" / "+degrees(feelsPeriod(day,false),u))
                 FV.Rain->Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                    Umbrella(probabilityColor(day.max("precipitation_probability")))
+                    Umbrella(probabilityColor(day.max("precipitation_probability")),18.dp)
                     ForecastLine(value(FV.Prob,day.max("precipitation_probability"),u)+(if(day.sum("snowfall")>0) uiText(R.string.ui_sneh_bbd0d4e8)+weatherUnitNumber(u.precipitation.fromSnowCentimetres(day.sum("snowfall")),1)+" "+u.precipitation.snowSymbol else ""),FText)
                 }
                 FV.Wind->ForecastLine(uiText(R.string.ui_narazy_df599680)+value(FV.Gust,gust,u),fw(gust))
@@ -284,10 +272,10 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             }
         },graphic={
             if(!a.isFinite()) Text("—",color=ForecastMuted,fontSize=24.sp) else when(v) {
-                FV.Wind->if(direction.isFinite() && wind>0) TkDirectionArrow(direction,windBeaufortColor(wind),38.dp,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(direction))) else Text("—",color=ForecastMuted)
-                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(42.dp))
-                FV.Visibility->TkEyeGraphic(color,Modifier.size(44.dp))
-                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(44.dp)) else Text("—",color=ForecastMuted)
+                FV.Wind->if(direction.isFinite() && wind>0) TkDirectionArrow(direction,windBeaufortColor(wind),40.dp,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(direction))) else Text("—",color=ForecastMuted)
+                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(40.dp))
+                FV.Visibility->TkEyeGraphic(color,Modifier.size(40.dp))
+                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(40.dp)) else Text("—",color=ForecastMuted)
                 FV.Uv->SummaryGlyph(SummaryIcon.Uv,uvColor(a),40.dp)
                 FV.Cloud->CloudFill((a/100).coerceIn(0.0,1.0),color,null,0,Modifier.width(48.dp))
                 FV.Rain->CloudFill(sqrt((a/20).coerceIn(0.0,1.0)),RainBlue,null,if(a>0) 1 else 0,Modifier.width(48.dp))
@@ -360,7 +348,7 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
             FV.Prob->Umbrella(Color.White)
             FV.Gust->GustGlyph(Color.White,22.dp)
-            FV.Direction->TkDirectionArrow(225.0,Color.White,20.dp,row.label)
+            FV.Direction->TkDirectionArrow(225.0,Color.White,22.dp,row.label)
             FV.Dew->DewPointGlyph(Color.White,22.dp)
             FV.Pressure->PressureGaugeGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
@@ -491,13 +479,4 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
 }
 
 // The row icon of the pressure: a gauge, a circle with a needle and a hub. The arrow of the pressure stays for the trend.
-@Composable internal fun PressureGaugeGlyph(color:Color,dimension:androidx.compose.ui.unit.Dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            drawCircle(color,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round)
-            drawCircle(color,1.7f,Offset(12f,12f))
-        }
-    }
-}
+@Composable internal fun PressureGaugeGlyph(color:Color,dimension:androidx.compose.ui.unit.Dp) { GlyphIcon(Glyph.Pressure,color,dimension) }

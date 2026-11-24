@@ -53,32 +53,13 @@ internal class HelpSpec(val title:String,val body:@Composable ColumnScope.()->Un
 
 private fun tkPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
 private val TkArrow=tkPath("M50 28L38 80L50 68L62 80Z")
-private val TkArrowRight=tkPath("M5 12h14M14 7l5 5-5 5")
-// Seven rays around a small disc centred at 12, 7; the lower half of the box belongs to the letters UV.
-private val TkSun=tkPath("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92")
-private val TkUvText=tkPath("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6")
 private val TkDrop=tkPath("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z")
 private val TkEye=tkPath("M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8Z")
-private val TkWind=tkPath("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7")
-private val TkSnow=tkPath("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9")
-private val TkHeat=tkPath("M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z")
 
 internal enum class SummaryIcon { Temp, Rain, Snow, Wind, Uv }
 
 @Composable internal fun SummaryGlyph(icon:SummaryIcon,color:Color,dimension:Dp=18.dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            val s=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            when(icon) {
-                SummaryIcon.Temp -> drawPath(TkHeat,color,style=s)
-                SummaryIcon.Rain -> drawPath(TkDrop,color,style=s)
-                SummaryIcon.Snow -> drawPath(TkSnow,color,style=s)
-                SummaryIcon.Wind -> drawPath(TkWind,color,style=s)
-                SummaryIcon.Uv -> { val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(TkSun,color,style=sun);drawCircle(color,2.4f,Offset(12f,7f),style=sun);drawPath(TkUvText,color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-            }
-        }
-    }
+    GlyphIcon(when(icon) { SummaryIcon.Temp->Glyph.Temp;SummaryIcon.Rain->Glyph.Rain;SummaryIcon.Snow->Glyph.Snow;SummaryIcon.Wind->Glyph.Wind;SummaryIcon.Uv->Glyph.Uv },color,dimension)
 }
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -134,51 +115,23 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
     drawText(layout,topLeft=Offset(cx-layout.size.width/2f,cy-layout.size.height/2f))
 }
 
-@Composable internal fun TkCompass(direction:Double,color:Color,modifier:Modifier=Modifier.size(62.dp)) {
-    val measurer=rememberTextMeasurer()
-    val description=uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction))
-    Canvas(modifier.aspectRatio(1f).semantics { contentDescription=description }) {
-        val k=size.width/100f
-        scale(k,k,Offset.Zero) {
-            drawCircle(Color(0xFF8C9BB2),36f,Offset(50f,58f),style=Stroke(2f))
-            if(direction.isFinite()) rotate(((direction+180)%360).toFloat(),Offset(50f,58f)) { drawPath(TkArrow,color) }
-            drawCircle(Color(0xFFE8EAF0),4f,Offset(50f,58f))
-        }
-        tkText(measurer,uiText(R.string.ui_s_8de0b3c4),50f*k,8f*k,(16f*k).toSp(),Color(0xFFE8EAF0),FontWeight.Bold)
-    }
-}
 
 @Composable internal fun TkDropGraphic(fraction:Double,color:Color,modifier:Modifier) {
     HumidityGraphic(fraction,color,modifier)
 }
 
 @Composable internal fun TkFlakeGraphic(strength:Double,color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            drawPath(TkSnow,color.copy(alpha=(.35+.65*strength.coerceIn(0.0,1.0)).toFloat()),style=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-        }
-    }
+    Canvas(modifier.aspectRatio(1f)) { drawGlyph(Glyph.Snow,color.copy(alpha=(.35+.65*strength.coerceIn(0.0,1.0)).toFloat())) }
 }
 
 @Composable internal fun TkEyeGraphic(color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            drawPath(TkEye,Color(0xFFBBC4D2),style=Stroke(1.6f,join=StrokeJoin.Round))
-            drawCircle(color,4f,Offset(12f,12f))
-        }
-    }
+    Canvas(modifier.aspectRatio(1f)) { drawGlyph(Glyph.EyeTile,color,muted=Color(0xFFBBC4D2)) }
 }
 
 @Composable internal fun TkTrendGraphic(change:Double,color:Color,modifier:Modifier) {
     Canvas(modifier.aspectRatio(1f)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            drawCircle(Color(0xFF8C9BB2),10.5f,Offset(12f,12f),style=Stroke(1.4f))
-            val angle=if(change.isFinite()) (-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat() else 0f
-            rotate(angle,Offset(12f,12f)) { drawPath(TkArrowRight,color,style=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-        }
+        val angle=if(change.isFinite()) (-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat() else 0f
+        drawGlyph(Glyph.Trend,color,muted=Color(0xFF8C9BB2),turn=angle)
     }
 }
 
@@ -237,7 +190,7 @@ internal class TileTextBox(val height:Dp,val descent:Dp)
     Canvas(Modifier.size(length).semantics { contentDescription=description }) {
         val angle=(direction+180)*PI/180
         val v=Offset(sin(angle).toFloat(),-cos(angle).toFloat())
-        val stroke=size.width*.075f
+        val stroke=maxOf(size.width*GlyphLine/24f,1.3.dp.toPx())
         val half=(size.width-stroke)/2
         val tip=center+v*half
         val base=tip-v*(half*4f/7f)

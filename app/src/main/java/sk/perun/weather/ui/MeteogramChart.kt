@@ -239,7 +239,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
         p.color=a.color;p.textAlign=if(dir<0) Paint.Align.RIGHT else Paint.Align.LEFT
         val text=labels(a)
         for(k in 0..4 step stride) cv.drawText(text[k],inner+dir*3*dn,bottom-plotH*k/4+3.2f*dn,p)
-        cv.drawBitmap(widgetIconBitmap(a.icon,a.color,glyph),inner+dir*a.w/2-glyph/2f,if(small) 0f else (headH-glyph)/2f,null)
+        cv.drawBitmap(widgetIconBitmap(a.icon,a.color,glyph,glyph/dn),inner+dir*a.w/2-glyph/2f,if(small) 0f else (headH-glyph)/2f,null)
     }
     var edge=plotL
     left.forEach { axisColumn(it,edge,-1);edge-=it.w }

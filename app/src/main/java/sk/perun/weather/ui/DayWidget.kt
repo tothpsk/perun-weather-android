@@ -92,65 +92,8 @@ private class DayData(val zone:ZoneId,val hours:List<ForecastHour>) {
     fun day(d:LocalDate):ForecastDay = ForecastDay(d,d.atStartOfDay(zone).toEpochSecond(),d.plusDays(1).atStartOfDay(zone).toEpochSecond(),hours.filter { date(it)==d })
 }
 
-// The row icons of the expanded day on the Forecast screen. Their composables (OverviewTileKit.kt, HumidityGraphic.kt,
-// ForecastScreen.kt) cannot run in a widget, so the same shapes are drawn here with the same Compose drawing calls.
-private fun svg(d:String):ComposePath = PathParser().parsePathString(d).toNodes().toPath()
-private fun composeBitmap(px:Int,box:Float,block:DrawScope.()->Unit):Bitmap {
-    val image=ImageBitmap(px,px)
-    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) { scale(px/box,px/box,Offset.Zero) { block() } }
-    return image.asAndroidBitmap()
-}
-private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = composeBitmap(px,24f) {
-    val s=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-    when(row) {
-        "temp"->drawPath(svg("M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z"),color,style=s)
-        "rain"->drawPath(svg("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z"),color,style=s)
-        "snow"->drawPath(svg("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"),color,style=s)
-        "wind"->drawPath(svg("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"),color,style=s)
-        "uv"->{ val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(svg("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92"),color,style=sun);drawCircle(color,2.4f,Offset(12f,7f),style=sun);drawPath(svg("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6"),color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-        "gust"->drawPath(ComposePath().apply {
-            moveTo(1.5f,9f);lineTo(12f,9f);cubicTo(16.7f,9f,16.7f,2.5f,12.9f,2.5f);cubicTo(10.9f,2.5f,10f,4f,10f,5.4f)
-            moveTo(4.5f,12f);lineTo(18.3f,12f);cubicTo(23.3f,12f,23.3f,5.2f,19.2f,5.2f);cubicTo(17.5f,5.2f,16.7f,6.6f,16.7f,8f)
-            moveTo(1.5f,15f);lineTo(17.8f,15f);cubicTo(23f,15f,23f,21.5f,19f,21.5f);cubicTo(17.1f,21.5f,16.1f,20f,16.1f,18.6f)
-        },color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-        "cloud"->drawPath(ComposePath().apply { moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close() },color,style=Stroke(1.8f,join=StrokeJoin.Round))
-        "humidity"->{
-            drawPath(ComposePath().apply { moveTo(12f,2f);cubicTo(12f,2f,5f,10f,5f,15f);cubicTo(5f,24.333334f,19f,24.333334f,19f,15f);cubicTo(19f,10f,12f,2f,12f,2f);close() },color,style=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawCircle(color,1.25f,Offset(9.4f,12.8f),style=Stroke(1.1f))
-            drawCircle(color,1.25f,Offset(14.6f,17.6f),style=Stroke(1.1f))
-            drawLine(color,Offset(9.5f,18.1f),Offset(14.5f,12.3f),1.4f,StrokeCap.Round)
-        }
-        "dew"->{
-            val thermometer=ComposePath().apply { moveTo(7f,14.37f);lineTo(7f,5f);arcTo(Rect(7f,3f,11f,7f),180f,180f,false);lineTo(11f,14.37f);arcTo(Rect(5.2f,13.8f,12.8f,21.4f),-58.2f,296.4f,false);close() }
-            drawPath(thermometer,color,style=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(9f,17.6f),Offset(9f,10.5f),1.5f,StrokeCap.Round)
-            drawCircle(color,1.7f,Offset(9f,17.6f))
-            drawPath(ComposePath().apply { moveTo(17.5f,4.5f);cubicTo(17.5f,4.5f,14.2f,8.2f,14.2f,11f);arcTo(Rect(14.2f,7.7f,20.8f,14.3f),180f,-180f,false);cubicTo(20.8f,8.2f,17.5f,4.5f,17.5f,4.5f);close() },color)
-        }
-        "visibility"->{
-            drawPath(ComposePath().apply { moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close() },color,style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawCircle(color,3.5f,Offset(12f,12f))
-        }
-        "pressure"->{
-            drawCircle(color,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round)
-            drawCircle(color,1.7f,Offset(12f,12f))
-        }
-        else->Unit
-    }
-}
-/** The compass of the wind direction row: ring, arrow and the letter for north. */
-private fun compassGlyph(color:Color,px:Int):Bitmap {
-    val bmp=composeBitmap(px,100f) {
-        drawCircle(Color(0xFF8C9BB2),36f,Offset(50f,58f),style=Stroke(2f))
-        rotate(180f,Offset(50f,58f)) { drawPath(svg("M50 28L38 80L50 68L62 80Z"),color) }
-        drawCircle(Color(0xFFE8EAF0),4f,Offset(50f,58f))
-    }
-    val k=px/100f
-    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color=0xFFE8EAF0.toInt();textSize=18f*k;textAlign=Paint.Align.CENTER;typeface=Typeface.DEFAULT_BOLD }
-    Canvas(bmp).drawText(uiText(R.string.ui_s_8de0b3c4),50f*k,15f*k,p)
-    return bmp
-}
+// The row icons of the expanded day on the Forecast screen: the same glyphs as the app (PerunGlyphs.kt).
+private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = widgetIconBitmap(row,color.toArgb(),px)
 
 /** The Day by hours widget keeps the last forecast in a file, so that the day arrows and the now line work without the network. */
 internal object DayWidgets {

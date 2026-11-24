@@ -161,11 +161,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
         LongMetric.Wind->SummaryGlyph(SummaryIcon.Wind,color,22.dp)
         LongMetric.Uv->SummaryGlyph(SummaryIcon.Uv,color,22.dp)
         LongMetric.Humidity->HumidityGlyph(color,22.dp)
-        LongMetric.Cloud->Canvas(Modifier.size(24.dp)) {val k=size.width/24f;scale(k,k,Offset.Zero) {val p=Path().apply {moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close()};drawPath(p,color,style=Stroke(1.8f,join=StrokeJoin.Round))}}
-        LongMetric.Visibility,LongMetric.Pressure->Canvas(Modifier.size(22.dp)) {val k=size.width/24f;scale(k,k,Offset.Zero) {val s=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            if(m==LongMetric.Visibility) {val p=Path().apply {moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close()};drawPath(p,color,style=s);drawCircle(color,3.5f,Offset(12f,12f))}
-            else {drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)}
-        }}
+        LongMetric.Cloud->GlyphIcon(Glyph.Cloud,color,22.dp)
+        LongMetric.Visibility->GlyphIcon(Glyph.Visibility,color,22.dp)
+        LongMetric.Pressure->PressureGaugeGlyph(color,22.dp)
         else->Unit
     }
 }

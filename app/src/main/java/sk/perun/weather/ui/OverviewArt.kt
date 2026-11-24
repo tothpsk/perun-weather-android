@@ -381,12 +381,4 @@ internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, 
 }
 
 @Composable
-internal fun Umbrella(color: Color, dimension: Dp = 22.dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k = size.width / 24f
-        scale(k, k, Offset.Zero) {
-            drawPath(UmbrellaDome, color)
-            drawPath(UmbrellaHandle, color, style = Stroke(1.8f, cap = StrokeCap.Round))
-        }
-    }
-}
+internal fun Umbrella(color: Color, dimension: Dp = 22.dp) { GlyphIcon(Glyph.Umbrella, color, dimension) }

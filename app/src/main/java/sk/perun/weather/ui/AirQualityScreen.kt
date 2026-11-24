@@ -122,37 +122,10 @@ private fun aqSummary(day:AqDay,d:AirQualityData,mode:AqMode,scale:AirQualitySca
 }
 
 @Composable private fun AqModeGlyph(mode:AqMode,color:Color,dimension:Dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            val s=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            when(mode) {
-                AqMode.Index->{ drawPath(aqPath("M4 17a8 8 0 0 1 16 0"),color,style=s);drawLine(color,Offset(12f,17f),Offset(16.5f,10.5f),1.8f,StrokeCap.Round);drawCircle(color,1.8f,Offset(12f,17f)) }
-                AqMode.Pm25->{ drawCircle(color,2.4f,Offset(12f,12f));drawCircle(color,1.5f,Offset(6.5f,7.5f));drawCircle(color,1.5f,Offset(17.5f,8f));drawCircle(color,1.5f,Offset(7.5f,17.5f));drawCircle(color,1.2f,Offset(17f,16.5f)) }
-                AqMode.Pm10->{ drawCircle(color,3.4f,Offset(9f,9f),style=s);drawCircle(color,3.9f,Offset(16f,15.5f),style=s);drawCircle(color,1.7f,Offset(6.5f,17.5f));drawCircle(color,1.5f,Offset(17.5f,5.5f)) }
-                AqMode.No2->{ drawPath(aqPath("M3 16v-4l2-4h14l2 4v4z M3 12h18"),color,style=s);drawCircle(color,1.8f,Offset(7.5f,17.5f),style=s);drawCircle(color,1.8f,Offset(16.5f,17.5f),style=s) }
-                AqMode.O3->{ drawPath(aqPath("M3 21a9 9 0 0 1 18 0"),color,style=s);drawCircle(color,3.2f,Offset(12f,11f),style=s);drawPath(aqPath("M12 3v1.5M4.5 6l1.2 1.2M19.5 6l-1.2 1.2"),color,style=s) }
-                AqMode.So2->drawPath(aqPath("M3 20V11l5 3v-3l5 3V5h4v15z"),color,style=s)
-                AqMode.Co->drawPath(aqPath("M12 3c1 4 5 5 5 10a5 5 0 0 1-10 0c0-2 1-3 2-4 0 2 1 3 2 3 0-3-1-5 1-9z"),color,style=s)
-                AqMode.Pollen->{ drawCircle(color,2.8f,Offset(12f,12f));for(i in 0 until 6) { val a=i*Math.PI/3;drawCircle(color,2.6f,Offset((12+7.2*Math.cos(a)).toFloat(),(12+7.2*Math.sin(a)).toFloat()),style=s) } }
-            }
-        }
-    }
+    GlyphIcon(when(mode) { AqMode.Index->Glyph.AqIndex;AqMode.Pm25->Glyph.AqPm25;AqMode.Pm10->Glyph.AqPm10;AqMode.No2->Glyph.AqNo2;AqMode.O3->Glyph.AqO3;AqMode.So2->Glyph.AqSo2;AqMode.Co->Glyph.AqCo;AqMode.Pollen->Glyph.AqPollen },color,dimension)
 }
 @Composable private fun AqPlantGlyph(key:String,color:Color,dimension:Dp) {
-    val outline=when(key) {
-        "alder_pollen"->"M3 20L15 8 M6 17l.5-4 M7 16c3-2 7-1 8 1 M10 13C6 9 8 3 12 2.5c2-.5 4-.3 5 .2l-.6 2.8 2.8-.5c3.5 5-1.6 11-9.2 8z M10 15.5c1.4.4 1.7 1.7 1.4 3 M11.4 18.5c-2-1-2.9 1.8-2.2 3.6.6 1.7 2.4 1.1 2.9-1.1.2-1 .1-2-.7-2.5z M15 17c1.5-1.6 4.5 1.7 3.1 3-1.3 1.2-4.5-1.5-3.1-3z"
-        "birch_pollen"->"M12 23c1-3 1.4-7 .8-14 M12.5 18.2C7 21.4 4.3 20 3 15l1.8.4-.9-3.9 1.5.5.6-3.5 1.5.8L9 5l1.1.9L12 1l2.3 4.4 1-.7 2 3.4 1.1-.9 1.8 4.4 1.2-.7.3 4-1.1.2 1.4.2c-1 4.9-4 5.5-9.5 2.9z"
-        "grass_pollen"->"M10 23C9.8 17 8.3 11 5 3 M11 23C12.2 14 14.1 8.9 17 4 M10 19C5.7 8.7 3 9.3 1.5 14 M8.4 23C7.3 14.3 5.1 9.9 3 11 M12.5 23C14 15 17.5 11.4 21.5 10c-5.2 3.8-7.1 8.4-7.7 13 M16.8 4.9c-1.5-2.8 1.8-3.7 1.5-.8 1.5-2.9 4-2.8 2.2-.6 M15.5 7c-1.8-2.7 1.1-3.9 1.6-.8 2.1-2.5 4.4-1.3 1.5.4 M14.4 9.1c-1.8-2.7 1.1-4 1.6-1 2.3-2.1 4.3-.8 1.4.7 M17.5 2.5c-.1-2.4 2.3-2.7 1.6-.5"
-        "mugwort_pollen"->"M12 23V5 M12 21c-1-4-4-4.7-6.7-4.5-2.5.2-2.5-1.2-.5-1.6-5-3-4.2-4.9-.2-2.5-3.3-4.5-1.1-5.7 1.5-1.5 1.7 1.9 4 3.2 5.9 4 M12 15c-2-4-5-3.2-6.2-5.2-1.2-1.8-.3-3 1.4-1.4-2.8-5.9-.3-7 1.7-1.9-.4-3.3-.6-6.3 1.1-6.3s1.4 3 2 4.8c1.8-5 4.3-2.8 1.6 1.5 4.2-3.4 5.9-1.2 2.1 1.8 3.8-1.9 5.2.6 1.4 2-2.5.9-4 3-5.1 4.7 M12 21c1-3.8 4.5-4.7 6.8-4.6 2.7.1 2.8-1.1.5-1.7 5-3.1 4.1-5.3.2-2.7 2.5-4.5.2-5.2-2-.9-1.9 1.6-3.6 2.6-5.5 3.6"
-        "olive_pollen"->"M2 21L22 3 M6 17C4 12 5.5 7.6 7.5 4.5 8.5 9.2 7.4 13.4 6 17z M11 13c4-2.4 8-2.9 12-1.2-4 2.8-8 2.8-12 1.2z M9 15c2.4-.4 3.4.7 3.6 2 M12.6 16.7c-2.7-.7-4.2 4.4-1.4 6 3.9 2.1 5-5.1 1.4-6z M12.4 18c-1 .2-1.3.9-1.3 1.8"
-        else->"M12 23V13 M12 4a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 1 0 0 3.4z M12 8.5a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 1 0 0 3.4z M12 13a1.7 1.7 0 1 0 0-3.4 1.7 1.7 0 1 0 0 3.4z M12 23c-2-3-3-4.2-5.3-3.8-2.6.5-3.2-.8-.5-1.8-3.6-1.5-5-4.7-3.2-4.3l3.8 2.6c-1.1-5.2 1.6-4.3 2.3.3L10 21 M12 23c2-3 3-4.2 5.3-3.8 2.6.5 3.2-.8.5-1.8 3.6-1.5 5-4.7 3.2-4.3l-3.8 2.6c1.1-5.2-1.6-4.3-2.3.3L14 21"
-    }
-    val path=remember(key) { aqPath(outline) }
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) { drawPath(path,color,style=Stroke(1.5f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-    }
+    GlyphIcon(when(key) { "alder_pollen"->Glyph.PlantAlder;"birch_pollen"->Glyph.PlantBirch;"grass_pollen"->Glyph.PlantGrass;"mugwort_pollen"->Glyph.PlantMugwort;"olive_pollen"->Glyph.PlantOlive;else->Glyph.PlantRagweed },color,dimension)
 }
 @Composable private fun AqChevron(open:Boolean) {
     Canvas(Modifier.size(24.dp)) {
@@ -216,8 +189,8 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
     val unit=aqUnit(row,gas)
     val description=row.name+(if(unit.isNotEmpty()) " · "+unit else "")
     Box(Modifier.fillMaxSize().clickable(role=Role.Button,onClickLabel=uiText(R.string.ui_nazov_a_jednotka_28e528ad),onClick={ show=true }).semantics { contentDescription=description },contentAlignment=Alignment.Center) {
-        if(row.kind==AqKind.Pollen) AqPlantGlyph(row.key,AqText,24.dp)
-        else AqModeGlyph(AqModes.firstOrNull { it.key==row.key } ?: AqMode.Index,AqText,24.dp)
+        if(row.kind==AqKind.Pollen) AqPlantGlyph(row.key,AqText,22.dp)
+        else AqModeGlyph(AqModes.firstOrNull { it.key==row.key } ?: AqMode.Index,AqText,22.dp)
         DropdownMenu(expanded=show,onDismissRequest={ show=false }) { Text(description,modifier=Modifier.widthIn(max=260.dp).padding(12.dp),fontSize=13.sp) }
     }
 }
@@ -359,7 +332,7 @@ private fun aqDayName(date:LocalDate,zone:ZoneId):String {
                         val active=mode==m;val shape=RoundedCornerShape(50)
                         Box(Modifier.size(48.dp).clip(shape).background(if(active) AqBlue else AqPanel).border(1.dp,if(active) AqBlue else AqEdge,shape)
                             .selectable(selected=active,role=Role.RadioButton,onClick={ mode=m }).semantics { contentDescription=m.label },contentAlignment=Alignment.Center) {
-                            AqModeGlyph(m,if(active) Color(0xFF101F39) else AqText,24.dp)
+                            AqModeGlyph(m,if(active) Color(0xFF101F39) else AqText,22.dp)
                         }
                     }
                 }

@@ -163,10 +163,10 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
                     }
                     Box(Modifier.padding(bottom=3.dp)) {
                         when(tile) {
-                            MarineTile.Temperature->Column(horizontalAlignment=Alignment.CenterHorizontally) {SummaryGlyph(SummaryIcon.Temp,levelTone,22.dp);Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(28.dp,18.dp))}
-                            MarineTile.Level->Column(horizontalAlignment=Alignment.CenterHorizontally) {if(next.isFinite() && raw.isFinite() && abs(next-raw)>.01) TkRiseArrow(next>raw,levelTone);Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(36.dp,24.dp))}
-                            MarineTile.Waves->if(bearing.isFinite()) {val box=rememberTileTextBox();Box(Modifier.padding(bottom=(box.descent-3.dp).coerceAtLeast(0.dp))) {TkDirectionArrow(d.at("wave_direction",i),levelTone,box.height,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing))}} else Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(36.dp))
-                            MarineTile.Period->Canvas(Modifier.size(34.dp)) {val r=size.minDimension*.42f;drawCircle(levelTone,r,center,style=Stroke(1.7.dp.toPx()));drawLine(levelTone,center,center+Offset(0f,-r*.6f),1.7.dp.toPx(),StrokeCap.Round);drawLine(levelTone,center,center+Offset(r*.45f,r*.25f),1.7.dp.toPx(),StrokeCap.Round)}
+                            MarineTile.Temperature->Column(horizontalAlignment=Alignment.CenterHorizontally) {SummaryGlyph(SummaryIcon.Temp,levelTone,22.dp);GlyphIcon(Glyph.Wave,levelTone,22.dp)}
+                            MarineTile.Level->Column(horizontalAlignment=Alignment.CenterHorizontally) {if(next.isFinite() && raw.isFinite() && abs(next-raw)>.01) TkRiseArrow(next>raw,levelTone);GlyphIcon(Glyph.Wave,levelTone,26.dp)}
+                            MarineTile.Waves->if(bearing.isFinite()) {val box=rememberTileTextBox();Box(Modifier.padding(bottom=(box.descent-3.dp).coerceAtLeast(0.dp))) {TkDirectionArrow(d.at("wave_direction",i),levelTone,box.height,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing))}} else GlyphIcon(Glyph.Wave,levelTone,40.dp)
+                            MarineTile.Period->GlyphIcon(Glyph.SeaPeriod,levelTone,40.dp)
                         }
                     }
                 }

@@ -122,24 +122,11 @@ private enum class SettingsPage(val titleRes:Int) {
 }
 
 @Composable private fun SettingsGlyph(page:SettingsPage) {
-    val color=MaterialTheme.colorScheme.primary
-    Canvas(Modifier.size(26.dp)) {
-        scale(size.width/24f,size.height/24f,Offset.Zero) {
-            val stroke=Stroke(1.6f,cap=StrokeCap.Round)
-            fun line(a:Float,b:Float,c:Float,d:Float)=drawLine(color,Offset(a,b),Offset(c,d),1.6f,StrokeCap.Round)
-            when(page) {
-                SettingsPage.Background->{drawCircle(color,9f,Offset(12f,12f),style=stroke);line(12f,6f,12f,12f);line(12f,12f,17f,15f)}
-                SettingsPage.Language->{drawCircle(color,9f,Offset(12f,12f),style=stroke);line(3f,12f,21f,12f);line(12f,3f,12f,21f);drawOval(color,topLeft=Offset(7.5f,3f),size=Size(9f,18f),style=stroke)}
-                SettingsPage.Units->{listOf(6f,12f,18f).forEachIndexed {i,y->line(3f,y,21f,y);drawCircle(color,2f,Offset(if(i==1) 16f else 8f,y))}}
-                SettingsPage.Overview->{for(x in listOf(3f,13f)) for(y in listOf(3f,13f)) drawRoundRect(color,Offset(x,y),Size(8f,8f),CornerRadius(2f),style=stroke)}
-                SettingsPage.Forecast->{val a=Path().apply {moveTo(3f,12f);cubicTo(9f,11f,14f,8f,21f,4f)};val b=Path().apply {moveTo(3f,12f);cubicTo(9f,13f,14f,16f,21f,20f)};drawPath(a,color,style=stroke);drawPath(b,color,style=stroke);line(3f,12f,21f,12f);drawCircle(color,1.6f,Offset(3f,12f))}
-                SettingsPage.Notifications->{val p=Path().apply {moveTo(4f,18f);lineTo(7f,14f);lineTo(7f,9f);cubicTo(7f,2f,17f,2f,17f,9f);lineTo(17f,14f);lineTo(20f,18f);close()};drawPath(p,color,style=stroke);drawCircle(color,1.5f,Offset(12f,21f))}
-                SettingsPage.Widgets->{drawRoundRect(color,Offset(3f,3f),Size(18f,7f),CornerRadius(2f),style=stroke);drawRoundRect(color,Offset(3f,13f),Size(8f,8f),CornerRadius(2f),style=stroke);drawRoundRect(color,Offset(13f,13f),Size(8f,8f),CornerRadius(2f),style=stroke)}
-                SettingsPage.About->{drawCircle(color,9f,Offset(12f,12f),style=stroke);line(12f,11f,12f,17f);drawCircle(color,1f,Offset(12f,7.5f))}
-                SettingsPage.Backup->{line(4f,15f,4f,21f);line(4f,21f,20f,21f);line(20f,21f,20f,15f);line(12f,3f,12f,16f);line(7f,11f,12f,16f);line(12f,16f,17f,11f)}
-            }
-        }
-    }
+    GlyphIcon(when(page) {
+        SettingsPage.Background->Glyph.SetBackground;SettingsPage.Language->Glyph.SetLanguage;SettingsPage.Units->Glyph.SetUnits
+        SettingsPage.Overview->Glyph.SetOverview;SettingsPage.Forecast->Glyph.SetForecast;SettingsPage.Notifications->Glyph.SetNotifications
+        SettingsPage.Widgets->Glyph.SetWidgets;SettingsPage.About->Glyph.SetAbout;SettingsPage.Backup->Glyph.SetBackup
+    },MaterialTheme.colorScheme.primary,24.dp)
 }
 
 @Composable private fun SettingsNotice(title:String,description:String) {
@@ -155,7 +142,7 @@ private enum class SettingsPage(val titleRes:Int) {
     val color=MaterialTheme.colorScheme.onSurfaceVariant
     IconButton(onClick={open=true},modifier=Modifier.size(36.dp)) {
         Canvas(Modifier.size(18.dp)) {
-            drawCircle(color,style=Stroke(1.4.dp.toPx()))
+            drawCircle(color,radius=size.minDimension/2-.65.dp.toPx(),style=Stroke(1.3.dp.toPx()))
             drawLine(color,Offset(size.width/2,size.height*.42f),Offset(size.width/2,size.height*.74f),1.6.dp.toPx(),StrokeCap.Round)
             drawCircle(color,1.1.dp.toPx(),Offset(size.width/2,size.height*.28f))
         }

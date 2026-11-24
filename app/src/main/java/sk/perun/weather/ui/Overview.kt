@@ -287,7 +287,7 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
         Modifier.fillMaxWidth().clip(shape).background(surface?.first ?: TileBackground).border(1.dp,surface?.second ?: TileBorder,shape).clickable(onClick=onOpen).padding(horizontal=10.dp,vertical=6.dp),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp),
     ) {
-        AlertGlyph(alertHazard(first.event+" "+g.label,first.awareness),color,20.dp)
+        AlertGlyph(alertHazard(first.event+" "+g.label,first.awareness),color,18.dp)
         Column(Modifier.weight(1f)) {
             Text(AlertLocalNames[g.label] ?: g.label,fontSize=13.sp,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis,lineHeight=16.sp)
             Text(alertLevelName(level)+if(first.local) uiText(R.string.ui_odhad_5dde2d79) else "",fontSize=11.sp,color=color,maxLines=1,overflow=TextOverflow.Ellipsis)
@@ -448,8 +448,8 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
             TileBody(graphic={
                 if(liquid>0 && snow>0) Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.Bottom) {
                     TkFlush(30.dp,30.dp,0.dp,30.dp.inset(1.4f)) { TkDropGraphic(liquidFraction,tint,Modifier.size(30.dp)) }
-                    TkFlush(26.dp,26.dp,26.dp.inset(3.2f),26.dp.inset(2f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(26.dp)) }
-                } else if(snow>0) TkFlush(40.dp,40.dp,40.dp.inset(3.2f),40.dp.inset(2f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(40.dp)) }
+                    TkFlush(26.dp,26.dp,26.dp.inset(4.05f),26.dp.inset(3f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(26.dp)) }
+                } else if(snow>0) TkFlush(40.dp,40.dp,40.dp.inset(4.05f),40.dp.inset(3f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(40.dp)) }
                 else TkFlush(40.dp,40.dp,40.dp.inset(4.4f),40.dp.inset(1.4f)) { TkDropGraphic(liquidFraction,tint,Modifier.size(40.dp)) }
             },lastSize=if(liquid>0 && snow>0) 12.sp else 14.sp,lastWeight=FontWeight.Bold) {
                 if(!known) ValueUnit(Double.NaN,"")
@@ -480,19 +480,19 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
             }
         },
         TkSpec(OverviewTileId.Humidity,uiText(R.string.ui_vlhkost_e06c751e),humBand?.color ?: Grey,humBand?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(4.4f),38.dp.inset(1.4f)) { HumidityPercentDrop(if(humidity.isFinite()) humidity/100.0 else 0.0,humBand?.color ?: Color(0xFF8294AD),Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ TkFlush(40.dp,40.dp,40.dp.inset(4.4f),40.dp.inset(1.4f)) { HumidityPercentDrop(if(humidity.isFinite()) humidity/100.0 else 0.0,humBand?.color ?: Color(0xFF8294AD),Modifier.size(40.dp)) } }) {
                 ValueUnit(humidity,"%")
                 Sub(uiText(R.string.ui_rosny_bod_754737bc)+overviewNumber(u.temperature.fromCelsius(dew),"°"))
             }
         },
         TkSpec(OverviewTileId.Pressure,uiText(R.string.ui_tlak_vzduchu_cc4c1846),pBand.color,pBand.name,"pressure") {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(.8f),38.dp.inset(.8f)) { TkTrendGraphic(pressureChange,pBand.color,Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ TkFlush(40.dp,40.dp,40.dp.inset(1.95f),40.dp.inset(1.95f)) { TkTrendGraphic(pressureChange,pBand.color,Modifier.size(40.dp)) } }) {
                 ValueUnit(pressureValue,u.pressure.symbol,OverviewText,if(u.pressure==PressureUnit.InchesMercury) 2 else 0)
                 Sub(pressureDelta(u.pressure,pressureChange),pBand.color)
             }
         },
         TkSpec(OverviewTileId.Visibility,uiText(R.string.ui_viditelnost_7f90db41),visBand?.color ?: Grey,visBand?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(1.1f),38.dp.inset(3.2f)) { TkEyeGraphic(visBand?.color ?: Color(0xFF8294AD),Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ TkFlush(40.dp,40.dp,40.dp.inset(2.2f),40.dp.inset(4f)) { TkEyeGraphic(visBand?.color ?: Color(0xFF8294AD),Modifier.size(40.dp)) } }) {
                 ValueUnit(visibilityKm,"km",OverviewText,if(visibilityKm<10) 1 else 0)
                 Sub(visBand?.name ?: "",visBand?.color ?: ForecastMuted)
             }
@@ -519,7 +519,7 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
         },
         TkSpec(OverviewTileId.Pollen,uiText(R.string.ui_pel_aktualne_0fd4a0ea),pollen.firstOrNull()?.let { PollenLevelColors[it.third] } ?: Grey,pollenTip,null) {
             if(pollen.isEmpty()) Text(if(pollenKnown) uiText(R.string.ui_ziadny_pel_v_udajoch_061b5fd7) else uiText(R.string.ui_udaje_nie_su_dostupne_f7a6149a),color=ForecastMuted,fontSize=13.sp)
-            else TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(2.1f),38.dp.inset(2.1f)) { TkPollenGraphic(PollenLevelColors[pollen.first().third],Modifier.size(38.dp)) } },lastSize=15.sp,lastWeight=FontWeight.SemiBold) {
+            else TileBody(graphic={ TkFlush(40.dp,40.dp,40.dp.inset(2.1f),40.dp.inset(2.1f)) { TkPollenGraphic(PollenLevelColors[pollen.first().third],Modifier.size(40.dp)) } },lastSize=15.sp,lastWeight=FontWeight.SemiBold) {
                 pollen.take(2).forEach { (k,v,level) ->
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                         Text(PollenNames[k] ?: k,fontSize=14.sp,maxLines=1,overflow=TextOverflow.Ellipsis,modifier=Modifier.weight(1f,fill=false))
