@@ -362,6 +362,7 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Gust->GustGlyph(Color.White,22.dp)
             FV.Direction->TkDirectionArrow(225.0,Color.White,20.dp,row.label)
             FV.Dew->DewPointGlyph(Color.White,22.dp)
+            FV.Pressure->PressureGaugeGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
         }
         DropdownMenu(expanded=show,onDismissRequest={show=false}) { Text(description,modifier=Modifier.widthIn(max=260.dp).padding(12.dp),fontSize=13.sp) }
@@ -485,6 +486,18 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
         }
         rows.forEachIndexed { i,row->
             Box(Modifier.offset(y=(68+i*rowDp).dp).width(36.dp).height(rowDp.dp),contentAlignment=Alignment.Center) { ForecastPlotIcon(row,u,selected?.let { day.hours[it] }) }
+        }
+    }
+}
+
+// The row icon of the pressure: a gauge, a circle with a needle and a hub. The arrow of the pressure stays for the trend.
+@Composable internal fun PressureGaugeGlyph(color:Color,dimension:androidx.compose.ui.unit.Dp) {
+    Canvas(Modifier.size(dimension)) {
+        val k=size.width/24f
+        scale(k,k,Offset.Zero) {
+            drawCircle(color,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
+            drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round)
+            drawCircle(color,1.7f,Offset(12f,12f))
         }
     }
 }

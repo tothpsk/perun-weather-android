@@ -133,9 +133,8 @@ private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = composeBitmap(px,24
         }
         "pressure"->{
             drawCircle(color,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round)
-            drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round)
-            drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
+            drawLine(color,Offset(12f,12f),Offset(16.8f,7.2f),1.8f,StrokeCap.Round)
+            drawCircle(color,1.7f,Offset(12f,12f))
         }
         else->Unit
     }
