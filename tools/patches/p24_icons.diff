@@ -1,0 +1,250 @@
+diff --git a/app/src/main/java/sk/perun/weather/ui/DayWidget.kt b/app/src/main/java/sk/perun/weather/ui/DayWidget.kt
+index d3f2a4e..fb30350 100644
+--- a/app/src/main/java/sk/perun/weather/ui/DayWidget.kt
++++ b/app/src/main/java/sk/perun/weather/ui/DayWidget.kt
+@@ -24,8 +24,6 @@ import androidx.compose.material3.*
+ import androidx.compose.runtime.*
+ import androidx.compose.ui.Modifier
+ import androidx.compose.ui.graphics.Color
+-import androidx.compose.ui.graphics.drawscope.rotate
+-import androidx.compose.ui.graphics.drawscope.scale
+ import androidx.compose.ui.graphics.toArgb
+ import androidx.compose.ui.unit.dp
+ import androidx.work.CoroutineWorker
+@@ -77,7 +75,7 @@ private class DayData(val zone:ZoneId,val hours:List<ForecastHour>) {
+ }
+ 
+ // The row icons of the expanded day on the Forecast screen: the same glyphs as the app (PerunGlyphs.kt).
+-private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = widgetIconBitmap(row,color.toArgb(),px)
++private fun rowGlyph(row:String,color:Color,px:Int,dp:Float=18f):Bitmap = widgetIconBitmap(row,color.toArgb(),px,dp)
+ 
+ /** The Day by hours widget keeps the last forecast in a file, so that the day arrows and the now line work without the network. */
+ internal object DayWidgets {
+@@ -322,11 +320,11 @@ internal object DayWidgets {
+             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
+             val icon=when(row) {
+                 "direction"->dayDirectionRowArrow(gs)
+-                "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
+-                "rain"->rowGlyph(row,Color.White,gs)
+-                "gust"->rowGlyph(row,Color.White,gs)
+-                "dew"->rowGlyph(row,Color.White,gs)
+-                else->rowGlyph(row,Color.White,gs)
++                "prob"->rowGlyph("prob",Color.White,gs,gs/dn)
++                "rain"->rowGlyph(row,Color.White,gs,gs/dn)
++                "gust"->rowGlyph(row,Color.White,gs,gs/dn)
++                "dew"->rowGlyph(row,Color.White,gs,gs/dn)
++                else->rowGlyph(row,Color.White,gs,gs/dn)
+             }
+             cv.drawBitmap(icon,(left-icon.width)/2f,y0+(rh-icon.height)/2f,null)
+             if(row=="direction") {
+@@ -380,8 +378,8 @@ internal object DayWidgets {
+                 if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
+                     val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
+                     val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
+-                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss),px+ss,gy,null) }
+-                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
++                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss,ss/dn),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss,ss/dn),px+ss,gy,null) }
++                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss,ss/dn),gx,gy,null)
+                 } }
+             }
+         }
+diff --git a/app/src/main/java/sk/perun/weather/ui/MarineOverview.kt b/app/src/main/java/sk/perun/weather/ui/MarineOverview.kt
+index b0c5f2c..19d876a 100644
+--- a/app/src/main/java/sk/perun/weather/ui/MarineOverview.kt
++++ b/app/src/main/java/sk/perun/weather/ui/MarineOverview.kt
+@@ -158,12 +158,14 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
+                         }
+                         Text(sub,color=ForecastMuted,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                     }
+-                    Box(Modifier.padding(bottom=3.dp)) {
++                    // The graphics of the tiles of the Now screen: 40 dp with their line, standing on the bottom of the text.
++                    val tileBox=rememberTileTextBox()
++                    Box(Modifier.padding(end=2.dp,bottom=tileBox.descent)) {
+                         when(tile) {
+-                            MarineTile.Temperature->Column(horizontalAlignment=Alignment.CenterHorizontally) {SummaryGlyph(SummaryIcon.Temp,levelTone,22.dp);GlyphIcon(Glyph.Wave,levelTone,22.dp)}
+-                            MarineTile.Level->Column(horizontalAlignment=Alignment.CenterHorizontally) {if(next.isFinite() && raw.isFinite() && abs(next-raw)>.01) TkRiseArrow(next>raw,levelTone);GlyphIcon(Glyph.Wave,levelTone,26.dp)}
+-                            MarineTile.Waves->if(bearing.isFinite()) {val box=rememberTileTextBox();Box(Modifier.padding(bottom=(box.descent-3.dp).coerceAtLeast(0.dp))) {TkDirectionArrow(d.at("wave_direction",i),levelTone,box.height,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing))}} else GlyphIcon(Glyph.Wave,levelTone,40.dp)
+-                            MarineTile.Period->GlyphIcon(Glyph.SeaPeriod,levelTone,40.dp)
++                            MarineTile.Temperature->TkGlyph(Glyph.SeaTemp,levelTone)
++                            MarineTile.Level->TkGlyph(if(!next.isFinite() || !raw.isFinite() || abs(next-raw)<=.01) Glyph.Wave else if(next>raw) Glyph.SeaLevel else Glyph.SeaLevelDown,levelTone)
++                            MarineTile.Waves->if(bearing.isFinite()) TkDirectionArrow(d.at("wave_direction",i),levelTone,TileLong,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing)) else TkGlyph(Glyph.Wave,levelTone)
++                            MarineTile.Period->TkGlyph(Glyph.SeaPeriod,levelTone)
+                         }
+                     }
+                 }
+diff --git a/app/src/main/java/sk/perun/weather/ui/MeteogramChart.kt b/app/src/main/java/sk/perun/weather/ui/MeteogramChart.kt
+index 4910536..f1c92c5 100644
+--- a/app/src/main/java/sk/perun/weather/ui/MeteogramChart.kt
++++ b/app/src/main/java/sk/perun/weather/ui/MeteogramChart.kt
+@@ -146,8 +146,8 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
+ 
+     // Every axis is as wide as its longest number.
+     p.textSize=9*dn
+-    // The axis icons: 10 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
+-    val glyph=((if(hPx<96*dn) 10 else if("cloud" in show) 18 else 16)*dn).roundToInt()
++    // The axis icons: 12 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
++    val glyph=((if(hPx<96*dn) 12 else if("cloud" in show) 18 else 16)*dn).roundToInt()
+     fun labels(a:MeteoAxis):List<String> = (0..4).map { weatherUnitNumber(a.lo+a.step*it,a.decimals)+a.suffix }
+     (left+right).forEach { a -> a.w=max(labels(a).maxOf { p.measureText(it) }+5*dn,glyph+4*dn) }
+     val plotL=left.sumOf { it.w.toDouble() }.toFloat()+2*dn
+diff --git a/app/src/main/java/sk/perun/weather/ui/Overview.kt b/app/src/main/java/sk/perun/weather/ui/Overview.kt
+index 9ff7343..75fd422 100644
+--- a/app/src/main/java/sk/perun/weather/ui/Overview.kt
++++ b/app/src/main/java/sk/perun/weather/ui/Overview.kt
+@@ -509,7 +509,7 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
+     Text(text,color=OverviewText,fontSize=size.value.sp,maxLines=1,softWrap=false,onTextLayout={ if(it.hasVisualOverflow && size.value>12f) size.value-=1f })
+ }
+ 
+-// Arrow of the wind tile: as tall as the two rows of text, it points where the wind blows.
++// Arrow of the wind tile: as tall as the other tile graphics (TileLong), it points where the wind blows.
+ @Composable private fun WindArrow(direction:Double,color:Color) {
+-    TkDirectionArrow(direction,color,rememberTileTextBox().height,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
++    TkDirectionArrow(direction,color,TileLong,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
+ }
+diff --git a/app/src/main/java/sk/perun/weather/ui/OverviewArt.kt b/app/src/main/java/sk/perun/weather/ui/OverviewArt.kt
+index 9714be8..b46de4b 100644
+--- a/app/src/main/java/sk/perun/weather/ui/OverviewArt.kt
++++ b/app/src/main/java/sk/perun/weather/ui/OverviewArt.kt
+@@ -240,19 +240,18 @@ internal fun pollenRatio(key: String, v: Double): Double = v / (PollenThresholds
+ internal fun cardinal(degrees: Double): String =
+     if (!degrees.isFinite()) "—" else listOf(uiText(R.string.ui_s_8de0b3c4), uiText(R.string.ui_sv_a4cd8b4d), uiText(R.string.ui_v_de5a6f78), uiText(R.string.ui_jv_002b53e7), uiText(R.string.ui_j_6da43b94), uiText(R.string.ui_jz_f296f166), uiText(R.string.ui_z_bbeebd87), uiText(R.string.ui_sz_c29f2aa3))[((degrees / 45.0 + 0.5).toInt() % 8 + 8) % 8]
+ 
+-// line: the outline of the tile graphics (drawn over the lit part, the disc fills the area); null: the thin outline of
+-// the small Moon on the Sun and Moon screen and in the help.
++// line: the outline of the tile graphics; null: the line of an icon of this size (GlyphLine of the 24 grid, at least
++// GlyphMinDp), as on the Sun and Moon screen and in the help. The disc fills the area and its outline is drawn over the lit part.
+ @Composable
+ internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, modifier: Modifier = Modifier, line: Dp? = null) {
+     Canvas(modifier.aspectRatio(1f)) {
+         val k = size.width / 64f
+-        val stroke = line?.toPx()?.div(k) ?: 1.6f
++        val stroke = (line?.toPx() ?: maxOf(size.width * GlyphLine / 24f, GlyphMinDp.dp.toPx())) / k
+         scale(k, k, Offset.Zero) {
+-            val r = if (line != null) 32f - stroke / 2f else 26f
++            val r = 32f - stroke / 2f
+             val cx = 32f
+             val cy = 32f
+             drawCircle(Color(0xFF252D3D), r, Offset(cx, cy))
+-            if (line == null) drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
+             val f = (illumination / 100f).coerceIn(0f, 1f)
+             if (f > 0.01f) {
+                 val rx = maxOf(abs(r * (1 - 2 * f)), 0.01f)
+@@ -265,7 +264,7 @@ internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean,
+                 val mirror = !waxing != southern
+                 if (mirror) scale(-1f, 1f, Offset(cx, cy)) { drawPath(lit, Color(0xFFD8E0F0)) } else drawPath(lit, Color(0xFFD8E0F0))
+             }
+-            if (line != null) drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
++            drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
+         }
+     }
+ }
+diff --git a/app/src/main/java/sk/perun/weather/ui/OverviewTileGraphics.kt b/app/src/main/java/sk/perun/weather/ui/OverviewTileGraphics.kt
+index ec64bfc..ed62ebd 100644
+--- a/app/src/main/java/sk/perun/weather/ui/OverviewTileGraphics.kt
++++ b/app/src/main/java/sk/perun/weather/ui/OverviewTileGraphics.kt
+@@ -50,6 +50,10 @@ private fun tileBounds(g:Glyph):Rect=when(g) {
+     Glyph.Pressure->Rect(2.83f,2.83f,21.17f,21.17f)
+     Glyph.Uv->Rect(6.3f,2.79f,17.7f,21.13f)
+     Glyph.Temp->Rect(8.06f,2.87f,15.96f,21.1f)
++    Glyph.SeaTemp->Rect(3f,1.9f,21f,19.9f)
++    Glyph.SeaLevel,Glyph.SeaLevelDown->Rect(3.88f,5.18f,20.12f,18.8f)
++    Glyph.Wave->Rect(2.88f,5.88f,21.12f,18.14f)
++    Glyph.SeaPeriod->Rect(2.87f,2.87f,21.13f,21.13f)
+     else->Rect(0f,0f,24f,24f)
+ }
+ 
+diff --git a/app/src/main/java/sk/perun/weather/ui/OverviewTileKit.kt b/app/src/main/java/sk/perun/weather/ui/OverviewTileKit.kt
+index 031c692..6db9c5f 100644
+--- a/app/src/main/java/sk/perun/weather/ui/OverviewTileKit.kt
++++ b/app/src/main/java/sk/perun/weather/ui/OverviewTileKit.kt
+@@ -148,7 +148,7 @@ internal class TileTextBox(val height:Dp,val descent:Dp)
+     Canvas(Modifier.size(length).semantics { contentDescription=description }) {
+         val angle=(direction+180)*PI/180
+         val v=Offset(sin(angle).toFloat(),-cos(angle).toFloat())
+-        val stroke=maxOf(size.width*GlyphLine/24f,1.3.dp.toPx())
++        val stroke=maxOf(size.width*GlyphLine/24f,GlyphMinDp.dp.toPx())
+         val half=(size.width-stroke)/2
+         val tip=center+v*half
+         val base=tip-v*(half*4f/7f)
+diff --git a/app/src/main/java/sk/perun/weather/ui/PerunGlyphs.kt b/app/src/main/java/sk/perun/weather/ui/PerunGlyphs.kt
+index a6f061d..c0d6b84 100644
+--- a/app/src/main/java/sk/perun/weather/ui/PerunGlyphs.kt
++++ b/app/src/main/java/sk/perun/weather/ui/PerunGlyphs.kt
+@@ -29,7 +29,7 @@ import kotlin.math.max
+  * The outline icons of the app, the widgets and the notifications, in one place. 24 x 24 grid; every drawing is fitted
+  * to its key shape (circle 20, square 18, landscape 20 x 16, portrait 16 x 20; the plants 20 x 20), so that icons of one
+  * size look equally large. The line is 1.75 of the grid (0.073 of the size, as in the expanded day of the Forecast
+- * screen) and at least 1.3 dp; details keep at least three quarters of it.
++ * screen) and at least 1.0 dp; details keep at least three quarters of it.
+  */
+ internal class GlyphLayer(data:String,val weight:Float=1f,val fill:Boolean=false,val muted:Boolean=false,val turns:Boolean=false) {
+     val path:Path=PathParser().parsePathString(data).toNodes().toPath()
+@@ -72,6 +72,9 @@ internal enum class Glyph(val line:Float,private val make:()->List<GlyphLayer>)
+     PlantRagweed(.85f,{ listOf(L("M 12,21.26 L 12,12.99 M 12,5.55 a 1.4,1.4 0 0,0 0,-2.81 a 1.4,1.4 0 0,0 0,2.81 z M 12,9.27 a 1.4,1.4 0 1,0 0,-2.81 a 1.4,1.4 0 1,0 0,2.81 z M 12,12.99 a 1.4,1.4 0 1,0 0,-2.81 a 1.4,1.4 0 1,0 0,2.81 z M 12,21.26 c -1.65,-2.48 -2.48,-3.47 -4.38,-3.14 c -2.15,0.41 -2.64,-0.66 -0.41,-1.49 c -2.98,-1.24 -4.13,-3.88 -2.64,-3.55 l 3.14,2.15 c -0.91,-4.3 1.32,-3.55 1.9,0.25 L 10.35,19.6 M 12,21.26 c 1.65,-2.48 2.48,-3.47 4.38,-3.14 c 2.15,0.41 2.64,-0.66 0.41,-1.49 c 2.98,-1.24 4.13,-3.88 2.64,-3.55 l -3.14,2.15 c 0.91,-4.3 -1.32,-3.55 -1.9,0.25 L 13.65,19.6")) }),
+     Wave(1f,{ listOf(L("M 2.88,14.49 c 3.65,0 4.56,-1.82 5.47,-4.56 c 0.91,-3.65 5.47,-5.47 8.21,-2.74 c -2.74,-0.91 -4.56,0.91 -3.65,2.74 c 0.91,2.74 4.56,3.65 8.21,3.65 M 2.88,18.14 c 1.82,0 2.74,-0.91 4.56,-0.91 s 2.74,0.91 4.56,0.91 s 2.74,-0.91 4.56,-0.91 s 2.74,0.91 4.56,0.91")) }),
+     SeaPeriod(1f,{ listOf(L("M 2.87,12 A 9.13,9.13 0 1,0 21.13,12 A 9.13,9.13 0 1,0 2.87,12 ZM 12,12 L 12,6.52M 12,12 L 16.11,14.28")) }),
++    // The sea temperature: a thermometer standing on a wave. The sea level: a wave with the arrow of the trend.
++    SeaTemp(1f,{ listOf(L("M 10.6,3.3 a 1.4,1.4 0 0,1 2.8,0 l 0,8.4 a 2.9,2.9 0 1,1 -2.8,0 Z M 3,19.9 c 1.8,0 2.7,-0.9 4.5,-0.9 s 2.7,0.9 4.5,0.9 s 2.7,-0.9 4.5,-0.9 s 2.7,0.9 4.5,0.9")) }),
++    SeaLevelDown(1f,{ listOf(L("M 3.88,16.79 C 9.68,9.82 14.32,23.75 20.12,16.79M 12,5.18 L 12,12.15M 8.52,8.66 L 12,12.15M 15.48,8.66 L 12,12.15")) }),
+     SeaLevel(1f,{ listOf(L("M 3.88,16.79 C 9.68,9.82 14.32,23.75 20.12,16.79M 12,5.18 L 12,12.15M 8.52,8.66 L 12,5.18M 15.48,8.66 L 12,5.18")) }),
+     SetBackground(1f,{ listOf(L("M 2.88,12 A 9.12,9.12 0 0,0 21.12,12 A 9.12,9.12 0 0,0 2.88,12 ZM 12,5.92 L 12,12M 12,12 L 17.07,15.04")) }),
+     SetLanguage(1f,{ listOf(L("M 2.88,12 A 9.12,9.12 0 0,0 21.12,12 A 9.12,9.12 0 0,0 2.88,12 ZM 2.88,12 L 21.12,12M 12,2.88 L 12,21.12M 7.44,12 A 4.56,9.12 0 0,0 16.56,12 A 4.56,9.12 0 0,0 7.44,12 Z")) }),
+@@ -87,11 +90,13 @@ internal enum class Glyph(val line:Float,private val make:()->List<GlyphLayer>)
+ }
+ 
+ internal const val GlyphLine=1.75f
++/** The thinnest line of an icon in dp: small icons of the widgets, the meteogram and the notifications. */
++internal const val GlyphMinDp=1.0f
+ 
+ /** Draws a glyph over the whole draw area. dp: the size of the area in dp (for pictures drawn at density 1). */
+ internal fun DrawScope.drawGlyph(g:Glyph,color:Color,muted:Color=color,turn:Float=0f,dp:Float=size.width/density) {
+     val k=size.width/24f
+-    val line=max(GlyphLine,1.3f*24f/dp.coerceAtLeast(1f))
++    val line=max(GlyphLine,GlyphMinDp*24f/dp.coerceAtLeast(1f))
+     scale(k,k,Offset.Zero) { drawGlyphLayers(g,color,muted,turn,line) }
+ }
+ 
+diff --git a/app/src/main/java/sk/perun/weather/ui/WidgetIcons.kt b/app/src/main/java/sk/perun/weather/ui/WidgetIcons.kt
+index d69766b..aa7fe70 100644
+--- a/app/src/main/java/sk/perun/weather/ui/WidgetIcons.kt
++++ b/app/src/main/java/sk/perun/weather/ui/WidgetIcons.kt
+@@ -36,10 +36,10 @@ internal fun widgetWindArrowBitmap(direction:Double,color:Int,size:Int,dp:Float=
+     val image=ImageBitmap(px,px)
+     if(!direction.isFinite()) return image.asAndroidBitmap()
+     CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
+-        // The geometry of TkDirectionArrow: the line of the glyphs, at least 1.3 dp.
++        // The geometry of TkDirectionArrow: the line of the glyphs, at least GlyphMinDp.
+         val angle=(direction+180)*Math.PI/180
+         val v=Offset(kotlin.math.sin(angle).toFloat(),-kotlin.math.cos(angle).toFloat())
+-        val stroke=maxOf(px*GlyphLine/24f,1.3f*px/dp)
++        val stroke=maxOf(px*GlyphLine/24f,GlyphMinDp*px/dp)
+         val half=(px-stroke)/2;val c=Offset(px/2f,px/2f)
+         val tip=c+v*half;val base=tip-v*(half*4f/7f);val side=Offset(-v.y,v.x)*(half*3f/7f)
+         val col=Color(color)
+@@ -103,9 +103,9 @@ internal fun widgetSymbolBitmap(code:Int,day:Boolean,size:Int):Bitmap {
+ }
+ 
+ /** The icon of a value in a cell of a widget: the arrow of the trend for the pressure when its change is known, otherwise the icon of the quantity. */
+-internal fun widgetParamIcon(key:String,color:Int,size:Int,pressureChange:Double):Bitmap =
+-    if(key=="pressure" && pressureChange.isFinite()) widgetPressureTrendBitmap(pressureChange,color,size) else widgetIconBitmap(key,color,size)
++internal fun widgetParamIcon(key:String,color:Int,size:Int,pressureChange:Double,dp:Float=18f):Bitmap =
++    if(key=="pressure" && pressureChange.isFinite()) widgetPressureTrendBitmap(pressureChange,color,size,dp) else widgetIconBitmap(key,color,size,dp)
+ 
+ /** The trend of the pressure as on the Now screen (TkTrendGraphic): a ring and an arrow turned up by a rise and down by a fall, 60 degrees at 3 hPa in 3 hours. */
+-internal fun widgetPressureTrendBitmap(change:Double,color:Int,size:Int):Bitmap =
+-    glyphPicture(Glyph.Trend,color,size,18f,Color(color).copy(alpha=.6f).toArgb(),(-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat())
++internal fun widgetPressureTrendBitmap(change:Double,color:Int,size:Int,dp:Float=18f):Bitmap =
++    glyphPicture(Glyph.Trend,color,size,dp,Color(color).copy(alpha=.6f).toArgb(),(-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat())
+diff --git a/app/src/main/java/sk/perun/weather/ui/Widgets.kt b/app/src/main/java/sk/perun/weather/ui/Widgets.kt
+index 38efc11..5029a33 100644
+--- a/app/src/main/java/sk/perun/weather/ui/Widgets.kt
++++ b/app/src/main/java/sk/perun/weather/ui/Widgets.kt
+@@ -272,7 +272,7 @@ internal object WidgetRender {
+         }
+         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
+         fun weather(x:Float,y:Float,size:Float) = pic(widgetSymbolBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
+-        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange),x,y,size)
++        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange,size/dn),x,y,size)
+         val hasAlert=alertEvent!=null && alertLevel!=null
+         fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
+         // The place at 15 sp, bold and in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
