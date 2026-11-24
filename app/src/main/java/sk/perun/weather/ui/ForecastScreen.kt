@@ -102,7 +102,7 @@ private fun tint(v:FV,x:Double,dew:Double=Double.NaN):Color=if(!x.isFinite()) Fo
     FV.Humidity->humidityBand(x,dew)?.color ?: ForecastMuted;FV.Visibility->visibilityBand(x)?.color ?: ForecastMuted;FV.Trend->pressureBand(x).color;FV.Cloud->Color(0xFF8294AD);FV.Pressure->Color(0xFFBA9EDB);else->ForecastMuted
 }
 private fun aggregate(day:ForecastDay,v:FV)=when(v) {
-    FV.Rain->day.sum(v.key);FV.Wind,FV.Gust,FV.Prob,FV.Uv->day.max(v.key)
+    FV.Cloud->cloudMedian(day.hours.filter { it.v("is_day")==1.0 }.map { it.v(v.key) });FV.Rain->day.sum(v.key);FV.Wind,FV.Gust,FV.Prob,FV.Uv->day.max(v.key)
     FV.Direction->day.hours.filter { it.v("wind_speed_10m").isFinite() }.maxByOrNull { it.v("wind_speed_10m") }?.v(v.key) ?: Double.NaN
     else->day.mean(v.key)
 }
@@ -177,7 +177,11 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
                 }
             }
         }
-        item { Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold) }
+        item { if(mode!=FV.Cloud) Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold) else Row(verticalAlignment=Alignment.CenterVertically) {
+            Text(mode.label,color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold)
+            var openInfo by remember { mutableStateOf(false) }; val info=uiText(R.string.cloud_median_note)
+            Box { IconButton(onClick={openInfo=true},modifier=Modifier.semantics { contentDescription=info }) { Text("ⓘ",color=ForecastMuted) }; DropdownMenu(expanded=openInfo,onDismissRequest={openInfo=false}) { Text(info,modifier=Modifier.widthIn(max=260.dp).padding(12.dp)) } }
+        } }
         if(bundle!=null) items(bundle.days,key={it.date.toString()}) { day->Surface(color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
             ForecastDayRow(day,bundle,mode,u,false) { open=day.date }
         } }

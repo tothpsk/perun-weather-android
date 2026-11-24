@@ -22,7 +22,7 @@ internal data class OutlookDay(
     val date: LocalDate, val code: Int, val tmin: Double, val tmax: Double,
     val liquid: Double, val snow: Double, val rain: Double, val showers: Double, val probability: Double,
     val wind: Double, val gust: Double, val windDirection: Double,
-    val cloudMean: Double, val cloudMax: Double, val uv: Double, val aqi: Double,
+    val cloudMean: Double, val cloudMax: Double, val uv: Double, val aqi: Double, val daylightCloud: Double = Double.NaN,
 )
 
 internal data class OverviewAir(val aqi: Double, val pm25: Double, val pm10: Double, val pollen: Map<String, Double>)
@@ -46,7 +46,7 @@ internal data class OverviewData(
 private val POLLEN_KEYS = listOf("alder", "birch", "grass", "mugwort", "ragweed", "olive")
 private val SNOW_CODES = setOf(71, 73, 75, 77, 85, 86)
 private val CURRENT_KEYS = listOf("temperature_2m", "apparent_temperature", "is_day", "weather_code", "cloud_cover", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "precipitation", "rain", "showers", "snowfall", "uv_index", "precipitation_probability")
-private val HOURLY_KEYS = listOf("temperature_2m", "weather_code", "precipitation", "rain", "showers", "snowfall", "precipitation_probability", "cloud_cover", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "uv_index")
+private val HOURLY_KEYS = listOf("is_day", "temperature_2m", "weather_code", "precipitation", "rain", "showers", "snowfall", "precipitation_probability", "cloud_cover", "wind_speed_10m", "wind_direction_10m", "wind_gusts_10m", "uv_index")
 
 private class AirBundle(val now: OverviewAir, val hourlyAqi: Map<String, Double>)
 
@@ -187,6 +187,7 @@ internal suspend fun loadOverview(location: Location, alertSource: String = "kde
         val showers = h.series("showers", n)
         val snowfall = h.series("snowfall", n)
         val prob = h.series("precipitation_probability", n)
+        val daylight = h.series("is_day", n)
         val cloud = h.series("cloud_cover", n)
         val wind = h.series("wind_speed_10m", n)
         val windDir = h.series("wind_direction_10m", n)
@@ -241,6 +242,7 @@ internal suspend fun loadOverview(location: Location, alertSource: String = "kde
                 rain = rainV.sum(), showers = showV.sum(), probability = vals(prob).maxOrNull() ?: Double.NaN,
                 wind = maxWindIndex?.let { wind[it] } ?: Double.NaN, gust = vals(gust).maxOrNull() ?: Double.NaN,
                 windDirection = maxWindIndex?.let { windDir[it] } ?: Double.NaN,
+                daylightCloud = cloudMedian(ix.filter { daylight[it]==1.0 }.map { cloud[it] }),
                 cloudMean = vals(cloud).average(), cloudMax = vals(cloud).maxOrNull() ?: Double.NaN,
                 uv = vals(uv).maxOrNull() ?: Double.NaN,
                 aqi = ix.mapNotNull { air?.hourlyAqi?.get(times[it]) }.maxOrNull() ?: Double.NaN,
@@ -286,4 +288,9 @@ internal fun overviewCondition(code: Int): String = when {
     code >= 61 -> uiText(R.string.ui_dazd_8eda180e)
     code >= 51 -> uiText(R.string.ui_mrholenie_081d9f6f)
     else -> uiText(R.string.ui_stav_nie_je_dostupny_03c5a0b5)
+}
+
+internal fun cloudMedian(samples:List<Double>):Double {
+    val a=samples.filter { it in 0.0..100.0 }.sorted(); if(a.isEmpty()) return Double.NaN
+    return (a[(a.size-1)/2]+a[a.size/2])/2
 }

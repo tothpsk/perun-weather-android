@@ -473,10 +473,10 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
                 Sub(uiText(R.string.ui_max_1eed76ee)+overviewNumber(today?.uv ?: Double.NaN))
             }
         },
-        TkSpec(OverviewTileId.Cloud,uiText(R.string.ui_oblacnost_b5a6e70c),if(grey<0) Grey else Color(grey,grey+4,grey+12),cloudName(w.cloud).ifEmpty { uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61) },"cloud") {
+        TkSpec(OverviewTileId.Cloud,uiText(R.string.ui_oblacnost_b5a6e70c),if(grey<0) Grey else Color(grey,grey+4,grey+12),cloudName(w.cloud).ifEmpty { uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61) }+"\n"+uiText(R.string.cloud_median_note),"cloud") {
             TileBody(graphic={ TkFlush(70.dp,70.dp/1.3f,4.3.dp,11.8.dp) { CloudFill(if(w.cloud.isFinite()) w.cloud/100.0 else 0.0,Color(0xFF8294AD),null,0,Modifier.width(70.dp)) } }) {
                 ValueUnit(w.cloud,"%")
-                Sub(uiText(R.string.ui_dnes_2b1a88a3)+overviewNumber(today?.cloudMean ?: Double.NaN," %"))
+                Sub(uiText(R.string.ui_dnes_2b1a88a3)+overviewNumber(today?.daylightCloud ?: Double.NaN," %"))
             }
         },
         TkSpec(OverviewTileId.Humidity,uiText(R.string.ui_vlhkost_e06c751e),humBand?.color ?: Grey,humBand?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
