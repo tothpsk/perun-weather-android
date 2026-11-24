@@ -395,7 +395,7 @@ internal object DayWidgets {
             rect(Divider,0f,y0,wPx.toFloat(),y0+dn)
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
-                "direction"->compassGlyph(Color.White,(gs*1.15f).roundToInt())
+                "direction"->dayDirectionRowArrow(gs)
                 "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
                 "rain"->rowGlyph(row,Color.White,gs)
                 "gust"->rowGlyph(row,Color.White,gs)
@@ -581,4 +581,19 @@ class DayWidgetConfigActivity:ComponentActivity() {
         }
         Button(onClick={ onSave(loc,rows.ifEmpty { DayWidgetRows }) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
+}
+
+private fun dayDirectionRowArrow(size:Int):android.graphics.Bitmap {
+    val n=size.coerceAtLeast(1)
+    val bitmap=android.graphics.Bitmap.createBitmap(n,n,android.graphics.Bitmap.Config.ARGB_8888)
+    val canvas=android.graphics.Canvas(bitmap)
+    canvas.scale(n/20f,n/20f)
+    canvas.rotate(45f,10f,10f)
+    val pen=android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
+        color=android.graphics.Color.WHITE;strokeWidth=1.5f;strokeCap=android.graphics.Paint.Cap.ROUND
+    }
+    canvas.drawLine(10f,19.25f,10f,.75f,pen)
+    canvas.drawLine(10f,.75f,6.04f,6.04f,pen)
+    canvas.drawLine(10f,.75f,13.96f,6.04f,pen)
+    return bitmap
 }
