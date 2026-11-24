@@ -50,6 +50,10 @@ private fun tileBounds(g:Glyph):Rect=when(g) {
     Glyph.Pressure->Rect(2.83f,2.83f,21.17f,21.17f)
     Glyph.Uv->Rect(6.3f,2.79f,17.7f,21.13f)
     Glyph.Temp->Rect(8.06f,2.87f,15.96f,21.1f)
+    Glyph.SeaTemp->Rect(3f,1.9f,21f,19.9f)
+    Glyph.SeaLevel,Glyph.SeaLevelDown->Rect(3.88f,5.18f,20.12f,18.8f)
+    Glyph.Wave->Rect(2.88f,5.88f,21.12f,18.14f)
+    Glyph.SeaPeriod->Rect(2.87f,2.87f,21.13f,21.13f)
     else->Rect(0f,0f,24f,24f)
 }
 

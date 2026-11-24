@@ -29,7 +29,7 @@ import kotlin.math.max
  * The outline icons of the app, the widgets and the notifications, in one place. 24 x 24 grid; every drawing is fitted
  * to its key shape (circle 20, square 18, landscape 20 x 16, portrait 16 x 20; the plants 20 x 20), so that icons of one
  * size look equally large. The line is 1.75 of the grid (0.073 of the size, as in the expanded day of the Forecast
- * screen) and at least 1.3 dp; details keep at least three quarters of it.
+ * screen) and at least 1.0 dp; details keep at least three quarters of it.
  */
 internal class GlyphLayer(data:String,val weight:Float=1f,val fill:Boolean=false,val muted:Boolean=false,val turns:Boolean=false) {
     val path:Path=PathParser().parsePathString(data).toNodes().toPath()
@@ -72,6 +72,9 @@ internal enum class Glyph(val line:Float,private val make:()->List<GlyphLayer>) 
     PlantRagweed(.85f,{ listOf(L("M 12,21.26 L 12,12.99 M 12,5.55 a 1.4,1.4 0 0,0 0,-2.81 a 1.4,1.4 0 0,0 0,2.81 z M 12,9.27 a 1.4,1.4 0 1,0 0,-2.81 a 1.4,1.4 0 1,0 0,2.81 z M 12,12.99 a 1.4,1.4 0 1,0 0,-2.81 a 1.4,1.4 0 1,0 0,2.81 z M 12,21.26 c -1.65,-2.48 -2.48,-3.47 -4.38,-3.14 c -2.15,0.41 -2.64,-0.66 -0.41,-1.49 c -2.98,-1.24 -4.13,-3.88 -2.64,-3.55 l 3.14,2.15 c -0.91,-4.3 1.32,-3.55 1.9,0.25 L 10.35,19.6 M 12,21.26 c 1.65,-2.48 2.48,-3.47 4.38,-3.14 c 2.15,0.41 2.64,-0.66 0.41,-1.49 c 2.98,-1.24 4.13,-3.88 2.64,-3.55 l -3.14,2.15 c 0.91,-4.3 -1.32,-3.55 -1.9,0.25 L 13.65,19.6")) }),
     Wave(1f,{ listOf(L("M 2.88,14.49 c 3.65,0 4.56,-1.82 5.47,-4.56 c 0.91,-3.65 5.47,-5.47 8.21,-2.74 c -2.74,-0.91 -4.56,0.91 -3.65,2.74 c 0.91,2.74 4.56,3.65 8.21,3.65 M 2.88,18.14 c 1.82,0 2.74,-0.91 4.56,-0.91 s 2.74,0.91 4.56,0.91 s 2.74,-0.91 4.56,-0.91 s 2.74,0.91 4.56,0.91")) }),
     SeaPeriod(1f,{ listOf(L("M 2.87,12 A 9.13,9.13 0 1,0 21.13,12 A 9.13,9.13 0 1,0 2.87,12 ZM 12,12 L 12,6.52M 12,12 L 16.11,14.28")) }),
+    // The sea temperature: a thermometer standing on a wave. The sea level: a wave with the arrow of the trend.
+    SeaTemp(1f,{ listOf(L("M 10.6,3.3 a 1.4,1.4 0 0,1 2.8,0 l 0,8.4 a 2.9,2.9 0 1,1 -2.8,0 Z M 3,19.9 c 1.8,0 2.7,-0.9 4.5,-0.9 s 2.7,0.9 4.5,0.9 s 2.7,-0.9 4.5,-0.9 s 2.7,0.9 4.5,0.9")) }),
+    SeaLevelDown(1f,{ listOf(L("M 3.88,16.79 C 9.68,9.82 14.32,23.75 20.12,16.79M 12,5.18 L 12,12.15M 8.52,8.66 L 12,12.15M 15.48,8.66 L 12,12.15")) }),
     SeaLevel(1f,{ listOf(L("M 3.88,16.79 C 9.68,9.82 14.32,23.75 20.12,16.79M 12,5.18 L 12,12.15M 8.52,8.66 L 12,5.18M 15.48,8.66 L 12,5.18")) }),
     SetBackground(1f,{ listOf(L("M 2.88,12 A 9.12,9.12 0 0,0 21.12,12 A 9.12,9.12 0 0,0 2.88,12 ZM 12,5.92 L 12,12M 12,12 L 17.07,15.04")) }),
     SetLanguage(1f,{ listOf(L("M 2.88,12 A 9.12,9.12 0 0,0 21.12,12 A 9.12,9.12 0 0,0 2.88,12 ZM 2.88,12 L 21.12,12M 12,2.88 L 12,21.12M 7.44,12 A 4.56,9.12 0 0,0 16.56,12 A 4.56,9.12 0 0,0 7.44,12 Z")) }),
@@ -87,11 +90,13 @@ internal enum class Glyph(val line:Float,private val make:()->List<GlyphLayer>) 
 }
 
 internal const val GlyphLine=1.75f
+/** The thinnest line of an icon in dp: small icons of the widgets, the meteogram and the notifications. */
+internal const val GlyphMinDp=1.0f
 
 /** Draws a glyph over the whole draw area. dp: the size of the area in dp (for pictures drawn at density 1). */
 internal fun DrawScope.drawGlyph(g:Glyph,color:Color,muted:Color=color,turn:Float=0f,dp:Float=size.width/density) {
     val k=size.width/24f
-    val line=max(GlyphLine,1.3f*24f/dp.coerceAtLeast(1f))
+    val line=max(GlyphLine,GlyphMinDp*24f/dp.coerceAtLeast(1f))
     scale(k,k,Offset.Zero) { drawGlyphLayers(g,color,muted,turn,line) }
 }
 

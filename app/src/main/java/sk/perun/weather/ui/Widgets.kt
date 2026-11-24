@@ -39,9 +39,9 @@ import androidx.work.WorkerParameters
 import androidx.work.workDataOf
 import kotlinx.coroutines.CancellationException
 import sk.perun.weather.ui.theme.PerunTheme
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -204,10 +204,10 @@ internal object WidgetRender {
         "feels"->t(u,d.apparent)
         else->"-"
     }
-    /** Strongest official warning as a symbol in the colour of its level; local model estimates are left to the app. */
-    private fun alert(v:RemoteViews,d:OverviewData,pal:Palette) {
-        val order=listOf("red","orange","yellow")
-        val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
+    /** The warning of the shown period (widgetAlert) as a symbol in the colour of its level; local model estimates are left to the app. */
+    private fun alert(v:RemoteViews,d:OverviewData,hours:Long) {
+        val now=Instant.now()
+        val a=widgetAlert(d.alerts,now,now.plusSeconds(hours*3600))
         if(a==null) { v.setViewVisibility(R.id.wg_alert,View.GONE);return }
         v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
         v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(a.event,a.level,54,a.awareness))
@@ -234,18 +234,18 @@ internal object WidgetRender {
         // The two layouts differ in the place of the refresh button: the middle of the row, or the second row.
         val v=RemoteViews(c.packageName,if(row) R.layout.wg_compact_row else R.layout.wg_compact)
         val dn=c.resources.displayMetrics.density
-        val order=listOf("red","orange","yellow")
-        val a=d.alerts.filter { !it.local && it.level in order }.minByOrNull { order.indexOf(it.level) }
+        // The rest of today.
+        val a=widgetDays(Instant.now(),d.zone,1).let { (from,to)->widgetAlert(d.alerts,from,to) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN,a?.awareness.orEmpty())
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
         return v
     }
     /** The picture and whether the refresh button of the layout has its room in it. */
-    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,updated:String,pal:Palette,pressureChange:Double=Double.NaN):Pair<Bitmap,Boolean> {
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,updated:String,pal:Palette,pressureChange:Double=Double.NaN,alertAwareness:String=""):Pair<Bitmap,Boolean> {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -272,9 +272,9 @@ internal object WidgetRender {
         }
         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
         fun weather(x:Float,y:Float,size:Float) = pic(widgetSymbolBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
-        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange),x,y,size)
+        fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange,size/dn),x,y,size)
         val hasAlert=alertEvent!=null && alertLevel!=null
-        fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1)),x,y,size) }
+        fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1),alertAwareness),x,y,size) }
         // The place at 15 sp, bold and in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
         val alertW=if(hasAlert) 24*dn else 0f
         fun placedWidth(shown:String):Float = if(shown.isNotEmpty()) width(shown,15f,true)+alertW else if(hasAlert) 18*dn else 0f
@@ -379,7 +379,8 @@ internal object WidgetRender {
         v.setTextViewText(R.id.wg_foot,uiText(R.string.wg_updated,d.time.format(Hm)))
         paint(v,pal.fg,R.id.wg_place,R.id.wg_temp,*CellValue,*HourTemp)
         paint(v,pal.muted,R.id.wg_cond,R.id.wg_foot,*HourTime)
-        alert(v,d,pal)
+        // The next six hours.
+        alert(v,d,6)
         return v
     }
     /** The chart itself is drawn in MeteogramChart.kt, at the real size of the widget down to two cells. */
@@ -390,7 +391,8 @@ internal object WidgetRender {
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
         paint(v,pal.fg,R.id.wg_place,R.id.wg_temp);paint(v,pal.muted,R.id.wg_cond)
-        alert(v,d,pal)
+        // The hours of the chart.
+        alert(v,d,w.hours.toLong())
         val dn=c.resources.displayMetrics.density
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300
         val hDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT).takeIf { it>0 } ?: 160

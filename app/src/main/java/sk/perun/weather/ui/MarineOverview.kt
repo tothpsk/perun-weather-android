@@ -158,12 +158,14 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
                         }
                         Text(sub,color=ForecastMuted,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                     }
-                    Box(Modifier.padding(bottom=3.dp)) {
+                    // The graphics of the tiles of the Now screen: 40 dp with their line, standing on the bottom of the text.
+                    val tileBox=rememberTileTextBox()
+                    Box(Modifier.padding(end=2.dp,bottom=tileBox.descent)) {
                         when(tile) {
-                            MarineTile.Temperature->Column(horizontalAlignment=Alignment.CenterHorizontally) {SummaryGlyph(SummaryIcon.Temp,levelTone,22.dp);GlyphIcon(Glyph.Wave,levelTone,22.dp)}
-                            MarineTile.Level->Column(horizontalAlignment=Alignment.CenterHorizontally) {if(next.isFinite() && raw.isFinite() && abs(next-raw)>.01) TkRiseArrow(next>raw,levelTone);GlyphIcon(Glyph.Wave,levelTone,26.dp)}
-                            MarineTile.Waves->if(bearing.isFinite()) {val box=rememberTileTextBox();Box(Modifier.padding(bottom=(box.descent-3.dp).coerceAtLeast(0.dp))) {TkDirectionArrow(d.at("wave_direction",i),levelTone,box.height,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing))}} else GlyphIcon(Glyph.Wave,levelTone,40.dp)
-                            MarineTile.Period->GlyphIcon(Glyph.SeaPeriod,levelTone,40.dp)
+                            MarineTile.Temperature->TkGlyph(Glyph.SeaTemp,levelTone)
+                            MarineTile.Level->TkGlyph(if(!next.isFinite() || !raw.isFinite() || abs(next-raw)<=.01) Glyph.Wave else if(next>raw) Glyph.SeaLevel else Glyph.SeaLevelDown,levelTone)
+                            MarineTile.Waves->if(bearing.isFinite()) TkDirectionArrow(d.at("wave_direction",i),levelTone,TileLong,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing)) else TkGlyph(Glyph.Wave,levelTone)
+                            MarineTile.Period->TkGlyph(Glyph.SeaPeriod,levelTone)
                         }
                     }
                 }

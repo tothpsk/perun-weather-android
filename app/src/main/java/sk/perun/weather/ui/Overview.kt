@@ -509,7 +509,7 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
     Text(text,color=OverviewText,fontSize=size.value.sp,maxLines=1,softWrap=false,onTextLayout={ if(it.hasVisualOverflow && size.value>12f) size.value-=1f })
 }
 
-// Arrow of the wind tile: as tall as the two rows of text, it points where the wind blows.
+// Arrow of the wind tile: as tall as the other tile graphics (TileLong), it points where the wind blows.
 @Composable private fun WindArrow(direction:Double,color:Color) {
-    TkDirectionArrow(direction,color,rememberTileTextBox().height,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
+    TkDirectionArrow(direction,color,TileLong,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
 }

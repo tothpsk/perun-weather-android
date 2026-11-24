@@ -148,7 +148,7 @@ internal class TileTextBox(val height:Dp,val descent:Dp)
     Canvas(Modifier.size(length).semantics { contentDescription=description }) {
         val angle=(direction+180)*PI/180
         val v=Offset(sin(angle).toFloat(),-cos(angle).toFloat())
-        val stroke=maxOf(size.width*GlyphLine/24f,1.3.dp.toPx())
+        val stroke=maxOf(size.width*GlyphLine/24f,GlyphMinDp.dp.toPx())
         val half=(size.width-stroke)/2
         val tip=center+v*half
         val base=tip-v*(half*4f/7f)

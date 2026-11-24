@@ -64,7 +64,6 @@ internal object SixDayWidgets {
     const val ActionRefresh="sk.perun.weather.DAYS_WIDGET_REFRESH"
     // The same list and order as the Forecast screen, so that both share one cached response.
     private val Keys=listOf("temperature_2m","apparent_temperature","precipitation","precipitation_probability","wind_speed_10m","wind_gusts_10m","wind_direction_10m","cloud_cover","uv_index","relative_humidity_2m","dew_point_2m","visibility","pressure_msl","snowfall","rain","showers","weather_code","is_day")
-    private val Levels=listOf("red","orange","yellow")
     private val Hm:DateTimeFormatter=DateTimeFormatter.ofPattern("HH:mm")
     private val CellIcon=intArrayOf(R.id.wg_c0i,R.id.wg_c1i,R.id.wg_c2i,R.id.wg_c3i)
     private val CellValue=intArrayOf(R.id.wg_c0v,R.id.wg_c1v,R.id.wg_c2v,R.id.wg_c3v)
@@ -156,9 +155,9 @@ internal object SixDayWidgets {
         v.setTextViewText(R.id.wg_foot,uiText(R.string.wg_updated,d.time.format(Hm)))
         (intArrayOf(R.id.wg_place,R.id.wg_temp)+CellValue+DayMax).forEach { v.setTextColor(it,fg) }
         (intArrayOf(R.id.wg_cond,R.id.wg_foot)+DayName+DayMin).forEach { v.setTextColor(it,muted) }
-        // Strongest official warning that is valid now.
+        // The warning of the six days that the widget shows (widgetAlert).
         val now=Instant.now()
-        val alert=d.alerts.filter { !it.local && it.level in Levels && it.start?.isAfter(now)!=true && (it.end?.isAfter(now) ?: true) }.minByOrNull { Levels.indexOf(it.level) }
+        val alert=widgetDays(now,d.zone,6).let { (from,to)->widgetAlert(d.alerts,from,to) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
             v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))

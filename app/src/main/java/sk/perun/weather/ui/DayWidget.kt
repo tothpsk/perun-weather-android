@@ -24,8 +24,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.work.CoroutineWorker
@@ -77,7 +75,7 @@ private class DayData(val zone:ZoneId,val hours:List<ForecastHour>) {
 }
 
 // The row icons of the expanded day on the Forecast screen: the same glyphs as the app (PerunGlyphs.kt).
-private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = widgetIconBitmap(row,color.toArgb(),px)
+private fun rowGlyph(row:String,color:Color,px:Int,dp:Float=18f):Bitmap = widgetIconBitmap(row,color.toArgb(),px,dp)
 
 /** The Day by hours widget keeps the last forecast in a file, so that the day arrows and the now line work without the network. */
 internal object DayWidgets {
@@ -167,26 +165,10 @@ internal object DayWidgets {
             parse(text)
             file(c,id).writeText(text)
         }
-        // Official warnings with their validity, so that the header can show the one valid now. A failed request stores none.
+        // Official warnings with their validity, so that the header can show the one of the shown day. A failed request stores none.
         val alerts=try { loadOverview(l,src.alertSource,src.weatherModel).alerts.filter { !it.local && it.level in Levels } }
             catch(e:CancellationException) { throw e } catch(e:Exception) { emptyList() }
-        val stored=JSONArray()
-        alerts.forEach { a -> stored.put(JSONObject().put("level",a.level).put("event",a.event).put("start",a.start?.epochSecond ?: 0L).put("end",a.end?.epochSecond ?: 0L)) }
-        prefs(c).edit().putString("key_$id",stamp(c,l)).putLong("at_$id",System.currentTimeMillis()/1000).putString("alert_$id",stored.toString()).apply()
-    }
-    /** Level and event of the strongest stored warning that is valid at the given time. */
-    private fun currentAlert(raw:String?,now:Long):Pair<String,String>? {
-        if(raw==null) return null
-        val list=runCatching { JSONArray(raw) }.getOrNull() ?: return null
-        var best:Pair<String,String>?=null
-        for(i in 0 until list.length()) {
-            val o=list.optJSONObject(i) ?: continue
-            val level=o.optString("level");val start=o.optLong("start",0L);val end=o.optLong("end",0L)
-            if(level !in Levels || (start>0L && now<start) || (end>0L && now>=end)) continue
-            val current=best
-            if(current==null || Levels.indexOf(level)<Levels.indexOf(current.first)) best=level to o.optString("event")
-        }
-        return best
+        prefs(c).edit().putString("key_$id",stamp(c,l)).putLong("at_$id",System.currentTimeMillis()/1000).putString("alert_$id",widgetAlertsJson(alerts)).apply()
     }
     private fun read(c:Context,id:Int,l:Location):DayData? {
         if(prefs(c).getString("key_$id","")!=stamp(c,l)) return null
@@ -251,11 +233,12 @@ internal object DayWidgets {
         if(l!=null) v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l),date))
         v.setImageViewBitmap(R.id.wg_day_prev,chevron(dn,false,if(date>days.first()) blue else Disabled))
         v.setImageViewBitmap(R.id.wg_day_next,chevron(dn,true,if(date<days.last()) blue else Disabled))
-        val alert=currentAlert(p.getString("alert_$id",null),Instant.now().epochSecond)
+        // The warning of the shown day (widgetAlert).
+        val alert=widgetDay(date,data.zone).let { (from,to)->widgetAlert(widgetAlertsFrom(p.getString("alert_$id",null)),from,to) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.second,alert.first,54))
-            v.setContentDescription(R.id.wg_alert,alert.second)
+            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))
+            v.setContentDescription(R.id.wg_alert,alert.event)
         }
         val o=manager.getAppWidgetOptions(id)
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300
@@ -322,11 +305,11 @@ internal object DayWidgets {
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
                 "direction"->dayDirectionRowArrow(gs)
-                "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
-                "rain"->rowGlyph(row,Color.White,gs)
-                "gust"->rowGlyph(row,Color.White,gs)
-                "dew"->rowGlyph(row,Color.White,gs)
-                else->rowGlyph(row,Color.White,gs)
+                "prob"->rowGlyph("prob",Color.White,gs,gs/dn)
+                "rain"->rowGlyph(row,Color.White,gs,gs/dn)
+                "gust"->rowGlyph(row,Color.White,gs,gs/dn)
+                "dew"->rowGlyph(row,Color.White,gs,gs/dn)
+                else->rowGlyph(row,Color.White,gs,gs/dn)
             }
             cv.drawBitmap(icon,(left-icon.width)/2f,y0+(rh-icon.height)/2f,null)
             if(row=="direction") {
@@ -380,8 +363,8 @@ internal object DayWidgets {
                 if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
                     val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
                     val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
-                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss),px+ss,gy,null) }
-                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
+                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss,ss/dn),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss,ss/dn),px+ss,gy,null) }
+                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss,ss/dn),gx,gy,null)
                 } }
             }
         }

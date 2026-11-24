@@ -240,19 +240,18 @@ internal fun pollenRatio(key: String, v: Double): Double = v / (PollenThresholds
 internal fun cardinal(degrees: Double): String =
     if (!degrees.isFinite()) "—" else listOf(uiText(R.string.ui_s_8de0b3c4), uiText(R.string.ui_sv_a4cd8b4d), uiText(R.string.ui_v_de5a6f78), uiText(R.string.ui_jv_002b53e7), uiText(R.string.ui_j_6da43b94), uiText(R.string.ui_jz_f296f166), uiText(R.string.ui_z_bbeebd87), uiText(R.string.ui_sz_c29f2aa3))[((degrees / 45.0 + 0.5).toInt() % 8 + 8) % 8]
 
-// line: the outline of the tile graphics (drawn over the lit part, the disc fills the area); null: the thin outline of
-// the small Moon on the Sun and Moon screen and in the help.
+// line: the outline of the tile graphics; null: the line of an icon of this size (GlyphLine of the 24 grid, at least
+// GlyphMinDp), as on the Sun and Moon screen and in the help. The disc fills the area and its outline is drawn over the lit part.
 @Composable
 internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, modifier: Modifier = Modifier, line: Dp? = null) {
     Canvas(modifier.aspectRatio(1f)) {
         val k = size.width / 64f
-        val stroke = line?.toPx()?.div(k) ?: 1.6f
+        val stroke = (line?.toPx() ?: maxOf(size.width * GlyphLine / 24f, GlyphMinDp.dp.toPx())) / k
         scale(k, k, Offset.Zero) {
-            val r = if (line != null) 32f - stroke / 2f else 26f
+            val r = 32f - stroke / 2f
             val cx = 32f
             val cy = 32f
             drawCircle(Color(0xFF252D3D), r, Offset(cx, cy))
-            if (line == null) drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
             val f = (illumination / 100f).coerceIn(0f, 1f)
             if (f > 0.01f) {
                 val rx = maxOf(abs(r * (1 - 2 * f)), 0.01f)
@@ -265,7 +264,7 @@ internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, 
                 val mirror = !waxing != southern
                 if (mirror) scale(-1f, 1f, Offset(cx, cy)) { drawPath(lit, Color(0xFFD8E0F0)) } else drawPath(lit, Color(0xFFD8E0F0))
             }
-            if (line != null) drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
+            drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
         }
     }
 }

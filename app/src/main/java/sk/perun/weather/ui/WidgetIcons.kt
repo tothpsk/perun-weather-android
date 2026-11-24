@@ -36,10 +36,10 @@ internal fun widgetWindArrowBitmap(direction:Double,color:Int,size:Int,dp:Float=
     val image=ImageBitmap(px,px)
     if(!direction.isFinite()) return image.asAndroidBitmap()
     CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) {
-        // The geometry of TkDirectionArrow: the line of the glyphs, at least 1.3 dp.
+        // The geometry of TkDirectionArrow: the line of the glyphs, at least GlyphMinDp.
         val angle=(direction+180)*Math.PI/180
         val v=Offset(kotlin.math.sin(angle).toFloat(),-kotlin.math.cos(angle).toFloat())
-        val stroke=maxOf(px*GlyphLine/24f,1.3f*px/dp)
+        val stroke=maxOf(px*GlyphLine/24f,GlyphMinDp*px/dp)
         val half=(px-stroke)/2;val c=Offset(px/2f,px/2f)
         val tip=c+v*half;val base=tip-v*(half*4f/7f);val side=Offset(-v.y,v.x)*(half*3f/7f)
         val col=Color(color)
@@ -103,9 +103,9 @@ internal fun widgetSymbolBitmap(code:Int,day:Boolean,size:Int):Bitmap {
 }
 
 /** The icon of a value in a cell of a widget: the arrow of the trend for the pressure when its change is known, otherwise the icon of the quantity. */
-internal fun widgetParamIcon(key:String,color:Int,size:Int,pressureChange:Double):Bitmap =
-    if(key=="pressure" && pressureChange.isFinite()) widgetPressureTrendBitmap(pressureChange,color,size) else widgetIconBitmap(key,color,size)
+internal fun widgetParamIcon(key:String,color:Int,size:Int,pressureChange:Double,dp:Float=18f):Bitmap =
+    if(key=="pressure" && pressureChange.isFinite()) widgetPressureTrendBitmap(pressureChange,color,size,dp) else widgetIconBitmap(key,color,size,dp)
 
 /** The trend of the pressure as on the Now screen (TkTrendGraphic): a ring and an arrow turned up by a rise and down by a fall, 60 degrees at 3 hPa in 3 hours. */
-internal fun widgetPressureTrendBitmap(change:Double,color:Int,size:Int):Bitmap =
-    glyphPicture(Glyph.Trend,color,size,18f,Color(color).copy(alpha=.6f).toArgb(),(-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat())
+internal fun widgetPressureTrendBitmap(change:Double,color:Int,size:Int,dp:Float=18f):Bitmap =
+    glyphPicture(Glyph.Trend,color,size,dp,Color(color).copy(alpha=.6f).toArgb(),(-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat())

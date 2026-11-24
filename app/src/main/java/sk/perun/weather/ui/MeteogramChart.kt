@@ -146,8 +146,8 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
 
     // Every axis is as wide as its longest number.
     p.textSize=9*dn
-    // The axis icons: 10 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
-    val glyph=((if(hPx<96*dn) 10 else if("cloud" in show) 18 else 16)*dn).roundToInt()
+    // The axis icons: 12 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
+    val glyph=((if(hPx<96*dn) 12 else if("cloud" in show) 18 else 16)*dn).roundToInt()
     fun labels(a:MeteoAxis):List<String> = (0..4).map { weatherUnitNumber(a.lo+a.step*it,a.decimals)+a.suffix }
     (left+right).forEach { a -> a.w=max(labels(a).maxOf { p.measureText(it) }+5*dn,glyph+4*dn) }
     val plotL=left.sumOf { it.w.toDouble() }.toFloat()+2*dn
