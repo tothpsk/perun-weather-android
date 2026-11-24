@@ -10,10 +10,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -161,12 +158,14 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
                         }
                         Text(sub,color=ForecastMuted,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
                     }
-                    Box(Modifier.padding(bottom=3.dp)) {
+                    // The graphics of the tiles of the Now screen: 40 dp with their line, standing on the bottom of the text.
+                    val tileBox=rememberTileTextBox()
+                    Box(Modifier.padding(end=2.dp,bottom=tileBox.descent)) {
                         when(tile) {
-                            MarineTile.Temperature->Column(horizontalAlignment=Alignment.CenterHorizontally) {SummaryGlyph(SummaryIcon.Temp,levelTone,22.dp);Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(28.dp,18.dp))}
-                            MarineTile.Level->Column(horizontalAlignment=Alignment.CenterHorizontally) {if(next.isFinite() && raw.isFinite() && abs(next-raw)>.01) TkRiseArrow(next>raw,levelTone);Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(36.dp,24.dp))}
-                            MarineTile.Waves->if(bearing.isFinite()) TkFlush(62.dp,62.dp,8.06.dp,3.1.dp) {TkCompass(d.at("wave_direction",i),levelTone,Modifier.size(62.dp))} else Icon(PerunIcons.Wave,null,tint=levelTone,modifier=Modifier.size(36.dp))
-                            MarineTile.Period->Canvas(Modifier.size(34.dp)) {val r=size.minDimension*.42f;drawCircle(levelTone,r,center,style=Stroke(1.7.dp.toPx()));drawLine(levelTone,center,center+Offset(0f,-r*.6f),1.7.dp.toPx(),StrokeCap.Round);drawLine(levelTone,center,center+Offset(r*.45f,r*.25f),1.7.dp.toPx(),StrokeCap.Round)}
+                            MarineTile.Temperature->TkGlyph(Glyph.SeaTemp,levelTone)
+                            MarineTile.Level->TkGlyph(if(!next.isFinite() || !raw.isFinite() || abs(next-raw)<=.01) Glyph.Wave else if(next>raw) Glyph.SeaLevel else Glyph.SeaLevelDown,levelTone)
+                            MarineTile.Waves->if(bearing.isFinite()) TkDirectionArrow(d.at("wave_direction",i),levelTone,TileLong,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing)) else TkGlyph(Glyph.Wave,levelTone)
+                            MarineTile.Period->TkGlyph(Glyph.SeaPeriod,levelTone)
                         }
                     }
                 }

@@ -35,7 +35,6 @@ import androidx.compose.ui.unit.dp
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import androidx.core.graphics.PathParser
 import androidx.core.graphics.drawable.IconCompat
 import androidx.work.Constraints
 import androidx.work.CoroutineWorker
@@ -111,37 +110,7 @@ private val EventCodes=mapOf(
     "ev_storm" to setOf(95,96,99),"ev_hail" to setOf(96,99),"ev_fog" to setOf(45,48),
     "ev_snow" to setOf(71,73,75,77,85,86),"ev_freezing" to setOf(56,57,66,67),"ev_heavy" to setOf(65,82),
 )
-// Same outline glyphs as the tiles of the Now screen (OverviewTileKit), 24×24 viewport.
-private val GlyphPaths=mapOf(
-    "wind" to "M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7",
-    "drop" to "M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z",
-    "rain" to "M7 6l-2 6m7-6l-2 6m7-6l-2 6M7 14l-2 6m7-6l-2 6m7-6l-2 6",
-    "sun" to "M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M5 19l2-2M17 7l2-2",
-    "heat" to "M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z",
-    "eye" to "M2 12C5 6 9 4 12 4s7 2 10 8c-3 6-7 8-10 8s-7-2-10-8Z",
-    "fog" to "M4 8h16M2 12h16M6 16h14",
-    "cloud" to "M7 18h10a4 4 0 0 0 0-8a6 6 0 0 0-11.5 1.5A3.3 3.3 0 0 0 7 18Z",
-    "gauge" to "M3 12a9 9 0 1 0 18 0a9 9 0 1 0-18 0M12 12l4-4",
-    "snow" to "M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9",
-    "humid" to "M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2ZM8.15 12.8a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0-2.5 0M13.35 17.6a1.25 1.25 0 1 0 2.5 0a1.25 1.25 0 1 0-2.5 0M9.5 18.1L14.5 12.3",
-    "umbrella" to "M2.5 12a9.5 9.5 0 0 1 19 0ZM12 12v6.2a2.1 2.1 0 0 1-4.2 0",
-    "gust" to "M1.5 9H12C16.7 9 16.7 2.5 12.9 2.5C10.9 2.5 10 4 10 5.4M4.5 12H18.3C23.3 12 23.3 5.2 19.2 5.2C17.5 5.2 16.7 6.6 16.7 8M1.5 15H17.8C23 15 23 21.5 19 21.5C17.1 21.5 16.1 20 16.1 18.6",
-    "dew" to "M7 14.4V5a2 2 0 0 1 4 0v9.4a3.8 3.8 0 1 1-4 0ZM17.5 4.5C17.5 4.5 14.2 8.2 14.2 11a3.3 3.3 0 0 0 6.6 0C20.8 8.2 17.5 4.5 17.5 4.5Z",
-)
-private fun glyphOf(param:String):String = when(param) {
-    "wind"->"wind";"gust"->"gust";"rain"->"drop";"prob","umbrella"->"umbrella";"snow"->"snow";"humidity"->"humid";"dew"->"dew";"uv"->"sun";"cloud"->"cloud"
-    "visibility"->"eye";"pressure"->"gauge";else->"heat"
-}
-private fun glyphBitmap(param:String,color:Int,size:Int):Bitmap {
-    val bmp=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
-    cv.scale(size/24f,size/24f)
-    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=2f;strokeCap=Paint.Cap.ROUND;strokeJoin=Paint.Join.ROUND;this.color=color }
-    val g=glyphOf(param)
-    GlyphPaths[g]?.let { runCatching { cv.drawPath(PathParser.createPathFromPathData(it),p) } }
-    if(g=="sun") cv.drawCircle(12f,12f,4.5f,p)
-    if(g=="umbrella") { p.style=Paint.Style.FILL;runCatching { cv.drawPath(PathParser.createPathFromPathData("M2.5 12a9.5 9.5 0 0 1 19 0Z"),p) } }
-    return bmp
-}
+private fun glyphBitmap(param:String,color:Int,size:Int):Bitmap = widgetIconBitmap(param,color,size)
 
 /** Pictograms are drawn with the platform canvas, so notifications need no extra image assets. */
 private fun weatherBitmap(code:Int,day:Boolean,size:Int):Bitmap {
@@ -226,43 +195,8 @@ private fun alertView(c:Context,icon:Bitmap,line:String,detail:String?):RemoteVi
     return v
 }
 private fun alertColor(level:String):Int = when(level) {"red"->0xFFE53935.toInt();"orange"->0xFFFB8C00.toInt();"yellow"->0xFFF2B600.toInt();else->0xFF8294AD.toInt()}
-private val AlertPaths=mapOf(
-    "storm" to "M7 14h-.5a4 4 0 0 1 0-8a6 6 0 0 1 11.3 1.5A3.5 3.5 0 0 1 17.5 14H17M13 11l-3 5h4l-3 5",
-    "rain" to "M7 13a4 4 0 0 1 0-8a6 6 0 0 1 11.3 1.5A3.5 3.5 0 0 1 17.5 13M8 16l-1 3m5-3l-1 3m5-3l-1 3",
-    "snow" to "M12 2v20M3.3 7l17.4 10M3.3 17L20.7 7M9 4l3 2l3-2M9 20l3-2l3 2",
-    "cold" to "M8 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0ZM18 3v8M14.5 5l7 4M14.5 9l7-4",
-    "fire" to "M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-7c0 2 1 3 2 3c0-3 0-5 1-8Z",
-    "flood" to "M2 17c2 0 2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5M2 21c2 0 2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5s2 1.5 4 1.5s2-1.5 4-1.5M12 3v9M8.5 8.5L12 12l3.5-3.5",
-    "avalanche" to "M3 20L10 7l4 6l2-3l5 10Z",
-    "generic" to "M12 3L22 20H2ZM12 10v4M12 17v.01",
-)
-/** Keywords are ASCII; diacritics are stripped from the alert name first, so Slovak and Czech names match too. */
-private fun alertGlyphKind(event:String):String {
-    val e=java.text.Normalizer.normalize(event,java.text.Normalizer.Form.NFD).filter { Character.getType(it)!=Character.NON_SPACING_MARK.toInt() }.lowercase(Locale.ROOT)
-    fun has(vararg k:String)=k.any { it in e }
-    return when {
-        has("avalanche","lavin")->"avalanche"
-        has("fire","poziar")->"fire"
-        has("flood","povod","zaplav")->"flood"
-        has("thunder","burk","bour","storm")->"storm"
-        has("snow","sneh","snih","icing","poladov","freezing")->"snow"
-        has("wind","gust","vietor","vetr","vitr","naraz")->"wind"
-        has("rain","precip","dazd","zrazk","dest","srazk")->"rain"
-        has("cold","chlad","mraz","frost","nizk","low temp")->"cold"
-        has("heat","horuc","vysok","high temp","tepl")->"heat"
-        has("fog","hmla","mlha")->"fog"
-        else->"generic"
-    }
-}
-private fun alertIcon(event:String,color:Int,size:Int):Bitmap {
-    val bmp=Bitmap.createBitmap(size,size,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
-    cv.scale(size/24f,size/24f)
-    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply { style=Paint.Style.STROKE;strokeWidth=2.2f;strokeCap=Paint.Cap.ROUND;strokeJoin=Paint.Join.ROUND;this.color=color }
-    val kind=alertGlyphKind(event)
-    val data=AlertPaths[kind] ?: GlyphPaths[kind] ?: AlertPaths.getValue("generic")
-    runCatching { cv.drawPath(PathParser.createPathFromPathData(data),p) }
-    return bmp
-}
+/** The warning icon of the app (AlertHazards.kt) in the colour of the level. */
+private fun alertIcon(event:String,color:Int,size:Int,awareness:String=""):Bitmap = alertHazardBitmap(alertHazard(event,awareness),color,size)
 private fun levelName(level:String):String = when(level) {"red"->uiText(R.string.ui_cervena_f1d8f5c8);"orange"->uiText(R.string.ui_oranzova_ab35bb41);"yellow"->uiText(R.string.ui_zlta_64273c3a);else->uiText(R.string.ui_informacia_b277d884)}
 private fun localAlertName(event:String):String = when(event) {
     "Thunderstorm risk"->uiText(R.string.ui_riziko_burok_8fa6514a);"Strong wind gusts"->uiText(R.string.ui_silne_narazy_vetra_7b7b006f);"Heavy precipitation"->uiText(R.string.ui_silne_zrazky_2630cc03)
@@ -543,7 +477,7 @@ internal object Notifier {
         show(c,ChCurrent,IdStatus,l.name+" · "+temp(u,d.temperature),overviewCondition(d.code)+" · "+text,null,null,ongoing=true,icon=textIcon(short),location=BackgroundRefresh.locationKey(l))
     }
     private fun postAlert(c:Context,l:Location,d:OverviewData,a:AlertItem,id:Int) {
-        val color=alertColor(a.level);val icon=alertIcon(a.event,color,72)
+        val color=alertColor(a.level);val icon=alertIcon(a.event,color,72,a.awareness)
         val event=if(a.local) localAlertName(a.event) else a.event
         val line=event+" · "+levelName(a.level)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")
         val zone=d.zone
@@ -839,7 +773,7 @@ private val DialogEdge=Color(0xFF4B586C)
 /** Shared with the home-screen widgets. */
 internal fun widgetWeatherBitmap(code:Int,day:Boolean,size:Int):Bitmap = weatherBitmap(code,day,size)
 internal fun widgetGlyphBitmap(param:String,color:Int,size:Int):Bitmap = glyphBitmap(param,color,size)
-internal fun widgetAlertBitmap(event:String,level:String,size:Int):Bitmap = alertIcon(event,alertColor(level),size)
+internal fun widgetAlertBitmap(event:String,level:String,size:Int,awareness:String=""):Bitmap = alertIcon(event,alertColor(level),size,awareness)
 
 /** Same chevron as the day rows of the Forecast screen: points down when closed, up when open. */
 @Composable private fun PickerChevron(open:Boolean) {

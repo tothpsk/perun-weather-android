@@ -20,16 +20,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -41,10 +37,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withTimeoutOrNull
 import java.time.Instant
-import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 private val TileBackground=Color(0xFF202833)
@@ -64,7 +58,6 @@ private val AlertSurface=mapOf("yellow" to (Color(0xFF302C25) to Color(0xFF806C4
 private val AlertLocalNames=mapOf("Thunderstorm risk" to uiText(R.string.ui_riziko_burok_8fa6514a),"Strong wind gusts" to uiText(R.string.ui_silne_narazy_vetra_7b7b006f),"Heavy precipitation" to uiText(R.string.ui_silne_zrazky_2630cc03),"Extreme heat" to uiText(R.string.ui_extremne_teplo_cdcd5041),"Extreme cold" to uiText(R.string.ui_extremny_chlad_d4aeb237))
 private fun alertLevelName(level:String)=when(level) { "red"->uiText(R.string.ui_cervena_f1d8f5c8);"orange"->uiText(R.string.ui_oranzova_ab35bb41);"yellow"->uiText(R.string.ui_zlta_64273c3a);else->uiText(R.string.ui_informacia_b277d884) }
 private fun finite0(v:Double)=if(v.isFinite()) v else 0.0
-private fun Dp.inset(units:Float,box:Float=24f):Dp=this*(units/box)
 private fun Instant?.clock(z:ZoneId)=this?.atZone(z)?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "--"
 private fun dayState(w:OverviewData):Boolean? {
     val now=w.time.atZone(w.zone).toInstant();val r=w.sunrise;val s=w.sunset
@@ -171,38 +164,12 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
             "rain","showers","snowfall" -> LongMetric.Rain.label
             "wind_direction_10m" -> LongMetric.Wind.label
             "weather_code","is_day" -> null
-            else -> LongMetric.entries.firstOrNull { it.key==key }?.label
+            else -> LongMetric.entries.firstOrNull { it.key==key }?.let { if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label }
         }
     }.distinct()
-    return if(labels.isEmpty()) null else "Best match: "+labels.joinToString(", ")
-}
-
-@Composable private fun Attribution() {
-    val dim=ForecastMuted.copy(alpha=.75f)
-    val year=LocalDate.now().year
-    val uri=LocalUriHandler.current
-    var open by rememberSaveable { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(top=6.dp)) {
-        Row(Modifier.fillMaxWidth().padding(vertical=6.dp),verticalAlignment=Alignment.CenterVertically) {
-            Text("Open-Meteo.com · CC BY 4.0",Modifier.weight(1f,fill=false).clickable { runCatching { uri.openUri("https://open-meteo.com/") } },fontSize=12.sp,color=ForecastMuted,textDecoration=TextDecoration.Underline)
-            Spacer(Modifier.weight(1f))
-            Text(uiText(R.string.ui_dalsie_zdroje_0e84da7e)+(if(open) "▾" else "▸"),Modifier.clickable { open=!open }.padding(start=12.dp,top=6.dp,bottom=6.dp),fontSize=12.sp,color=ForecastMuted)
-        }
-        if(open) Column(verticalArrangement=Arrangement.spacedBy(5.dp)) {
-            listOf(
-                uiText(R.string.ui_predpoved_20fdfd9d) to "Open-Meteo.com · CC BY 4.0",
-                uiText(R.string.ui_ovzdusie_a_pel_89f8f42d) to "Contains modified Copernicus Atmosphere Monitoring Service information $year",
-                uiText(R.string.ui_vystrahy_d88f15ec) to "MeteoAlarm · KDE FOSS Public Alert Server",
-                uiText(R.string.ui_radar_a_burky_4218b3cf) to "LibreWXR",
-            ).forEach { (label,source) ->
-                Row(Modifier.fillMaxWidth()) {
-                    Text(label,Modifier.width(100.dp),fontSize=11.sp,color=dim)
-                    Text(source,Modifier.weight(1f),fontSize=11.sp,color=ForecastMuted)
-                }
-            }
-            Text(uiText(R.string.ui_europska_komisia_ani_ecmwf_nezodpovedaju_za_pouzitie_infor_0e8269e6),fontSize=11.sp,color=dim,modifier=Modifier.padding(top=2.dp))
-        }
-    }
+    // The same wording and order as in the footer of Ensemble.
+    val order=LongMetric.entries.map { if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label }
+    return if(labels.isEmpty()) null else uiText(R.string.long_fallback_note,labels.sortedBy { label->order.indexOf(label).let { i->if(i<0) order.size else i } }.joinToString(", "))
 }
 
 @Composable internal fun InfoDot(color:Color,label:String,ring:Boolean=false,onClick:()->Unit) {
@@ -213,23 +180,9 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
     }
 }
 
-private fun heroGlow(code:Int,day:Boolean):Color = when {
-    code<0 -> Color(0xFF8294AD)
-    code==0 || code in 1..2 -> if(day) Color(0xFFFFD166) else Color(0xFF8FA8FF)
-    code>=95 -> Color(0xFFB388FF)
-    code in setOf(71,73,75,77,85,86) -> Color(0xFFE8EAF0)
-    code>=51 -> Color(0xFF4FC3F7)
-    else -> Color(0xFF9FB0C7)
-}
-
-@Composable private fun HeroArt(w:OverviewData,drift:Float,pulse:Float,animated:Boolean) {
+@Composable private fun HeroArt(w:OverviewData,drift:Float,animated:Boolean) {
     val day=dayState(w) ?: w.isDayFlag
-    val glow=heroGlow(w.code,day)
     Box(Modifier.size(136.dp),contentAlignment=Alignment.Center) {
-        Canvas(Modifier.fillMaxSize()) {
-            val r=size.minDimension/2f
-            drawCircle(Brush.radialGradient(listOf(glow.copy(alpha=.20f+.14f*pulse),glow.copy(alpha=.07f),Color.Transparent),center,r),r,center)
-        }
         Box(Modifier.graphicsLayer { translationX=drift*density;translationY=-drift*.6f*density;rotationZ=drift*.3f }) {
             WeatherSymbol(w.code,104.dp,day,animated=animated)
         }
@@ -242,9 +195,8 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
     if(enabled) {
         val transition=rememberInfiniteTransition(label="overviewWeatherMotion")
         val drift by transition.animateFloat(-4f,4f,infiniteRepeatable(tween(3200,easing=FastOutSlowInEasing),RepeatMode.Reverse),label="weatherDrift")
-        val pulse by transition.animateFloat(0f,1f,infiniteRepeatable(tween(4200,easing=FastOutSlowInEasing),RepeatMode.Reverse),label="weatherGlow")
-        HeroArt(w,drift,pulse,true)
-    } else HeroArt(w,0f,.5f,false)
+        HeroArt(w,drift,true)
+    } else HeroArt(w,0f,false)
 }
 
 @Composable private fun Hero(w:OverviewData,u:WeatherUnits,showAlerts:Boolean,onHelp:(HelpSpec)->Unit) {
@@ -285,7 +237,7 @@ private fun heroGlow(code:Int,day:Boolean):Color = when {
         Modifier.fillMaxWidth().clip(shape).background(surface?.first ?: TileBackground).border(1.dp,surface?.second ?: TileBorder,shape).clickable(onClick=onOpen).padding(horizontal=10.dp,vertical=6.dp),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp),
     ) {
-        AlertGlyph(alertKind(first.event+" "+g.label),color,20.dp)
+        AlertGlyph(alertHazard(first.event+" "+g.label,first.awareness),color,18.dp)
         Column(Modifier.weight(1f)) {
             Text(AlertLocalNames[g.label] ?: g.label,fontSize=13.sp,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis,lineHeight=16.sp)
             Text(alertLevelName(level)+if(first.local) uiText(R.string.ui_odhad_5dde2d79) else "",fontSize=11.sp,color=color,maxLines=1,overflow=TextOverflow.Ellipsis)
@@ -445,72 +397,71 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
         TkSpec(OverviewTileId.Precipitation,uiText(R.string.ui_zrazky_66d17319),if(has) (type ?: tint) else Grey,precipName,"precipitation") {
             TileBody(graphic={
                 if(liquid>0 && snow>0) Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.Bottom) {
-                    TkFlush(30.dp,30.dp,0.dp,30.dp.inset(1.4f)) { TkDropGraphic(liquidFraction,tint,Modifier.size(30.dp)) }
-                    TkFlush(26.dp,26.dp,26.dp.inset(3.2f),26.dp.inset(2f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(26.dp)) }
-                } else if(snow>0) TkFlush(40.dp,40.dp,40.dp.inset(3.2f),40.dp.inset(2f)) { TkFlakeGraphic(snowStrength,OverviewText,Modifier.size(40.dp)) }
-                else TkFlush(40.dp,40.dp,40.dp.inset(4.4f),40.dp.inset(1.4f)) { TkDropGraphic(liquidFraction,tint,Modifier.size(40.dp)) }
+                    HumidityGraphic(liquidFraction,tint,30.dp)
+                    TkFlakeGraphic(snowStrength,OverviewText,26.dp)
+                } else if(snow>0) TkFlakeGraphic(snowStrength,OverviewText)
+                else HumidityGraphic(liquidFraction,tint)
             },lastSize=if(liquid>0 && snow>0) 12.sp else 14.sp,lastWeight=FontWeight.Bold) {
                 if(!known) ValueUnit(Double.NaN,"")
                 else if(!has) ValueUnit(0.0,u.precipitation.liquidSymbol,ForecastMuted,0)
                 else if(liquid>0 && snow>0) {
-                    ValueUnit(u.precipitation.fromMillimetres(liquid),u.precipitation.liquidSymbol,tint,liquidDecimals,20.sp)
-                    ValueUnit(u.precipitation.fromSnowCentimetres(snow),u.precipitation.snowSymbol,OverviewText,snowDecimals,16.sp)
+                    PrecipPair(weatherUnitNumber(u.precipitation.fromMillimetres(liquid),liquidDecimals),u.precipitation.liquidSymbol,tint,weatherUnitNumber(u.precipitation.fromSnowCentimetres(snow),snowDecimals),u.precipitation.snowSymbol)
                 } else if(liquid>0) ValueUnit(u.precipitation.fromMillimetres(liquid),u.precipitation.liquidSymbol,tint,liquidDecimals)
                 else ValueUnit(u.precipitation.fromSnowCentimetres(snow),u.precipitation.snowSymbol,OverviewText,snowDecimals)
                 ProbRow(prob,liquid>0 && snow>0)
             }
         },
         TkSpec(OverviewTileId.Wind,uiText(R.string.ui_vietor_8a3ebf26),windBeaufortColor(w.wind),windName,"wind") {
-            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) TkFlush(62.dp,62.dp,62.dp.inset(13f,100f),62.dp.inset(5f,100f)) { TkCompass(w.direction,ForecastGreen,Modifier.size(62.dp)) } }) {
+            TileBody(graphic={ if(w.wind.isFinite() && w.wind>0 && w.direction.isFinite()) WindArrow(w.direction,windBeaufortColor(w.wind)) }) {
                 ValueUnit(u.wind.fromKmh(w.wind),u.wind.symbol,windTint ?: OverviewText,windDecimals)
                 Sub(uiText(R.string.ui_narazy_3e1df66b)+overviewNumber(u.wind.fromKmh(w.gust),"",windDecimals),windAlert(w.gust) ?: ForecastMuted)
             }
         },
         TkSpec(OverviewTileId.Uv,uiText(R.string.ui_uv_027fcbbc),if(uvLow) Grey else uvTint,if(uvLow) uiText(R.string.ui_noc_c592606f) else uvLabel(w.uv),"uv") {
-            TileBody(graphic={ TkScaleGraphic(false,if(uvLow) 0.0 else w.uv,11.0,{ uvColor(it) },uvTint,Modifier.width(64.dp)) }) {
+            TileBody(graphic={ TkScaleGraphic(false,if(uvLow) 0.0 else w.uv,11.0,{ uvColor(it) },uvTint) }) {
                 Text(overviewNumber(w.uv),fontSize=24.sp,fontWeight=FontWeight.SemiBold,color=uvTint)
                 Sub(uiText(R.string.ui_max_1eed76ee)+overviewNumber(today?.uv ?: Double.NaN))
             }
         },
         TkSpec(OverviewTileId.Cloud,uiText(R.string.ui_oblacnost_b5a6e70c),if(grey<0) Grey else Color(grey,grey+4,grey+12),cloudName(w.cloud).ifEmpty { uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61) },"cloud") {
-            TileBody(graphic={ TkFlush(70.dp,70.dp/1.3f,4.3.dp,11.8.dp) { CloudFill(if(w.cloud.isFinite()) w.cloud/100.0 else 0.0,Color(0xFF8294AD),null,0,Modifier.width(70.dp)) } }) {
+            TileBody(graphic={ TkFillGraphic(Glyph.Cloud,if(w.cloud.isFinite()) w.cloud/100.0 else 0.0,Color(0xFF8294AD)) }) {
                 ValueUnit(w.cloud,"%")
-                Sub(uiText(R.string.ui_dnes_2b1a88a3)+overviewNumber(today?.cloudMean ?: Double.NaN," %"))
+                Sub(uiText(R.string.ui_dnes_2b1a88a3)+overviewNumber(today?.daylightCloud ?: Double.NaN," %"))
             }
         },
         TkSpec(OverviewTileId.Humidity,uiText(R.string.ui_vlhkost_e06c751e),humBand?.color ?: Grey,humBand?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(4.4f),38.dp.inset(1.4f)) { HumidityPercentDrop(if(humidity.isFinite()) humidity/100.0 else 0.0,humBand?.color ?: Color(0xFF8294AD),Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ HumidityPercentDrop(if(humidity.isFinite()) humidity/100.0 else 0.0,humBand?.color ?: Color(0xFF8294AD)) }) {
                 ValueUnit(humidity,"%")
                 Sub(uiText(R.string.ui_rosny_bod_754737bc)+overviewNumber(u.temperature.fromCelsius(dew),"°"))
             }
         },
         TkSpec(OverviewTileId.Pressure,uiText(R.string.ui_tlak_vzduchu_cc4c1846),pBand.color,pBand.name,"pressure") {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(.8f),38.dp.inset(.8f)) { TkTrendGraphic(pressureChange,pBand.color,Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ TkTrendGraphic(pressureChange,pBand.color) }) {
                 ValueUnit(pressureValue,u.pressure.symbol,OverviewText,if(u.pressure==PressureUnit.InchesMercury) 2 else 0)
                 Sub(pressureDelta(u.pressure,pressureChange),pBand.color)
             }
         },
         TkSpec(OverviewTileId.Visibility,uiText(R.string.ui_viditelnost_7f90db41),visBand?.color ?: Grey,visBand?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
-            TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(1.1f),38.dp.inset(3.2f)) { TkEyeGraphic(visBand?.color ?: Color(0xFF8294AD),Modifier.size(38.dp)) } }) {
+            TileBody(graphic={ TkEyeGraphic(visBand?.color ?: Color(0xFF8294AD)) }) {
                 ValueUnit(visibilityKm,"km",OverviewText,if(visibilityKm<10) 1 else 0)
                 Sub(visBand?.name ?: "",visBand?.color ?: ForecastMuted)
             }
         },
         TkSpec(OverviewTileId.Sun,uiText(R.string.ui_slnko_dnes_4d65cb81),when(day) { null->Grey;true->Color(0xFFFFD166);false->Color(0xFF2B3550) },uiText(R.string.ui_teraz_e6989b57)+w.time.format(DateTimeFormatter.ofPattern("HH:mm")),null) {
-            TileBody(graphic={ TkSunArc(w.sunrise,w.sunset,now,Modifier.width(58.dp)) },lastSize=20.sp,lastWeight=FontWeight.SemiBold) {
+            TileBody(graphic={ TkSunArc(w.sunrise,w.sunset,now) },lastSize=20.sp,lastWeight=FontWeight.SemiBold) {
                 RiseLine(true,Color(0xFF66D17A),w.sunrise.clock(w.zone))
                 RiseLine(false,Color(0xFFFF8F6B),w.sunset.clock(w.zone))
             }
         },
         TkSpec(OverviewTileId.Moon,uiText(R.string.ui_mesiac_dnes_0e15b5c9),Color(0xFF8C9BB2),moonPhase(noon)+" "+moon.illumination+" %",null,ring=true) {
-            TileBody(graphic={ TkFlush(46.dp,46.dp,3.7.dp,3.7.dp) { MoonGraphic(moon.illumination,moon.waxing,moon.southern,Modifier.width(46.dp)) } },lastSize=20.sp,lastWeight=FontWeight.SemiBold) {
+            TileBody(graphic={ MoonGraphic(moon.illumination,moon.waxing,moon.southern,Modifier.size(TileLong),TileLine) },lastSize=20.sp,lastWeight=FontWeight.SemiBold) {
                 RiseLine(true,Color(0xFF66D17A),moon.rise.clock(w.zone))
                 RiseLine(false,Color(0xFFFF8F6B),moon.set.clock(w.zone))
             }
         },
         TkSpec(OverviewTileId.Air,uiText(R.string.ui_kvalita_ovzdusia_08946dda),band?.color ?: Grey,band?.name ?: uiText(R.string.ui_udaje_nie_su_dostupne_4e729f61),null) {
             if(air==null || band==null) Text(uiText(R.string.ui_udaje_nie_su_dostupne_f7a6149a),color=ForecastMuted,fontSize=13.sp) else {
-                TileBody(graphic={ TkScaleGraphic(true,air.aqi,100.0,{ aqiBand(it)?.color ?: Grey },band.color,Modifier.width(64.dp)) }) {
+                TileBody(graphic={ TkScaleGraphic(true,air.aqi,100.0,{ aqiBand(it)?.color ?: Grey },band.color) }) {
                     Text(overviewNumber(air.aqi),fontSize=24.sp,fontWeight=FontWeight.SemiBold,color=band.color)
                     Sub(uiText(R.string.ui_max_1eed76ee)+overviewNumber(today?.aqi ?: Double.NaN))
                 }
@@ -518,7 +469,7 @@ private class TkSpec(val id:OverviewTileId,val title:String,val dot:Color,val to
         },
         TkSpec(OverviewTileId.Pollen,uiText(R.string.ui_pel_aktualne_0fd4a0ea),pollen.firstOrNull()?.let { PollenLevelColors[it.third] } ?: Grey,pollenTip,null) {
             if(pollen.isEmpty()) Text(if(pollenKnown) uiText(R.string.ui_ziadny_pel_v_udajoch_061b5fd7) else uiText(R.string.ui_udaje_nie_su_dostupne_f7a6149a),color=ForecastMuted,fontSize=13.sp)
-            else TileBody(graphic={ TkFlush(38.dp,38.dp,38.dp.inset(2.1f),38.dp.inset(2.1f)) { TkPollenGraphic(PollenLevelColors[pollen.first().third],Modifier.size(38.dp)) } },lastSize=15.sp,lastWeight=FontWeight.SemiBold) {
+            else TileBody(graphic={ TkPollenGraphic(PollenLevelColors[pollen.first().third]) },lastSize=15.sp,lastWeight=FontWeight.SemiBold) {
                 pollen.take(2).forEach { (k,v,level) ->
                     Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(5.dp)) {
                         Text(PollenNames[k] ?: k,fontSize=14.sp,maxLines=1,overflow=TextOverflow.Ellipsis,modifier=Modifier.weight(1f,fill=false))
@@ -542,3 +493,23 @@ private fun tileCell(s:TkSpec,navigation:OverviewNavigation,onHelp:(HelpSpec)->U
     TkTile(s.title,s.dot,s.ring,s.tooltip,modifier,{ onHelp(HelpSpec(s.title) { TileHelp(s.id) }) },open) { s.content(this) }
 }
 
+// Rain and snow of the precipitation tile on one line, separated by a comma.
+// The line starts at the size of a single value and shrinks until it fits the tile.
+@Composable private fun PrecipPair(liquid:String,liquidUnit:String,tint:Color,snow:String,snowUnit:String) {
+    val size=androidx.compose.runtime.remember(liquid,snow,androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp,LocalDensity.current.fontScale) { androidx.compose.runtime.mutableStateOf(24f) }
+    val bold=androidx.compose.ui.text.SpanStyle(fontWeight=androidx.compose.ui.text.font.FontWeight.SemiBold)
+    val small=androidx.compose.ui.text.SpanStyle(color=ForecastMuted,fontSize=androidx.compose.ui.unit.TextUnit(.54f,androidx.compose.ui.unit.TextUnitType.Em))
+    val text=androidx.compose.ui.text.AnnotatedString.Builder().apply {
+        pushStyle(bold.copy(color=tint));append(liquid);pop()
+        pushStyle(small);append(" "+liquidUnit);pop()
+        append(", ")
+        pushStyle(bold);append(snow);pop()
+        pushStyle(small);append(" "+snowUnit);pop()
+    }.toAnnotatedString()
+    Text(text,color=OverviewText,fontSize=size.value.sp,maxLines=1,softWrap=false,onTextLayout={ if(it.hasVisualOverflow && size.value>12f) size.value-=1f })
+}
+
+// Arrow of the wind tile: as tall as the other tile graphics (TileLong), it points where the wind blows.
+@Composable private fun WindArrow(direction:Double,color:Color) {
+    TkDirectionArrow(direction,color,TileLong,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4, cardinal(direction)))
+}

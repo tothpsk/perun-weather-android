@@ -7,7 +7,6 @@ import androidx.compose.foundation.gestures.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -20,9 +19,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.scale
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -48,7 +44,6 @@ import androidx.compose.ui.window.PopupProperties
 import kotlinx.coroutines.delay
 import java.time.*
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 private val SkyText=Color(0xFFE8EAF0)
@@ -63,7 +58,6 @@ private val SkySet=Color(0xFFFF8F6B)
 private val SkyLocale=appLocale()
 private val SkyMin=LocalDate.of(1950,1,1)
 private val SkyMax=LocalDate.of(2100,12,31)
-private fun skyPath(d:String):Path=PathParser().parsePathString(d).toNodes().toPath()
 private fun skyNumber(v:Double)=weatherUnitNumber(v,1)
 
 private data class SkySunDay(val rise:Instant?,val set:Instant?,val seconds:Long)
@@ -128,19 +122,7 @@ private fun skyMainName(kind:Int)=when(kind) { 0->uiText(R.string.ui_nov_3e630d2
 
 private enum class SkyIcon { Noon,DayLength,TrendUp,TrendDown,MoonUp }
 @Composable private fun SkyGlyph(icon:SkyIcon,color:Color,dimension:Dp=22.dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            val s=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            when(icon) {
-                SkyIcon.Noon->{ drawPath(skyPath("M2.5 19h19 M4 19a8 8 0 0 1 16 0 M12 3.5v2.5"),color,style=s);drawCircle(color,3f,Offset(12f,11f)) }
-                SkyIcon.DayLength->{ drawCircle(color,9f,Offset(12f,12f),style=s);drawPath(skyPath("M12 7v5l3 2"),color,style=s) }
-                SkyIcon.TrendUp->drawPath(skyPath("M3 17l6-6 4 4 8-8 M15 7h6v6"),color,style=s)
-                SkyIcon.TrendDown->drawPath(skyPath("M3 7l6 6 4-4 8 8 M15 17h6v-6"),color,style=s)
-                SkyIcon.MoonUp->{ drawPath(skyPath("M2.5 19h19"),color,style=s);drawCircle(color,4.5f,Offset(12f,10f),style=s) }
-            }
-        }
-    }
+    GlyphIcon(when(icon) { SkyIcon.Noon->Glyph.SkyNoon;SkyIcon.DayLength->Glyph.SkyDayLength;SkyIcon.TrendUp->Glyph.SkyLonger;SkyIcon.TrendDown->Glyph.SkyShorter;SkyIcon.MoonUp->Glyph.SkyMoonUp },color,dimension)
 }
 
 private val SkyTipPosition=object:PopupPositionProvider {
@@ -218,7 +200,7 @@ private val SkyTipPosition=object:PopupPositionProvider {
     val dayChange=if(dayKnown) solar.seconds-previousSolar.seconds else 0L
     val dayChangeSpan=uiText(R.string.sky_min_s, abs(dayChange)/60, abs(dayChange)%60)
     val dayChangeValue=when { !dayKnown->"—";dayChange>0->"+"+dayChangeSpan;dayChange<0->"−"+dayChangeSpan;else->dayChangeSpan }
-    val dayChangeTip=when { !dayKnown->uiText(R.string.sky_day_change_unknown);dayChange>0->uiText(R.string.sky_day_longer, dayChangeSpan);dayChange<0->uiText(R.string.sky_day_shorter, dayChangeSpan);else->uiText(R.string.sky_day_same) }
+    val dayChangeTip=when { !dayKnown->uiText(R.string.sky_day_change_unknown);dayChange>0->uiText(if(date==today()) R.string.sky_tip_day_longer else R.string.sky_tip_day_longer_before);dayChange<0->uiText(if(date==today()) R.string.sky_tip_day_shorter else R.string.sky_tip_day_shorter_before);else->uiText(if(date==today()) R.string.sky_tip_day_same else R.string.sky_tip_day_same_before) }
     val dayChangeColor=when { !dayKnown || dayChange==0L->SkyText;dayChange>0->SkyRise;else->SkySet }
     val events=remember(date,zone,l.latitude,l.longitude) { SunMoonMath.moonEvents(date,zone,l.latitude,l.longitude) }
     val moonUp=remember(date,zone,l.latitude,l.longitude) { skyMoonUp(date,zone,l.latitude,l.longitude) }
@@ -251,9 +233,9 @@ private val SkyTipPosition=object:PopupPositionProvider {
             HelpText(uiText(R.string.ui_trend_ukazuje_ci_osvetlenie_mesiaca_v_priebehu_24_hodin_ok_4b1eaa5d))
         }) {
             SkyTileRow(uiText(R.string.ui_vychod_mesiaca_a17e2d3c)) { SkyIconBox { TkRiseArrow(true,SkyRise) };SkyValue(clock(events.first)) }
-            SkyTileRow(uiText(R.string.sky_moon_up, moonUpText)) { SkyIconBox { SkyGlyph(SkyIcon.MoonUp,SkyMoon) };SkyValue(moonUpText) }
+            SkyTileRow(uiText(R.string.sky_tip_moon_up)) { SkyIconBox { SkyGlyph(SkyIcon.MoonUp,SkyMoon) };SkyValue(moonUpText) }
             SkyTileRow(uiText(R.string.ui_zapad_mesiaca_c401b9f3)) { SkyIconBox { TkRiseArrow(false,SkySet) };SkyValue(clock(events.second)) }
-            SkyTileRow(SunMoonMath.phaseName(phasePoint.phase)+uiText(R.string.ui_osvetlenie_38b6bd7b)+skyNumber(phasePoint.illumination)+" %") { SkyIconBox { MoonGraphic(illumination,waxing,l.latitude<0,Modifier.size(24.dp)) };SkyValue("$illumination %") }
+            SkyTileRow(SunMoonMath.phaseName(phasePoint.phase)) { SkyIconBox { MoonGraphic(illumination,waxing,l.latitude<0,Modifier.size(24.dp)) };SkyValue("$illumination %") }
             SkyTileRow(if(waxing) uiText(R.string.ui_mesiac_dorasta_osvetlenie_rastie_a5ae864c) else uiText(R.string.ui_mesiac_cuva_osvetlenie_klesa_d31ace13)) { SkyIconBox { SkyGlyph(if(waxing) SkyIcon.TrendUp else SkyIcon.TrendDown,if(waxing) SkyRise else SkySet) };SkyValue(if(waxing) uiText(R.string.ui_rastie_a5341d12) else uiText(R.string.ui_cuva_c55fd1d0),if(waxing) SkyRise else SkySet) }
         }
     }

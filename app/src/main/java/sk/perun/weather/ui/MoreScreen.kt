@@ -35,7 +35,7 @@ import androidx.compose.ui.unit.sp
 @Composable private fun MoreEntry(title:String,description:String?,onClick:()->Unit,icon:ImageVector?=null) {
     OutlinedCard(Modifier.fillMaxWidth().clickable(onClick=onClick),shape=RoundedCornerShape(18.dp),border=BorderStroke(1.dp,Color(0xFF4B586C)),colors=CardDefaults.outlinedCardColors(containerColor=Color(0xFF202833),contentColor=Color(0xFFE8EAF0))) {
         Row(Modifier.padding(18.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(12.dp)) {
-            if(icon!=null) Icon(icon,contentDescription=null,tint=Color(0xFF4FC3F7),modifier=Modifier.size(28.dp))
+            if(icon!=null) Icon(icon,contentDescription=null,tint=Color(0xFF4FC3F7),modifier=Modifier.size(24.dp))
             Column(Modifier.weight(1f),verticalArrangement=Arrangement.spacedBy(6.dp)) {Text(title,style=MaterialTheme.typography.titleMedium,color=Color(0xFFE8EAF0));if(description!=null) Text(description,color=Color(0xFFBBC4D2),fontSize=13.sp)}
             Text("›",color=Color(0xFF4FC3F7),fontSize=30.sp)
         }

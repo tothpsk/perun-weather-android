@@ -23,6 +23,8 @@ internal data class AlertItem(
     val language: String = "", val eventCode: String = "",
     val areaKey: String = "", val originUri: String = "",
     val via: Set<String> = emptySet(),
+    // MeteoAlarm awareness_type of the CAP message ("1; Wind"), when the issuer sends it.
+    val awareness: String = "",
 )
 internal data class OfficialAlerts(val items: List<AlertItem>, val incomplete: Boolean)
 private const val ATOM_NS = "http://www.w3.org/2005/Atom"
@@ -208,6 +210,7 @@ private fun capAlerts(bytes: ByteArray, lat: Double, lon: Double, diagnostics: K
             issuer=info.childText("senderName") ?: "KDE CAP", title=info.childText("headline") ?: event,
             identifier=id, senderId=sender, language=info.childText("language").orEmpty(), eventCode=codes(info),
             areaKey=areaIdentity(matching), originUri=info.childText("web").orEmpty(), via=setOf("KDE"),
+            awareness=info.capParameter("awareness_type").orEmpty(),
         )
     }
     return selectAlertLanguages(out)

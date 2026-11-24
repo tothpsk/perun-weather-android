@@ -21,7 +21,6 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.clipRect
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalContext
@@ -49,7 +48,6 @@ import java.net.URLEncoder
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 private val LongText=Color(0xFFE8EAF0)
@@ -161,11 +159,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
         LongMetric.Wind->SummaryGlyph(SummaryIcon.Wind,color,22.dp)
         LongMetric.Uv->SummaryGlyph(SummaryIcon.Uv,color,22.dp)
         LongMetric.Humidity->HumidityGlyph(color,22.dp)
-        LongMetric.Cloud->Canvas(Modifier.size(24.dp)) {val k=size.width/24f;scale(k,k,Offset.Zero) {val p=Path().apply {moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close()};drawPath(p,color,style=Stroke(1.8f,join=StrokeJoin.Round))}}
-        LongMetric.Visibility,LongMetric.Pressure->Canvas(Modifier.size(22.dp)) {val k=size.width/24f;scale(k,k,Offset.Zero) {val s=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-            if(m==LongMetric.Visibility) {val p=Path().apply {moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close()};drawPath(p,color,style=s);drawCircle(color,3.5f,Offset(12f,12f))}
-            else {drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)}
-        }}
+        LongMetric.Cloud->GlyphIcon(Glyph.Cloud,color,22.dp)
+        LongMetric.Visibility->GlyphIcon(Glyph.Visibility,color,22.dp)
+        LongMetric.Pressure->PressureGaugeGlyph(color,22.dp)
         else->Unit
     }
 }
@@ -214,7 +210,7 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             }
             if(enabled.isEmpty() && customGraphs.none {it.visible}) Text(uiText(R.string.ui_vyber_aspon_jeden_graf_b3265ee1),color=LongText,fontSize=16.sp,fontWeight=FontWeight.SemiBold)
             // What the selected model lacks and Best match fills in is named here, as in the footer of Now.
-            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {it.label})})
+            AttributionFooter(data?.sources?.takeIf {it.isNotEmpty()}?.let {filled->uiText(R.string.long_fallback_note,LongMetric.entries.filter {it.key in filled}.joinToString(", ") {if(it==LongMetric.Prob) uiText(R.string.ui_pravdepodobnost_zrazok_c9b0a84a) else it.label})})
         }
     }
 }
@@ -233,12 +229,13 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
     var tip by remember {mutableStateOf(false)};var help by remember {mutableStateOf(false)}
     val indices=d.times.indices.filter {d.times[it] in start..start+span}
     // With the envelope on, a line is the median of the ensemble (P50); hours that the ensemble does not cover keep the value of the model.
-    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median.
+    // The bars of precipitation and UV index are the median too; the probability of precipitation has no median and stays the forecast of the model.
     val medians=remember(ens,showBand) {if(showBand) ens.bands.filterKeys {it.endsWith(LongMedianSuffix)}.mapValues {(_,points)->points.associate {it.first to it.second.lower}} else emptyMap()}
     fun lineRaw(m:LongMetric,i:Int):Double = medians[m.key+LongMedianSuffix]?.get(d.times[i]) ?: d.value(m.key,i)
     // What the short tip adds with the envelope on: that the median is shown, and the quantities that the ensemble does not have.
     val modelOnly=if(showBand) metrics.filter {!medians.containsKey(it.key+LongMedianSuffix)} else emptyList()
-    val tipNote=if(!showBand) "" else (if(modelOnly.size<metrics.size) " "+uiText(R.string.long_tip_median) else "")+modelOnly.joinToString("") {" "+it.label+": "+uiText(R.string.long_tip_model)}
+    // With every quantity from the ensemble one sentence is enough; otherwise each quantity is named with what it shows.
+    val tipNote=if(!showBand) "" else if(modelOnly.isEmpty()) " "+uiText(R.string.long_tip_median) else metrics.joinToString("") {" "+it.label+": "+uiText(if(it in modelOnly) R.string.long_tip_model_short else R.string.long_tip_median_short)+"."}
     val selected=cursor?.let {t->d.times.indices.minByOrNull {abs(d.times[it]-t)}}
     val scales=axes.associate {axis->val ms=shown.filter {it.axis==axis.axis}
         val values=ms.flatMap {m->indices.map {longValue(m,d.value(m.key,it),u)}+if(showBand) ens.bands[m.key].orEmpty().filter {it.first in start..start+span}.flatMap {(_,b)->listOf(longValue(m,b.lower,u),longValue(m,b.upper,u))} else emptyList()}.filter {it.isFinite()}
@@ -374,9 +371,9 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
             Text(fullTitle,style=MaterialTheme.typography.titleLarge)
             CompositionLocalProvider(LocalContentColor provides LongText) {
                 metrics.forEach {LongMetricHelp(it)}
-                HelpText(uiText(if(showBand) R.string.long_line_median else R.string.long_line_model))
+                if(!showBand) HelpText(uiText(R.string.long_line_model)) else if(metrics.any {it!=LongMetric.Rain && it!=LongMetric.Uv && it !in modelOnly}) HelpText(uiText(R.string.long_line_median))
                 if(showBand && metrics.any {it==LongMetric.Rain || it==LongMetric.Uv}) HelpText(uiText(R.string.long_bars_band))
-                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model))}
+                modelOnly.forEach {HelpText(it.label+": "+uiText(R.string.long_tip_model_short)+".")}
                 HelpText(uiText(R.string.ui_ovladanie_v_grafe_podrz_a_posuvaj_prst_pre_odcitanie_hodno_73b85b53))
             }
         }

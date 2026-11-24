@@ -18,13 +18,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -33,19 +31,10 @@ import androidx.compose.ui.graphics.vector.toPath
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.TextMeasurer
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.drawText
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlin.math.PI
 import kotlin.math.abs
-import kotlin.math.ceil
-import kotlin.math.cos
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -68,10 +57,6 @@ private val CloudPath = parsed("M23 73a18 18 0 0 1-2-36 27 27 0 0 1 51-5 21 21 0
 private val DropsPath = parsed("M28 75l-5 12m28-12l-5 12m28-12l-5 12")
 private val BoltPath = parsed("M52 60L35 83h15l-6 16 26-27H54l8-12Z")
 private val FogPath = parsed("M12 82h75M18 92h63")
-private val CloudFillPath = parsed("M35 77a22 22 0 0 1-4-44 31 31 0 0 1 59-7 25 25 0 0 1 10 51Z")
-private val ArrowPath = parsed("M50 28L38 80L50 68L62 80Z")
-private val UmbrellaDome = parsed("M2.5 12a9.5 9.5 0 0 1 19 0Z")
-private val UmbrellaHandle = parsed("M12 12v6.2a2.1 2.1 0 0 1-4.2 0")
 
 private enum class Kind { Clear, Part, Cloud, Rain, Snow, Storm, Fog }
 
@@ -252,118 +237,21 @@ internal fun pollenRatio(key: String, v: Double): Double = v / (PollenThresholds
 
 // ---- Graphics ----
 
-private fun DrawScope.centeredText(measurer: TextMeasurer, text: String, cx: Float, cy: Float, fontSize: TextUnit, color: Color, weight: FontWeight = FontWeight.Normal) {
-    val layout = measurer.measure(text, TextStyle(color = color, fontSize = fontSize, fontWeight = weight))
-    drawText(layout, topLeft = Offset(cx - layout.size.width / 2f, cy - layout.size.height / 2f))
-}
-
-@Composable
-internal fun ArcGauge(value: Double, max: Double, colorAt: (Double) -> Color, neutral: Boolean, centerText: String, centerColor: Color, minLabel: String, maxLabel: String, modifier: Modifier = Modifier) {
-    val measurer = rememberTextMeasurer()
-    Canvas(modifier.aspectRatio(160f / 114f)) {
-        val k = size.width / 160f
-        val topLeft = Offset(18f * k, 18f * k)
-        val arcSize = Size(124f * k, 124f * k)
-        val width = 14f * k
-        drawArc(Color(0xFF414958), 180f, 180f, false, topLeft = topLeft, size = arcSize, style = Stroke(width, cap = StrokeCap.Round))
-        if (!neutral && value.isFinite() && value >= 0) {
-            val extent = (value / max).coerceIn(0.0, 1.0)
-            val steps = maxOf(2, ceil(extent * 70).toInt())
-            if (extent > 0) {
-                for (i in 0 until steps) {
-                    val a = extent * i / steps
-                    val b = extent * (i + 1) / steps
-                    drawArc(
-                        colorAt((a + b) / 2 * max), (180 + 180 * a).toFloat(), (180 * (b - a)).toFloat() + 0.4f, false,
-                        topLeft = topLeft, size = arcSize, style = Stroke(width),
-                    )
-                }
-            }
-            fun point(p: Double) = Offset(((80 - 62 * cos(p * PI)) * k).toFloat(), ((80 - 62 * sin(p * PI)) * k).toFloat())
-            drawCircle(colorAt(0.0), 7f * k, point(0.0))
-            if (extent > 0) drawCircle(colorAt(extent * max), 7f * k, point(extent))
-        }
-        centeredText(measurer, centerText, 80f * k, 62f * k, 28.sp, centerColor, FontWeight.Bold)
-        centeredText(measurer, minLabel, 18f * k, 106f * k, 12.sp, ForecastMuted)
-        centeredText(measurer, maxLabel, 142f * k, 106f * k, 12.sp, ForecastMuted)
-    }
-}
-
-@Composable
-internal fun CloudFill(fraction: Double, color: Color, text: String?, precipKind: Int, modifier: Modifier = Modifier) {
-    val measurer = rememberTextMeasurer()
-    Canvas(modifier.aspectRatio(130f / 100f)) {
-        val k = size.width / 130f
-        scale(k, k, Offset.Zero) {
-            val top = 8f
-            val bottom = 77f
-            val y = bottom - fraction.coerceIn(0.0, 1.0).toFloat() * (bottom - top)
-            drawPath(CloudFillPath, Color(0xFF1A1D24))
-            clipPath(CloudFillPath) { drawRect(color, Offset(0f, y), Size(130f, 100f - y)) }
-            drawPath(CloudFillPath, ForecastMuted, style = Stroke(2f))
-            if (precipKind == 1) {
-                for (x in listOf(42f, 64f, 86f)) {
-                    drawLine(color, Offset(x, 84f), Offset(x - 5f, 95f), 4f, StrokeCap.Round)
-                }
-            } else if (precipKind == 2) {
-                drawCircle(color, 3.5f, Offset(40f, 88f))
-                drawCircle(color, 3.5f, Offset(62f, 94f))
-                drawCircle(color, 3.5f, Offset(84f, 88f))
-            }
-        }
-        if (text != null) centeredText(measurer, text, 65f * k, 46f * k, 28.sp, Color.White, FontWeight.Bold)
-    }
-}
-
-// Arrow points to where the wind blows to ((direction + 180) % 360), exactly like pw4Compass.
-@Composable
-internal fun WindCompass(direction: Double, color: Color, modifier: Modifier = Modifier.size(64.dp)) {
-    val measurer = rememberTextMeasurer()
-    val description = uiText(R.string.ui_vietor_fuka_zo_smeru_value_value_sipka_ukazuje_kam_fuka_se_f9fef730, cardinal(direction), overviewNumber(direction, uiText(R.string.ui_stupnov_55efc5ad)))
-    Canvas(modifier.semantics { contentDescription = description }) {
-        val k = size.width / 100f
-        scale(k, k, Offset.Zero) {
-            drawCircle(Color(0xFF8C9BB2), 36f, Offset(50f, 56f), style = Stroke(2f))
-            if (direction.isFinite()) {
-                rotate(((direction + 180) % 360).toFloat(), Offset(50f, 56f)) { drawPath(ArrowPath, color) }
-            }
-            drawCircle(Color(0xFFE8EAF0), 4f, Offset(50f, 56f))
-        }
-        centeredText(measurer, uiText(R.string.ui_s_8de0b3c4), 50f * k, 13f * k, (19f * k).toSp(), Color(0xFFE8EAF0), FontWeight.Bold)
-    }
-}
-
 internal fun cardinal(degrees: Double): String =
     if (!degrees.isFinite()) "—" else listOf(uiText(R.string.ui_s_8de0b3c4), uiText(R.string.ui_sv_a4cd8b4d), uiText(R.string.ui_v_de5a6f78), uiText(R.string.ui_jv_002b53e7), uiText(R.string.ui_j_6da43b94), uiText(R.string.ui_jz_f296f166), uiText(R.string.ui_z_bbeebd87), uiText(R.string.ui_sz_c29f2aa3))[((degrees / 45.0 + 0.5).toInt() % 8 + 8) % 8]
 
+// line: the outline of the tile graphics; null: the line of an icon of this size (GlyphLine of the 24 grid, at least
+// GlyphMinDp), as on the Sun and Moon screen and in the help. The disc fills the area and its outline is drawn over the lit part.
 @Composable
-internal fun SunGraphic(position: Double?, modifier: Modifier = Modifier) {
-    Canvas(modifier.aspectRatio(0.5f)) {
-        val k = size.width / 60f
-        scale(k, k, Offset.Zero) {
-            val hy = 60f
-            drawLine(Color(0xFF8A7A45), Offset(30f, 10f), Offset(30f, hy), 3f, StrokeCap.Round)
-            drawLine(Color(0xFF4D5668), Offset(30f, hy), Offset(30f, 110f), 3f, StrokeCap.Round)
-            drawLine(Color(0xFF8C9BB2), Offset(7f, hy), Offset(53f, hy), 2.4f, StrokeCap.Round)
-            if (position != null) {
-                val y = (hy - position * 50.0).toFloat()
-                drawCircle(Gold, 9f, Offset(30f, y))
-                drawCircle(Color(0xFF8A6D1F), 9f, Offset(30f, y), style = Stroke(1.6f))
-            }
-        }
-    }
-}
-
-@Composable
-internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, modifier: Modifier = Modifier) {
+internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, modifier: Modifier = Modifier, line: Dp? = null) {
     Canvas(modifier.aspectRatio(1f)) {
         val k = size.width / 64f
+        val stroke = (line?.toPx() ?: maxOf(size.width * GlyphLine / 24f, GlyphMinDp.dp.toPx())) / k
         scale(k, k, Offset.Zero) {
-            val r = 26f
+            val r = 32f - stroke / 2f
             val cx = 32f
             val cy = 32f
             drawCircle(Color(0xFF252D3D), r, Offset(cx, cy))
-            drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(1.6f))
             val f = (illumination / 100f).coerceIn(0f, 1f)
             if (f > 0.01f) {
                 val rx = maxOf(abs(r * (1 - 2 * f)), 0.01f)
@@ -376,17 +264,10 @@ internal fun MoonGraphic(illumination: Int, waxing: Boolean, southern: Boolean, 
                 val mirror = !waxing != southern
                 if (mirror) scale(-1f, 1f, Offset(cx, cy)) { drawPath(lit, Color(0xFFD8E0F0)) } else drawPath(lit, Color(0xFFD8E0F0))
             }
+            drawCircle(Color(0xFF8C9BB2), r, Offset(cx, cy), style = Stroke(stroke))
         }
     }
 }
 
 @Composable
-internal fun Umbrella(color: Color, dimension: Dp = 22.dp) {
-    Canvas(Modifier.size(dimension)) {
-        val k = size.width / 24f
-        scale(k, k, Offset.Zero) {
-            drawPath(UmbrellaDome, color)
-            drawPath(UmbrellaHandle, color, style = Stroke(1.8f, cap = StrokeCap.Round))
-        }
-    }
-}
+internal fun Umbrella(color: Color, dimension: Dp = 22.dp) { GlyphIcon(Glyph.Umbrella, color, dimension) }

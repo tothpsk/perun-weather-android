@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="long_tip_median_short" formatted="false">"medián ensemble (P50)"</string>
+    <string name="long_tip_model_short" formatted="false">"predpoveď modelu"</string>
+</resources>

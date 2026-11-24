@@ -52,7 +52,6 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 import kotlin.math.*
 
 internal data class ForecastHour(val time:Long,val values:Map<String,Double>) { fun v(k:String)=values[k] ?: Double.NaN }
@@ -73,7 +72,7 @@ internal fun forecastWindParts(w:Double,g:Double,max:Double):Pair<Double,Double>
     val a=(w/max).coerceIn(0.0,1.0)
     return a to if(g.isFinite()) ((g/max).coerceIn(a,1.0)-a) else 0.0
 }
-private data class ForecastBundle(val days:List<ForecastDay>,val zone:ZoneId,val note:String)
+private data class ForecastBundle(val days:List<ForecastDay>,val zone:ZoneId,val note:String,val filledNote:String?=null)
 private val FText=Color(0xFFE8EAF0)
 private val FPanel=Color(0xFF202833)
 private val FEdge=Color(0xFF4B586C)
@@ -102,7 +101,7 @@ private fun tint(v:FV,x:Double,dew:Double=Double.NaN):Color=if(!x.isFinite()) Fo
     FV.Humidity->humidityBand(x,dew)?.color ?: ForecastMuted;FV.Visibility->visibilityBand(x)?.color ?: ForecastMuted;FV.Trend->pressureBand(x).color;FV.Cloud->Color(0xFF8294AD);FV.Pressure->Color(0xFFBA9EDB);else->ForecastMuted
 }
 private fun aggregate(day:ForecastDay,v:FV)=when(v) {
-    FV.Rain->day.sum(v.key);FV.Wind,FV.Gust,FV.Prob,FV.Uv->day.max(v.key)
+    FV.Cloud->cloudMedian(day.hours.filter { it.v("is_day")==1.0 }.map { it.v(v.key) });FV.Rain->day.sum(v.key);FV.Wind,FV.Gust,FV.Prob,FV.Uv->day.max(v.key)
     FV.Direction->day.hours.filter { it.v("wind_speed_10m").isFinite() }.maxByOrNull { it.v("wind_speed_10m") }?.v(v.key) ?: Double.NaN
     else->day.mean(v.key)
 }
@@ -121,25 +120,25 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
     val today=Instant.now().atZone(z).toLocalDate();val start=today.atStartOfDay(z).toEpochSecond()
     val last=hours.lastOrNull { it.time>=start && it.v("temperature_2m").isFinite() }?.time ?: error(uiText(R.string.ui_model_nevratil_predpoved_pre_lokalitu_f9977c57))
     hours=hours.filter { it.time<=last }
-    var note=uiText(R.string.ui_rozsah_podla_dostupnej_teplotnej_predpovede_zvoleneho_mode_b54cf840)
+    var note=uiText(R.string.ui_rozsah_podla_dostupnej_teplotnej_predpovede_zvoleneho_mode_b54cf840);var fromBestMatch:String?=null;var fromGfs:String?=null
     if(hours.any { it.time>=start && !it.v("uv_index").isFinite() }) try {
         val uv=request("&models=gfs_seamless&hourly=uv_index").getJSONObject("hourly");val ut=uv.getJSONArray("time");val ua=uv.getJSONArray("uv_index")
         val ix=(0 until ut.length()).associate { i->ut.getLong(i) to if(ua.isNull(i)) Double.NaN else ua.optDouble(i,Double.NaN) }
         var filled=0
         hours=hours.map { row->val a=ix[row.time] ?: Double.NaN;if(!row.v("uv_index").isFinite() && a.isFinite()) { filled++;row.copy(values=row.values+("uv_index" to a)) } else row }
-        if(filled>0) note+=uiText(R.string.ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f)
+        if(filled>0) { note+=uiText(R.string.ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f);fromGfs=uiText(R.string.fallback_gfs_note,FV.Uv.label) }
     } catch(e:CancellationException) { throw e } catch(e:Exception) { note+=uiText(R.string.ui_nahradne_uv_nie_je_dostupne_d90ceb69) }
     if(model!="best_match" && hours.any { it.time>=start && !it.v("precipitation_probability").isFinite() }) try {
         val pr=request("&hourly=precipitation_probability").getJSONObject("hourly");val pt=pr.getJSONArray("time");val pa=pr.getJSONArray("precipitation_probability")
         val px=(0 until pt.length()).associate { i->pt.getLong(i) to if(pa.isNull(i)) Double.NaN else pa.optDouble(i,Double.NaN) }
         var filledProb=0
         hours=hours.map { row->val a=px[row.time] ?: Double.NaN;if(!row.v("precipitation_probability").isFinite() && a.isFinite()) { filledProb++;row.copy(values=row.values+("precipitation_probability" to a)) } else row }
-        if(filledProb>0) note+=uiText(R.string.forecast_prob_filled)
+        if(filledProb>0) { note+=uiText(R.string.forecast_prob_filled);fromBestMatch=uiText(R.string.long_fallback_note,FV.Prob.label) }
     } catch(e:CancellationException) { throw e } catch(e:Exception) { }
     val ix=hours.associateBy { it.time }
     hours=hours.map { it.copy(values=it.values+("pressure_trend" to forecastTrend(it,ix))) }
     val days=hours.filter { it.time>=start }.groupBy { Instant.ofEpochSecond(it.time).atZone(z).toLocalDate() }.toSortedMap().map { (date,rows)->ForecastDay(date,date.atStartOfDay(z).toEpochSecond(),date.plusDays(1).atStartOfDay(z).toEpochSecond(),rows) }
-    ForecastBundle(days,z,note)
+    ForecastBundle(days,z,note,listOfNotNull(fromBestMatch,fromGfs).joinToString("\n").ifEmpty { null })
 }
 
 // targetDay is an ISO date such as 2026-11-20: that day opens expanded (the tap on the Day by hours widget); empty opens the list.
@@ -177,11 +176,15 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
                 }
             }
         }
-        item { Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold) }
+        item { Box(Modifier.fillMaxWidth()) {
+            Text(mode.label,modifier=Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp),color=FText,fontSize=20.sp,fontWeight=FontWeight.Bold)
+            // The visible circle of the (i) ends at the edge of the cards: the 36 dp button reaches 9 dp beyond it and does not change the height of the title.
+            if(mode==FV.Cloud) Box(Modifier.matchParentSize(),contentAlignment=Alignment.CenterEnd) { Box(Modifier.requiredSize(36.dp).offset(x=9.dp,y=2.dp)) { SettingsInfo(uiText(R.string.cloud_median_note)) } }
+        } }
         if(bundle!=null) items(bundle.days,key={it.date.toString()}) { day->Surface(color=FPanel,shape=RoundedCornerShape(16.dp),border=BorderStroke(1.dp,FEdge)) {
             ForecastDayRow(day,bundle,mode,u,false) { open=day.date }
         } }
-        item { AttributionFooter() }
+        item { AttributionFooter(bundle?.filledNote) }
     }
     }
 }
@@ -192,21 +195,9 @@ private suspend fun forecastLoad(l:Location,model:String):ForecastBundle=withCon
         FV.Wind->SummaryGlyph(SummaryIcon.Wind,color,22.dp)
         FV.Uv->SummaryGlyph(SummaryIcon.Uv,color,22.dp)
         FV.Humidity->HumidityGlyph(color,22.dp)
-        FV.Cloud->Canvas(Modifier.size(24.dp)) {
-            val k=size.width/24f;scale(k,k,Offset.Zero) {
-                val p=Path().apply { moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close() };drawPath(p,color,style=Stroke(1.8f,join=StrokeJoin.Round))
-            }
-        }
-        FV.Visibility,FV.Pressure->Canvas(Modifier.size(22.dp)) {
-            val k=size.width/24f;scale(k,k,Offset.Zero) {
-                val s=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-                if(v==FV.Visibility) {
-                    val p=Path().apply { moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close() };drawPath(p,color,style=s);drawCircle(color,3.5f,Offset(12f,12f))
-                } else {
-                    drawCircle(color,10f,Offset(12f,12f),style=s);drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round);drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
-                }
-            }
-        }
+        FV.Cloud->GlyphIcon(Glyph.Cloud,color,22.dp)
+        FV.Visibility->GlyphIcon(Glyph.Visibility,color,22.dp)
+        FV.Pressure->PressureGaugeGlyph(color,22.dp)
         else->Unit
     }
 }
@@ -252,7 +243,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             ForecastDayTitle(day.date,bundle.zone,false,Modifier.weight(1f))
             if(incomplete) Text("•",color=Color(0xFFFFB74D),modifier=Modifier.semantics { contentDescription=uiText(R.string.ui_neuplne_udaje_b649939a) })
             val code=day.hours.minByOrNull { abs(Instant.ofEpochSecond(it.time).atZone(bundle.zone).hour-12) }?.v("weather_code") ?: Double.NaN
-            WeatherSymbol(if(code.isFinite()) code.toInt() else -1,26.dp);ForecastChevron(open)
+            WeatherSymbol(if(code.isFinite()) code.toInt() else -1,24.dp);ForecastChevron(open)
         }
         ForecastCompactBody(top={
             if(v==FV.Temp) Text(buildAnnotatedString {
@@ -267,7 +258,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             when(v) {
                 FV.Temp->ForecastLine(uiText(R.string.ui_pocitovo_b1afb67c)+degrees(feelsPeriod(day,true),u)+" / "+degrees(feelsPeriod(day,false),u))
                 FV.Rain->Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(4.dp)) {
-                    Umbrella(probabilityColor(day.max("precipitation_probability")))
+                    Umbrella(probabilityColor(day.max("precipitation_probability")),18.dp)
                     ForecastLine(value(FV.Prob,day.max("precipitation_probability"),u)+(if(day.sum("snowfall")>0) uiText(R.string.ui_sneh_bbd0d4e8)+weatherUnitNumber(u.precipitation.fromSnowCentimetres(day.sum("snowfall")),1)+" "+u.precipitation.snowSymbol else ""),FText)
                 }
                 FV.Wind->ForecastLine(uiText(R.string.ui_narazy_df599680)+value(FV.Gust,gust,u),fw(gust))
@@ -280,17 +271,30 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             }
         },graphic={
             if(!a.isFinite()) Text("—",color=ForecastMuted,fontSize=24.sp) else when(v) {
-                FV.Wind->TkCompass(direction,ForecastGreen,Modifier.size(52.dp))
-                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(42.dp))
-                FV.Visibility->TkEyeGraphic(color,Modifier.size(44.dp))
-                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(44.dp)) else Text("—",color=ForecastMuted)
-                FV.Uv->SummaryGlyph(SummaryIcon.Uv,uvColor(a),40.dp)
-                FV.Cloud->CloudFill((a/100).coerceIn(0.0,1.0),color,null,0,Modifier.width(48.dp))
-                FV.Rain->CloudFill(sqrt((a/20).coerceIn(0.0,1.0)),RainBlue,null,if(a>0) 1 else 0,Modifier.width(48.dp))
-                else->SummaryGlyph(SummaryIcon.Temp,tint(FV.Temp,day.max("temperature_2m")),40.dp)
+                FV.Wind->if(direction.isFinite() && wind>0) TkDirectionArrow(direction,windBeaufortColor(wind),40.dp,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(direction))) else Text("—",color=ForecastMuted)
+                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color)
+                FV.Visibility->TkEyeGraphic(color)
+                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend)) else Text("—",color=ForecastMuted)
+                FV.Uv->TkGlyph(Glyph.Uv,uvColor(a))
+                FV.Cloud->TkFillGraphic(Glyph.Cloud,(a/100).coerceIn(0.0,1.0),color)
+                FV.Rain->ForecastRainGraphic(day,a)
+                else->TkGlyph(Glyph.Temp,tint(FV.Temp,day.max("temperature_2m")))
             }
         })
     }
+}
+// As the precipitation tile of the Now screen: the drop filled by the sum (full at 20 mm), the flake for snow alone
+// (stronger up to 10 cm), both for rain with snow.
+@Composable private fun ForecastRainGraphic(day:ForecastDay,sum:Double) {
+    val snow=day.sum("snowfall").takeIf { it.isFinite() } ?: 0.0
+    val wet=(day.sum("rain").takeIf { it.isFinite() } ?: 0.0)+(day.sum("showers").takeIf { it.isFinite() } ?: 0.0)>0
+    val fill=sqrt((sum/20).coerceIn(0.0,1.0))
+    val strength=sqrt((snow/10).coerceIn(0.0,1.0))
+    if(snow>0 && wet) Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.Bottom) {
+        HumidityGraphic(fill,RainBlue,30.dp)
+        TkFlakeGraphic(strength,Color(0xFFE8EAF0),26.dp)
+    } else if(snow>0) TkFlakeGraphic(strength,Color(0xFFE8EAF0))
+    else HumidityGraphic(fill,RainBlue)
 }
 @Composable private fun ForecastDayScale(day:ForecastDay,bundle:ForecastBundle,v:FV) {
     val all=bundle.days.flatMap { it.values(v.key) }
@@ -356,8 +360,9 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
             FV.Rain->ForecastPrecipGlyph(h,22.dp,Color.White)
             FV.Prob->Umbrella(Color.White)
             FV.Gust->GustGlyph(Color.White,22.dp)
-            FV.Direction->TkCompass(0.0,Color.White,Modifier.size(26.dp))
+            FV.Direction->TkDirectionArrow(225.0,Color.White,22.dp,row.label)
             FV.Dew->DewPointGlyph(Color.White,22.dp)
+            FV.Pressure->PressureGaugeGlyph(Color.White,22.dp)
             else->ForecastModeGlyph(row.v,Color.White)
         }
         DropdownMenu(expanded=show,onDismissRequest={show=false}) { Text(description,modifier=Modifier.widthIn(max=260.dp).padding(12.dp),fontSize=13.sp) }
@@ -399,7 +404,9 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val values=day.values(row.key).map { convert(v,it,u) }.filter(Double::isFinite)
                 val low=if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
                 val high=(values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
-                fun y(a:Double)=y1-15.dp.toPx()-((a-low)/(high-low)*(rh-31.dp.toPx()).coerceAtLeast(1f)).toFloat()
+                // The scale starts at the bottom of the row; the precipitation row of a day with snow keeps the room for the marks under the bars.
+                val base=(if(v==FV.Rain && day.hours.any { it.v("snowfall")>0 }) 15 else 3).dp.toPx()
+                fun y(a:Double)=y1-base-((a-low)/(high-low)*(rh-base-16.dp.toPx()).coerceAtLeast(1f)).toFloat()
                 if(v==FV.Rain) {
                     // Precipitation: a bar for every hour, in the colour of its kind.
                     val bw=(x(day.start+3600)-x(day.start))*.7f;val base=y(0.0)
@@ -482,3 +489,6 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
         }
     }
 }
+
+// The row icon of the pressure: a gauge, a circle with a needle and a hub. The arrow of the pressure stays for the trend.
+@Composable internal fun PressureGaugeGlyph(color:Color,dimension:androidx.compose.ui.unit.Dp) { GlyphIcon(Glyph.Pressure,color,dimension) }

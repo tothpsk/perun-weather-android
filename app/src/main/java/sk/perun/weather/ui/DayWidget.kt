@@ -12,7 +12,6 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
-import android.graphics.Typeface
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
@@ -24,25 +23,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.Path as ComposePath
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
-import androidx.compose.ui.graphics.drawscope.DrawScope
-import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.drawscope.rotate
-import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.graphics.vector.PathParser
-import androidx.compose.ui.graphics.vector.toPath
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.work.CoroutineWorker
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -92,66 +74,8 @@ private class DayData(val zone:ZoneId,val hours:List<ForecastHour>) {
     fun day(d:LocalDate):ForecastDay = ForecastDay(d,d.atStartOfDay(zone).toEpochSecond(),d.plusDays(1).atStartOfDay(zone).toEpochSecond(),hours.filter { date(it)==d })
 }
 
-// The row icons of the expanded day on the Forecast screen. Their composables (OverviewTileKit.kt, HumidityGraphic.kt,
-// ForecastScreen.kt) cannot run in a widget, so the same shapes are drawn here with the same Compose drawing calls.
-private fun svg(d:String):ComposePath = PathParser().parsePathString(d).toNodes().toPath()
-private fun composeBitmap(px:Int,box:Float,block:DrawScope.()->Unit):Bitmap {
-    val image=ImageBitmap(px,px)
-    CanvasDrawScope().draw(Density(1f),LayoutDirection.Ltr,androidx.compose.ui.graphics.Canvas(image),Size(px.toFloat(),px.toFloat())) { scale(px/box,px/box,Offset.Zero) { block() } }
-    return image.asAndroidBitmap()
-}
-private fun rowGlyph(row:String,color:Color,px:Int):Bitmap = composeBitmap(px,24f) {
-    val s=Stroke(2f,cap=StrokeCap.Round,join=StrokeJoin.Round)
-    when(row) {
-        "temp"->drawPath(svg("M10 4a2 2 0 0 1 4 0v9a4 4 0 1 1-4 0Z"),color,style=s)
-        "rain"->drawPath(svg("M12 2C12 2 5 10 5 15a7 7 0 0 0 14 0C19 10 12 2 12 2Z"),color,style=s)
-        "snow"->drawPath(svg("M12 3v18M4.2 7.5l15.6 9M4.2 16.5l15.6-9"),color,style=s)
-        "wind"->drawPath(svg("M3 9h11a3 3 0 1 0-3-3M3 15h15a3 3 0 1 1-3 3M3 12h7"),color,style=s)
-        "uv"->{ val sun=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round);drawPath(svg("M12 1.1v1.3M6.1 7h1.3M16.6 7h1.3M7.83 2.83l0.92 0.92M16.17 2.83l-0.92 0.92M7.83 11.17l0.92-0.92M16.17 11.17l-0.92-0.92"),color,style=sun);drawCircle(color,2.4f,Offset(12f,7f),style=sun);drawPath(svg("M5.5 14.4v5.1a2.5 2.5 0 0 0 5 0v-5.1M13 14.4l2.75 7.6l2.75-7.6"),color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round)) }
-        "gust"->drawPath(ComposePath().apply {
-            moveTo(1.5f,9f);lineTo(12f,9f);cubicTo(16.7f,9f,16.7f,2.5f,12.9f,2.5f);cubicTo(10.9f,2.5f,10f,4f,10f,5.4f)
-            moveTo(4.5f,12f);lineTo(18.3f,12f);cubicTo(23.3f,12f,23.3f,5.2f,19.2f,5.2f);cubicTo(17.5f,5.2f,16.7f,6.6f,16.7f,8f)
-            moveTo(1.5f,15f);lineTo(17.8f,15f);cubicTo(23f,15f,23f,21.5f,19f,21.5f);cubicTo(17.1f,21.5f,16.1f,20f,16.1f,18.6f)
-        },color,style=Stroke(1.8f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-        "cloud"->drawPath(ComposePath().apply { moveTo(5f,19f);cubicTo(0f,19f,0f,11f,5f,11f);cubicTo(5f,3f,16f,3f,17f,10f);cubicTo(24f,9f,25f,19f,19f,19f);close() },color,style=Stroke(1.8f,join=StrokeJoin.Round))
-        "humidity"->{
-            drawPath(ComposePath().apply { moveTo(12f,2f);cubicTo(12f,2f,5f,10f,5f,15f);cubicTo(5f,24.333334f,19f,24.333334f,19f,15f);cubicTo(19f,10f,12f,2f,12f,2f);close() },color,style=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawCircle(color,1.25f,Offset(9.4f,12.8f),style=Stroke(1.1f))
-            drawCircle(color,1.25f,Offset(14.6f,17.6f),style=Stroke(1.1f))
-            drawLine(color,Offset(9.5f,18.1f),Offset(14.5f,12.3f),1.4f,StrokeCap.Round)
-        }
-        "dew"->{
-            val thermometer=ComposePath().apply { moveTo(7f,14.37f);lineTo(7f,5f);arcTo(Rect(7f,3f,11f,7f),180f,180f,false);lineTo(11f,14.37f);arcTo(Rect(5.2f,13.8f,12.8f,21.4f),-58.2f,296.4f,false);close() }
-            drawPath(thermometer,color,style=Stroke(1.6f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(9f,17.6f),Offset(9f,10.5f),1.5f,StrokeCap.Round)
-            drawCircle(color,1.7f,Offset(9f,17.6f))
-            drawPath(ComposePath().apply { moveTo(17.5f,4.5f);cubicTo(17.5f,4.5f,14.2f,8.2f,14.2f,11f);arcTo(Rect(14.2f,7.7f,20.8f,14.3f),180f,-180f,false);cubicTo(20.8f,8.2f,17.5f,4.5f,17.5f,4.5f);close() },color)
-        }
-        "visibility"->{
-            drawPath(ComposePath().apply { moveTo(2f,12f);cubicTo(7f,2f,17f,2f,22f,12f);cubicTo(17f,22f,7f,22f,2f,12f);close() },color,style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawCircle(color,3.5f,Offset(12f,12f))
-        }
-        "pressure"->{
-            drawCircle(color,10f,Offset(12f,12f),style=Stroke(1.7f,cap=StrokeCap.Round,join=StrokeJoin.Round))
-            drawLine(color,Offset(6f,12f),Offset(18f,12f),1.8f,StrokeCap.Round)
-            drawLine(color,Offset(14f,8f),Offset(18f,12f),1.8f,StrokeCap.Round)
-            drawLine(color,Offset(14f,16f),Offset(18f,12f),1.8f,StrokeCap.Round)
-        }
-        else->Unit
-    }
-}
-/** The compass of the wind direction row: ring, arrow and the letter for north. */
-private fun compassGlyph(color:Color,px:Int):Bitmap {
-    val bmp=composeBitmap(px,100f) {
-        drawCircle(Color(0xFF8C9BB2),36f,Offset(50f,58f),style=Stroke(2f))
-        rotate(180f,Offset(50f,58f)) { drawPath(svg("M50 28L38 80L50 68L62 80Z"),color) }
-        drawCircle(Color(0xFFE8EAF0),4f,Offset(50f,58f))
-    }
-    val k=px/100f
-    val p=Paint(Paint.ANTI_ALIAS_FLAG).apply { this.color=0xFFE8EAF0.toInt();textSize=18f*k;textAlign=Paint.Align.CENTER;typeface=Typeface.DEFAULT_BOLD }
-    Canvas(bmp).drawText(uiText(R.string.ui_s_8de0b3c4),50f*k,15f*k,p)
-    return bmp
-}
+// The row icons of the expanded day on the Forecast screen: the same glyphs as the app (PerunGlyphs.kt).
+private fun rowGlyph(row:String,color:Color,px:Int,dp:Float=18f):Bitmap = widgetIconBitmap(row,color.toArgb(),px,dp)
 
 /** The Day by hours widget keeps the last forecast in a file, so that the day arrows and the now line work without the network. */
 internal object DayWidgets {
@@ -241,26 +165,10 @@ internal object DayWidgets {
             parse(text)
             file(c,id).writeText(text)
         }
-        // Official warnings with their validity, so that the header can show the one valid now. A failed request stores none.
+        // Official warnings with their validity, so that the header can show the one of the shown day. A failed request stores none.
         val alerts=try { loadOverview(l,src.alertSource,src.weatherModel).alerts.filter { !it.local && it.level in Levels } }
             catch(e:CancellationException) { throw e } catch(e:Exception) { emptyList() }
-        val stored=JSONArray()
-        alerts.forEach { a -> stored.put(JSONObject().put("level",a.level).put("event",a.event).put("start",a.start?.epochSecond ?: 0L).put("end",a.end?.epochSecond ?: 0L)) }
-        prefs(c).edit().putString("key_$id",stamp(c,l)).putLong("at_$id",System.currentTimeMillis()/1000).putString("alert_$id",stored.toString()).apply()
-    }
-    /** Level and event of the strongest stored warning that is valid at the given time. */
-    private fun currentAlert(raw:String?,now:Long):Pair<String,String>? {
-        if(raw==null) return null
-        val list=runCatching { JSONArray(raw) }.getOrNull() ?: return null
-        var best:Pair<String,String>?=null
-        for(i in 0 until list.length()) {
-            val o=list.optJSONObject(i) ?: continue
-            val level=o.optString("level");val start=o.optLong("start",0L);val end=o.optLong("end",0L)
-            if(level !in Levels || (start>0L && now<start) || (end>0L && now>=end)) continue
-            val current=best
-            if(current==null || Levels.indexOf(level)<Levels.indexOf(current.first)) best=level to o.optString("event")
-        }
-        return best
+        prefs(c).edit().putString("key_$id",stamp(c,l)).putLong("at_$id",System.currentTimeMillis()/1000).putString("alert_$id",widgetAlertsJson(alerts)).apply()
     }
     private fun read(c:Context,id:Int,l:Location):DayData? {
         if(prefs(c).getString("key_$id","")!=stamp(c,l)) return null
@@ -325,11 +233,12 @@ internal object DayWidgets {
         if(l!=null) v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l),date))
         v.setImageViewBitmap(R.id.wg_day_prev,chevron(dn,false,if(date>days.first()) blue else Disabled))
         v.setImageViewBitmap(R.id.wg_day_next,chevron(dn,true,if(date<days.last()) blue else Disabled))
-        val alert=currentAlert(p.getString("alert_$id",null),Instant.now().epochSecond)
+        // The warning of the shown day (widgetAlert).
+        val alert=widgetDay(date,data.zone).let { (from,to)->widgetAlert(widgetAlertsFrom(p.getString("alert_$id",null)),from,to) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.second,alert.first,54))
-            v.setContentDescription(R.id.wg_alert,alert.second)
+            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))
+            v.setContentDescription(R.id.wg_alert,alert.event)
         }
         val o=manager.getAppWidgetOptions(id)
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300
@@ -395,12 +304,12 @@ internal object DayWidgets {
             rect(Divider,0f,y0,wPx.toFloat(),y0+dn)
             val gs=min(18*dn,rh-6*dn).roundToInt().coerceAtLeast(8)
             val icon=when(row) {
-                "direction"->compassGlyph(Color.White,(gs*1.15f).roundToInt())
-                "prob"->widgetGlyphBitmap("prob",Color.White.toArgb(),gs)
-                "rain"->rowGlyph(row,Color.White,gs)
-                "gust"->rowGlyph(row,Color.White,gs)
-                "dew"->rowGlyph(row,Color.White,gs)
-                else->rowGlyph(row,Color.White,gs)
+                "direction"->dayDirectionRowArrow(gs)
+                "prob"->rowGlyph("prob",Color.White,gs,gs/dn)
+                "rain"->rowGlyph(row,Color.White,gs,gs/dn)
+                "gust"->rowGlyph(row,Color.White,gs,gs/dn)
+                "dew"->rowGlyph(row,Color.White,gs,gs/dn)
+                else->rowGlyph(row,Color.White,gs,gs/dn)
             }
             cv.drawBitmap(icon,(left-icon.width)/2f,y0+(rh-icon.height)/2f,null)
             if(row=="direction") {
@@ -454,8 +363,8 @@ internal object DayWidgets {
                 if(ss>0) day.hours.forEach { h -> if((h.v("snowfall")>0 || h.v(key)>0) && hourOf(h)%3==0) {
                     val tone=Color(color(row,h));val gx=(x(h.time)-ss/2f).coerceIn(left,(right-ss).coerceAtLeast(left));val gy=y1-ss-dn
                     val snowy=h.v("snowfall")>0;val wet=h.v("rain")>0 || h.v("showers")>0
-                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss),px+ss,gy,null) }
-                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss),gx,gy,null)
+                    if(snowy && wet) { val px=(x(h.time)-ss).coerceIn(left,(right-2*ss).coerceAtLeast(left));cv.drawBitmap(rowGlyph("rain",tone,ss,ss/dn),px,gy,null);cv.drawBitmap(rowGlyph("snow",tone,ss,ss/dn),px+ss,gy,null) }
+                    else cv.drawBitmap(rowGlyph(if(snowy) "snow" else "rain",tone,ss,ss/dn),gx,gy,null)
                 } }
             }
         }
@@ -582,3 +491,6 @@ class DayWidgetConfigActivity:ComponentActivity() {
         Button(onClick={ onSave(loc,rows.ifEmpty { DayWidgetRows }) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }
     }
 }
+
+// The arrow of the other widgets, pointing to the north-east as the label of the row.
+private fun dayDirectionRowArrow(size:Int):android.graphics.Bitmap = widgetWindArrowBitmap(225.0,android.graphics.Color.WHITE,size)

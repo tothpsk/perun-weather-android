@@ -63,6 +63,7 @@ private fun bftRange(i:Int):String {
             HelpRow(Color(0xFF8294AD),uiText(R.string.ui_polooblacno_83f2c354),"37,5 – 62,5 %")
             HelpRow(Color(0xFF66758C),uiText(R.string.ui_prevazne_oblacno_e5122573),"62,5 – 87,5 %")
             HelpRow(Color(0xFF4B586C),uiText(R.string.ui_zamracene_829159bb),uiText(R.string.ui_viac_ako_87_5_105ed338))
+            HelpText(uiText(R.string.cloud_median_note))
         }
         OverviewTileId.Humidity -> {
             HelpText(uiText(R.string.ui_relativna_vlhkost_vzduchu_a_rosny_bod_rosny_bod_je_teplota_c1b0a236))

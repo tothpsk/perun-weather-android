@@ -80,9 +80,9 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
 @Composable private fun SeaGlyph(m:SeaMetric,color:Color) {
     when(m) {
         SeaMetric.Temperature->SummaryGlyph(SummaryIcon.Temp,color,22.dp)
-        SeaMetric.Waves->Icon(PerunIcons.Wave,null,tint=color,modifier=Modifier.size(24.dp))
-        SeaMetric.Period->Canvas(Modifier.size(22.dp)) {val c=center;val r=size.minDimension*.42f;drawCircle(color,r,c,style=Stroke(1.7.dp.toPx()));drawLine(color,c,c+Offset(0f,-r*.6f),1.7.dp.toPx(),StrokeCap.Round);drawLine(color,c,c+Offset(r*.45f,r*.25f),1.7.dp.toPx(),StrokeCap.Round)}
-        SeaMetric.Level->Canvas(Modifier.size(24.dp)) {val p=Path().apply {moveTo(size.width*.15f,size.height*.65f);cubicTo(size.width*.4f,size.height*.35f,size.width*.6f,size.height*.95f,size.width*.85f,size.height*.65f)};drawPath(p,color,style=Stroke(1.7.dp.toPx()));drawLine(color,Offset(size.width*.5f,size.height*.15f),Offset(size.width*.5f,size.height*.45f),1.7.dp.toPx(),StrokeCap.Round);drawLine(color,Offset(size.width*.35f,size.height*.3f),Offset(size.width*.5f,size.height*.15f),1.7.dp.toPx());drawLine(color,Offset(size.width*.65f,size.height*.3f),Offset(size.width*.5f,size.height*.15f),1.7.dp.toPx())}
+        SeaMetric.Waves->GlyphIcon(Glyph.Wave,color,22.dp)
+        SeaMetric.Period->GlyphIcon(Glyph.SeaPeriod,color,22.dp)
+        SeaMetric.Level->GlyphIcon(Glyph.SeaLevel,color,22.dp)
     }
 }
 // One drawing of the sea level extremes, shared by the chart legend and the help sheet: a blue triangle pointing up for the model maximum, an orange one pointing down for the model minimum.
@@ -97,7 +97,7 @@ private fun seaEncode(graphs:List<SeaCustom>):String {
 @Composable private fun SeaCustomControls(graphs:List<SeaCustom>,save:(List<SeaCustom>)->Unit) {
     var open by remember {mutableStateOf(false)};var edit by remember {mutableStateOf<SeaCustom?>(null)};var deleting by remember {mutableStateOf<SeaCustom?>(null)}
     val shape=RoundedCornerShape(50)
-    Row(Modifier.height(48.dp).clip(shape).background(SeaPanel).border(1.dp,SeaEdge,shape).clickable(role=Role.Button,onClick={open=true}).padding(horizontal=16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {Icon(PerunIcons.Settings,null,tint=SeaText,modifier=Modifier.size(20.dp));Text(uiText(R.string.ui_vlastne_value_3_2f94d9c4, graphs.size),color=SeaText,fontSize=13.sp,fontWeight=FontWeight.SemiBold)}
+    Row(Modifier.height(48.dp).clip(shape).background(SeaPanel).border(1.dp,SeaEdge,shape).clickable(role=Role.Button,onClick={open=true}).padding(horizontal=16.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {Icon(PerunIcons.Settings,null,tint=SeaText,modifier=Modifier.size(18.dp));Text(uiText(R.string.ui_vlastne_value_3_2f94d9c4, graphs.size),color=SeaText,fontSize=13.sp,fontWeight=FontWeight.SemiBold)}
     if(open) AlertDialog(onDismissRequest={open=false},title={Text(uiText(R.string.ui_vlastne_morske_grafy_6a19042b))},text={Column(Modifier.heightIn(max=420.dp).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(8.dp)) {
         Text(uiText(R.string.ui_najviac_tri_grafy_kazdy_s_jednou_az_styrmi_velicinami_8d7b0051))
         graphs.forEach {g->Column {Row(verticalAlignment=Alignment.CenterVertically) {Text(g.title,Modifier.weight(1f));Switch(g.visible,{on->save(graphs.map {if(it.id==g.id) it.copy(visible=on) else it})})};Text(g.metrics.joinToString(" · ") {it.title},fontSize=12.sp);Row {TextButton(onClick={edit=g}) {Text(uiText(R.string.ui_upravit_0e8a3f5b))};TextButton(onClick={deleting=g}) {Text(uiText(R.string.ui_odstranit_d24effb5))}}}}

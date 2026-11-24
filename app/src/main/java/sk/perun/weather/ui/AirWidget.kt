@@ -100,8 +100,11 @@ internal object AirWidgets {
         val padH=if(wDp<120) 6 else 10;val padV=if(hDp<100) 6 else 10
         val wPx=((wDp-2*padH)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-2*padV)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_air)
-        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp)))
-        v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air))
+        // The warning of the next 24 hours, drawn behind the place where the widget shows it.
+        val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
+        val warningPicture=warning?.let { widgetAlertBitmap(it.event,it.level,(18*dn).roundToInt(),it.awareness) }
+        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp),warningPicture))
+        v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air)+(warning?.let { ", "+it.event } ?: ""))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
@@ -116,7 +119,7 @@ internal object AirWidgets {
 }
 
 /** The whole widget as one picture, so that every size is laid out to the pixel. */
-private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQualityScale,pollenMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,shape:AirWidgetShape):Bitmap {
+private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQualityScale,pollenMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,shape:AirWidgetShape,warning:Bitmap?=null):Bitmap {
     val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
     val w=wPx.toFloat();val h=hPx.toFloat()
     val fg=if(darkText) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
@@ -154,6 +157,14 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
         var t=s
         while(t.length>1 && p.measureText(t+"\u2026")>room) t=t.dropLast(1)
         return t+"\u2026"
+    }
+    // The place with the warning of the next 24 hours behind it, as in the Sun and Moon widget.
+    fun placeText(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean,room:Float,align:Paint.Align=Paint.Align.LEFT) {
+        val a=warning;val sz=(size+3)*dn;val aw=if(a!=null) sz+4*dn else 0f
+        val shown=if(room-aw>0f) fit(s,size,bold,room-aw) else "";val tw=if(shown.isEmpty()) 0f else width(shown,size,bold)
+        val left=when(align) { Paint.Align.CENTER->x-(tw+aw)/2;Paint.Align.RIGHT->x-tw-aw;else->x }
+        if(shown.isNotEmpty()) text(shown,left,y,size,color,bold)
+        if(a!=null) { val cy=y-0.36f*size*dn;val ax=if(shown.isNotEmpty()) left+tw+4*dn else left;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
     }
     fun dot(x:Float,y:Float,color:Int) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,3*dn,p) }
     fun arc(cx:Float,cy:Float,r:Float,stroke:Float,fraction:Float,color:Int) {
@@ -203,7 +214,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
     when(shape) {
         AirWidgetShape.Tiny -> gauge(w/2,h/2,min(w,h)/2-2*dn,mainWord)
         AirWidgetShape.Square -> {
-            text(fit(place,11f,false,w),w/2,11*dn,11f,muted,false,Paint.Align.CENTER)
+            placeText(place,w/2,11*dn,11f,muted,false,w,Paint.Align.CENTER)
             // The other value in one line at the bottom.
             val line=fit(if(pollenMain) aqiLine else pollenLine,11f,false,w-10*dn)
             val x0=(w-width(line,11f)-9*dn)/2
@@ -213,7 +224,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             gauge(w/2,(areaTop+areaBottom)/2,max(min(w/2-4*dn,(areaBottom-areaTop)/2),8*dn),if(pollenMain) pollenLabel else level?.label ?: "")
         }
         AirWidgetShape.CompactDetails -> {
-            text(fit(place,13f,true,w),0f,13*dn,13f,fg,true)
+            placeText(place,0f,13*dn,13f,fg,true,w)
             val areaTop=22*dn
             val area=(h-areaTop).coerceAtLeast(1f)
             val diameter=min(w*0.46f,(area-4*dn).coerceAtLeast(1f))
@@ -237,7 +248,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             val three=w>=160*dn
             val block=if(three) min(72*dn,(w-x0)*0.45f) else (w-x0).coerceAtLeast(1f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
-            text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
+            placeText(place,x0,h/2+12*dn,10f,muted,false,block)
             if(three) {
                 // The air quality: PM2.5 and PM10. The pollen: the two strongest kinds.
                 val items=if(pollenMain) pollenAll.take(2).map { pollenItem(it) } else listOf(pollutant("pm2_5"),pollutant("pm10"))
@@ -252,7 +263,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
             // The air quality shows three pollutants at four cells and four from five cells.
             val x0=2*r+9*dn;val block=if(pollenMain) min(72*dn,(w-x0)*0.3f) else min(84*dn,(w-x0)*0.34f)
             text(fit(if(pollenMain) pollenLabel else level?.label ?: mainWord,13f,true,block),x0,h/2-2*dn,13f,fg,true)
-            text(fit(place,10f,false,block),x0,h/2+12*dn,10f,muted)
+            placeText(place,x0,h/2+12*dn,10f,muted,false,block)
             val wide=w>=300*dn
             val items=if(pollenMain) pollenAll.take(if(wide) 5 else 3).map { pollenItem(it) }
                 else (if(wide) listOf("pm2_5","pm10","nitrogen_dioxide","ozone") else listOf("pm2_5","pm10","ozone")).map { pollutant(it) }
@@ -268,7 +279,7 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
                 else if(pollenKnown) "0 "+unit+" \u00B7 "+pollenLabel else pollenLabel
             val summary=fit(headLine,12f,false,w*(if(pollenMain) 0.62f else 0.45f))
             val summaryWidth=width(summary,12f)
-            text(fit(place,13f,true,if(pollenMain) (w-summaryWidth-18*dn).coerceAtLeast(1f) else w*0.5f),0f,13*dn,13f,fg,true)
+            placeText(place,0f,13*dn,13f,fg,true,if(pollenMain) (w-summaryWidth-18*dn).coerceAtLeast(1f) else w*0.5f)
             text(summary,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
             dot(w-summaryWidth-7*dn,9*dn,if(pollenMain) pollenColor else aqiColor)
             // The main value over the next 24 hours; the band grows with the widget.

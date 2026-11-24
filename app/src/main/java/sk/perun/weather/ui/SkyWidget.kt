@@ -100,7 +100,7 @@ private class SwFact(val icon:Int,val caption:String,val value:String,val color:
 
 internal class SkyWidgetConfig(val loc:String,val main:String,val bg:String,val text:String)
 
-/** The Sun and Moon widget. It keeps its own settings and shows one body, "sun" or "moon". Everything is computed in the device. */
+/** The Sun and Moon widget. It keeps its own settings and shows one body, "sun" or "moon", computed in the device; only the warnings of the place are downloaded. */
 internal object SkyWidgets {
     private const val Prefs="perun_widget_sky"
     private const val Once="perun-widget-sky"
@@ -119,7 +119,7 @@ internal object SkyWidgets {
         if(ids(c).isEmpty()) return
         WorkManager.getInstance(c.applicationContext).enqueueUniqueWork(Once,ExistingWorkPolicy.REPLACE,OneTimeWorkRequestBuilder<SkyWidgetWorker>().build())
     }
-    // No network is needed; every 30 minutes moves the Sun along its arc and keeps the next event current.
+    // Every 30 minutes moves the Sun along its arc, keeps the next event current and checks the warnings of the place.
     fun schedule(c:Context) {
         WorkManager.getInstance(c.applicationContext).enqueueUniquePeriodicWork(Periodic,ExistingPeriodicWorkPolicy.KEEP,PeriodicWorkRequestBuilder<SkyWidgetWorker>(30,TimeUnit.MINUTES).build())
     }
@@ -139,8 +139,11 @@ internal object SkyWidgets {
         val padH=if(wDp<120) 6 else 10;val padV=if(hDp<100) 6 else 10
         val wPx=((wDp-2*padH)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-2*padV)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_sky)
-        v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows))
-        v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky))
+        // The warning of the next 24 hours, drawn behind the place where the widget shows it.
+        val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
+        val warningPicture=warning?.let { widgetAlertBitmap(it.event,it.level,(18*dn).roundToInt(),it.awareness) }
+        v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture))
+        v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+it.event } ?: ""))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
@@ -158,7 +161,7 @@ internal object SkyWidgets {
  * The whole widget as one picture, in the manner of the Air quality and pollen widget: a picture of the chosen body
  * (the day arc of the Sun, or the Moon in its phase) and its values, each with the symbol it has on the Sun and Moon screen.
  */
-private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Double,moonMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,cols:Int,rows:Int):Bitmap {
+private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Double,moonMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,cols:Int,rows:Int,warning:Bitmap?=null):Bitmap {
     val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
     val w=wPx.toFloat();val h=hPx.toFloat()
     val fg=if(darkText) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
@@ -221,6 +224,15 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         var t=s
         while(t.length>1 && p.measureText(t+"\u2026")>room) t=t.dropLast(1)
         return if(p.measureText(t+"\u2026")<=room) t+"\u2026" else ""
+    }
+    // The place with the warning of the next 24 hours behind it, as in the other widgets: the symbol a little taller than the letters,
+    // 4 dp after the name and in the middle of its letters. Without a warning the text alone.
+    fun placeText(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean,room:Float,align:Paint.Align=Paint.Align.LEFT) {
+        val a=warning;val sz=(size+3)*dn;val aw=if(a!=null) sz+4*dn else 0f
+        val shown=fit(s,size,bold,room-aw);val tw=width(shown,size,bold)
+        val left=when(align) { Paint.Align.CENTER->x-(tw+aw)/2;Paint.Align.RIGHT->x-tw-aw;else->x }
+        if(shown.isNotEmpty()) text(shown,left,y,size,color,bold)
+        if(a!=null) { val cy=y-0.36f*size*dn;val ax=if(shown.isNotEmpty()) left+tw+4*dn else left;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
     }
     fun stroke(color:Int,px:Float) { p.style=Paint.Style.STROKE;p.strokeWidth=px;p.strokeCap=Paint.Cap.ROUND;p.color=color }
     fun dot(x:Float,y:Float,color:Int,r:Float=3*dn) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,r,p) }
@@ -318,17 +330,19 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             val total=w-x0
             spread(x0,h/2,if(total/4>=62*dn) facts else facts.take(3))
         } else {
-            // The Moon at four cells and more: the phase with the lit part and the place below it, then the values.
-            val block=min(110*dn,(w-x0)*0.4f)
+            // The Moon at four cells and more: the phase with the lit part and the place below it, then the rise and the set;
+            // when the room left for the phase stays at least 56 dp, also the trend. The phase and the place shorten first.
+            val values=listOf(facts[0],facts[1],facts[3]);val gap=8*dn;val room=w-x0
+            fun need(n:Int):Float = values.take(n).sumOf { columnWidth(it).toDouble() }.toFloat()+gap*n
+            val n=if(room-need(3)>=56*dn) 3 else 2
+            val block=min(130*dn,room-need(n)).coerceAtLeast(36*dn)
             text(fit(rowHead,13f,true,block),x0,h/2-2*dn,13f,fg,true)
-            text(fit(rowSub,10f,false,block),x0,h/2+12*dn,10f,muted)
-            val start=x0+block+6*dn
-            val shown=facts.take(((w-start)/(64*dn)).toInt().coerceIn(0,facts.size))
-            if(shown.isNotEmpty()) spread(start,h/2,shown)
+            placeText(rowSub,x0,h/2+12*dn,10f,muted,false,block)
+            spread(x0+block+gap,h/2,values.take(n))
         }
     } else if(cols==2) {
         // Two by two: the place on top, the picture in the middle, rise on the left and set on the right below.
-        text(fit(place,11f,false,w),w/2,11*dn,11f,muted,false,Paint.Align.CENTER)
+        placeText(place,w/2,11*dn,11f,muted,false,w,Paint.Align.CENTER)
         val top=16*dn;val bottom=h-22*dn
         picture(w/2,(top+bottom)/2,min(w*0.9f,bottom-top))
         icon(0,0f,h-8*dn,SwRise);text(pair[0].value,18*dn,h-3*dn,12f,fg)
@@ -342,7 +356,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             val head=fit(if(cols==3) rowHead else headline,12f,false,w*0.58f)
             text(head,w,13*dn,12f,fg,false,Paint.Align.RIGHT)
             if(head.isNotEmpty()) dot(w-width(head,12f)-7*dn,9*dn,headColor)
-            text(fit(place,13f,true,w-width(head,12f)-20*dn),0f,13*dn,13f,fg,true)
+            placeText(place,0f,13*dn,13f,fg,true,w-width(head,12f)-20*dn)
             if(cols==3) {
                 val s=min(area,w*0.48f);picture(s/2,top+area/2,s)
                 val x1=s+10*dn;val step=area/3
@@ -362,7 +376,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
             val tw=width(trend.value,12f)
             icon(trend.icon,w-tw-20*dn,8.5f*dn,trend.color)
             text(trend.value,w,13*dn,12f,if(trend.color==muted) fg else trend.color,false,Paint.Align.RIGHT)
-            text(fit(place,13f,true,w-tw-30*dn),0f,13*dn,13f,fg,true)
+            placeText(place,0f,13*dn,13f,fg,true,w-tw-30*dn)
             if(cols>=4) {
                 // Four cells and more: a larger day arc; to its right the rise above the solar noon and the set above the length of the day.
                 // The arc is only half as tall as it is wide, so its square may be wider than the room below the header.

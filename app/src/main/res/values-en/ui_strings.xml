@@ -24,7 +24,6 @@
     <string name="ui_bez_zrazok_2da018fe" formatted="false">"no precipitation"</string>
     <string name="ui_bez_zrazok_cf1104e5" formatted="false">"No precipitation"</string>
     <string name="ui_bezvetrie_cd38ecb2" formatted="false">"Calm"</string>
-    <string name="ui_blesky_25_km_value_69d5d7c7">"Lightning (25 km): %1$s"</string>
     <string name="ui_blesky_bcc2d8d0" formatted="false">"Lightning"</string>
     <string name="ui_blesky_do_25_km_62a7ba5c" formatted="false">"Lightning within 25 km: "</string>
     <string name="ui_blesky_do_25_km_ce2c4ebd" formatted="false">"Lightning within 25 km"</string>
@@ -34,19 +33,16 @@
     <string name="ui_bodkovana_siva_ciara_male_disky_na_nej_oznacuju_hlavne_faz_16549c66" formatted="false">"Dotted grey line. Small discs on it mark the main phases: new moon, first quarter, full moon and last quarter."</string>
     <string name="ui_breza_274e3ab2" formatted="false">"Birch"</string>
     <string name="ui_bud_pozorny_fe1c266c" formatted="false">"Be careful."</string>
-    <string name="ui_bunky_a_blesky_z_librewxr_v_okoli_100_km_odhad_prichodu_zn_5d1bc5d5" formatted="false">"Cells and lightning from LibreWXR within 100 km. Estimated arrival means getting within 8 km if the current movement continues during the next hour. This is not an official alert."</string>
     <string name="ui_burka_da3df9bc" formatted="false">"Thunderstorm"</string>
     <string name="ui_burka_je_pri_lokalite_17b2f702" formatted="false">"The thunderstorm is at the location."</string>
     <string name="ui_burkova_bunka_v_okoli_ed6921f4" formatted="false">"Storm cell nearby"</string>
     <string name="ui_burkove_bunky_02324dfe" formatted="false">"Storm cells"</string>
     <string name="ui_burkove_bunky_a_blesky_cc129d3b" formatted="false">"Storm cells and lightning"</string>
     <string name="ui_burkove_bunky_a_blesky_v_okoli_100_km_pismeno_s_oznacuje_s_70b50c90" formatted="false">"Storm cells and lightning within 100 km. The letter N marks north, and the scale is at the bottom left of the radar. The red dot is your location. The dashed line with an arrow shows the direction of movement of the nearest cell, yellow lightning flashes as it occurs, and the green sweep is only decorative."</string>
-    <string name="ui_burkove_bunky_a_blesky_voci_lokalite_sever_je_hore_a2fbf923" formatted="false">"Storm cells and lightning relative to the location; north is up"</string>
     <string name="ui_burkove_bunky_a_blesky_voci_lokalite_sever_je_hore_mierka_62f9f97f">"Storm cells and lightning relative to the location; north is up; scale %1$s km"</string>
     <string name="ui_burky_a079c974" formatted="false">"Thunderstorms"</string>
     <string name="ui_burky_v_okoli_60c0371d" formatted="false">"Thunderstorms nearby"</string>
     <string name="ui_burlivy_vietor_12ab2d33" formatted="false">"Gale"</string>
-    <string name="ui_c_ccd18b02" formatted="false">" °C"</string>
     <string name="ui_cas_nie_je_uvedeny_3aa85dd3" formatted="false">"Time not specified"</string>
     <string name="ui_cas_snimky_87293daa" formatted="false">"Frame time"</string>
     <string name="ui_casovy_interval_historia_e76ab9b1" formatted="false">"Time interval (history)"</string>
@@ -68,14 +64,12 @@
     <string name="ui_chybaju_hodinove_udaje_33c2aefa" formatted="false">"Hourly data missing"</string>
     <string name="ui_chybajuce_udaje_sa_nedoplnaju_z_ineho_ensemble_b2b00123" formatted="false">" Missing data are not filled in from another ensemble."</string>
     <string name="ui_chybajuce_uv_doplnene_z_gfs_bez_predlzenia_hlavneho_horizo_649c0e6f" formatted="false">" Missing UV filled in from GFS without extending the main horizon."</string>
-    <string name="ui_cm_snehu_9f691427" formatted="false">" cm of snow"</string>
     <string name="ui_cuva_c55fd1d0" formatted="false">"Waning"</string>
     <string name="ui_cuvajuci_kosacik_03e67d5f" formatted="false">"Waning crescent"</string>
     <string name="ui_cuvajuci_mesiac_4a6a004c" formatted="false">"Waning gibbous"</string>
     <string name="ui_dalsie_zdroje_0e84da7e" formatted="false">"More sources "</string>
     <string name="ui_dazd_8eda180e" formatted="false">"Rain"</string>
     <string name="ui_dazd_a_prehanky_9e6eff58" formatted="false">"Rain and showers"</string>
-    <string name="ui_dazd_potrva_aspon_hodinu_c0146efe" formatted="false">"Rain will last at least an hour"</string>
     <string name="ui_dazd_skonci_o_value_min_25bffcd9">"Rain will end in ~%1$s min"</string>
     <string name="ui_dazd_so_snehom_586507c0" formatted="false">"Sleet"</string>
     <string name="ui_dazd_zacne_o_value_min_1d0cabf6">"Rain will start in ~%1$s min"</string>
@@ -90,7 +84,6 @@
     <string name="ui_dnes_b6dcb499" formatted="false">"° today"</string>
     <string name="ui_dnes_ce1bed34" formatted="false">"Today"</string>
     <string name="ui_dnes_ef517dc4" formatted="false">" today"</string>
-    <string name="ui_dnes_max_value_4d6092b5">"Today max. %1$s"</string>
     <string name="ui_dnesok_e2299229" formatted="false">"Today"</string>
     <string name="ui_dobra_19daeeb7" formatted="false">"Good"</string>
     <string name="ui_dolny_percentil_4cf4ff75" formatted="false">"Lower percentile"</string>
@@ -117,7 +110,6 @@
     <string name="ui_farba_podla_teploty_c7e72e64" formatted="false">"Colour by temperature"</string>
     <string name="ui_faza_vychadza_z_uhlovej_vzdialenosti_mesiaca_od_slnka_v_po_6a6b7ba7" formatted="false">"The phase is derived from the angular distance of the Moon from the Sun at noon on the selected day. The icon shows the illuminated part of the disc and the number its share in percent."</string>
     <string name="ui_fazy_nov_dorastajuci_kosacik_prva_stvrt_dorastajuci_mesiac_8ef47325" formatted="false">"Phases: new moon, waxing crescent, first quarter, waxing gibbous, full moon, waning gibbous, last quarter, waning crescent."</string>
-    <string name="ui_g_m3_db57960b" formatted="false">" µg/m³"</string>
     <string name="ui_graf_ukazuje_vysku_slnka_a_mesiaca_nad_obzorom_v_stupnoch_97656c01" formatted="false">"The chart shows the height of the Sun and Moon above the horizon in degrees. 0° is the horizon: a positive value means the body is above the horizon, a negative one that it is below it."</string>
     <string name="ui_graf_vysky_slnka_a_mesiaca_posun_cez_okraj_dlazdice_odcita_8ce96158" formatted="false">"Chart of the Sun and Moon height. Scroll by dragging the tile edge; read values by touching the chart."</string>
     <string name="ui_hladam_ee3413d5" formatted="false">"Searching…"</string>
@@ -126,8 +118,6 @@
     <string name="ui_hmla_386a47cf" formatted="false">"Fog"</string>
     <string name="ui_hodinovy_meteogram_value_zrazky_zahrnaju_sneh_vo_vodnom_ek_27b999fc">"Hourly meteogram %1$s. Precipitation includes snow as water equivalent. The wind rose shows where the wind is blowing to."</string>
     <string name="ui_hodinovy_prehlad_value_svetlejsie_pozadie_oznacuje_den_pod_ca158a37">"Hourly overview %1$s. A lighter background marks daytime according to the calculated position of the Sun. Press and hold, then move your finger to read values."</string>
-    <string name="ui_hodinovy_vyhlad_pouziva_jednotlive_hodinove_modelove_hodno_27561dcf" formatted="false">"The hourly outlook uses individual hourly model values. The daily outlook uses minimum and maximum temperatures, daily precipitation, maximum wind and gusts, mean and maximum cloud cover, and maximum UV and European AQI."</string>
-    <string name="ui_hodinovy_vyhlad_sa_nepodarilo_obnovit_zobrazene_udaje_mozu_f6724c79" formatted="false">"The hourly outlook could not be refreshed. The data shown may be out of date."</string>
     <string name="ui_horizontalna_viditelnost_v_km_37878c66" formatted="false">"Horizontal visibility in km."</string>
     <string name="ui_horny_percentil_8555fb69" formatted="false">"Upper percentile"</string>
     <string name="ui_horucava_d2c7a7d1" formatted="false">"Heat"</string>
@@ -150,7 +140,6 @@
     <string name="ui_kazdych_20_minut_8c036649" formatted="false">"Every 20 minutes"</string>
     <string name="ui_kazdych_30_minut_c0d1867e" formatted="false">"Every 30 minutes"</string>
     <string name="ui_klesa_54707dc3" formatted="false">"Falling"</string>
-    <string name="ui_km_h_14c28063" formatted="false">" km/h"</string>
     <string name="ui_kniznicu_mapy_leaflet_sa_nepodarilo_nacitat_skontroluj_pri_a323dd2e" formatted="false">"The map library (Leaflet) could not be loaded. Check your connection."</string>
     <string name="ui_koncentracie_plynov_055a3e2f" formatted="false">"Gas concentrations"</string>
     <string name="ui_koniec_nie_je_uvedeny_aa6efcff" formatted="false">" (end not specified)"</string>
@@ -161,15 +150,12 @@
     <string name="ui_kvapalne_zrazky_0c457a52" formatted="false">"Liquid precipitation."</string>
     <string name="ui_legenda_61154f2a" formatted="false">"Legend"</string>
     <string name="ui_librewxr_nevratil_ziadne_snimky_pre_tuto_vrstvu_89c7d6cc" formatted="false">"LibreWXR returned no frames for this layer."</string>
-    <string name="ui_librewxr_orientacny_odhad_intenzity_z_radarovej_odrazivost_c3457efe" formatted="false">"LibreWXR: approximate estimate of intensity from radar reflectivity Z = 200·R^1.6, not a measurement. Open-Meteo: 15-minute model forecast. If a source is unavailable, the fallback is used."</string>
-    <string name="ui_librewxr_radar_a_nowcast_orientacny_odhad_nie_meranie_3f6df595" formatted="false">"LibreWXR radar and nowcast · approximate estimate, not a measurement."</string>
     <string name="ui_librewxr_zaloha_open_meteo_91902c11" formatted="false">"LibreWXR; fallback: Open-Meteo"</string>
     <string name="ui_licencia_udajov_open_meteo_5b91d58f" formatted="false">"Open-Meteo data licence"</string>
     <string name="ui_lokality_144a4cba" formatted="false">"Locations"</string>
     <string name="ui_lokalne_extremy_hodinoveho_modelu_nie_garantovane_casy_pri_dc84a8ea" formatted="false">"Local extremes of the hourly model, not guaranteed high and low tide times in a harbour."</string>
     <string name="ui_lokalne_odhady_z_predpovede_sa_nepodarilo_vypocitat_db7210d0" formatted="false">"Local estimates from the forecast could not be calculated."</string>
     <string name="ui_lokalny_odhad_72c32ba1" formatted="false">"Local estimate"</string>
-    <string name="ui_lokalny_odhad_d1e2c561" formatted="false">" · local estimate"</string>
     <string name="ui_mapa_s_radarom_e59e75af" formatted="false">"Map with radar"</string>
     <string name="ui_mapy_c9e02d67" formatted="false">"Maps"</string>
     <string name="ui_max_1eed76ee" formatted="false">"max "</string>
@@ -187,10 +173,7 @@
     <string name="ui_mierny_vietor_93ea48e7" formatted="false">"Gentle breeze"</string>
     <string name="ui_miesto_alebo_suradnice_10e88c14" formatted="false">"Place or coordinates"</string>
     <string name="ui_mimo_zobrazeneho_rozsahu_59a94038" formatted="false">"Outside the displayed range"</string>
-    <string name="ui_min_value_e4167bc2">"Min. %1$s"</string>
     <string name="ui_minimum_a_maximum_vychadzaju_z_dostupnych_hodin_dnesneho_m_e6b61ae2" formatted="false">"The minimum and maximum are based on the available hours of today's local day. This is not a measurement at a specific beach."</string>
-    <string name="ui_mm_c1752600" formatted="false">" mm"</string>
-    <string name="ui_mm_h_0c7ac40f" formatted="false">" mm/h"</string>
     <string name="ui_model_nevratil_predpoved_pre_lokalitu_07d7763e" formatted="false">"The model returned no forecast for the location."</string>
     <string name="ui_model_nevratil_predpoved_pre_lokalitu_f9977c57" formatted="false">"The model returned no forecast for the location"</string>
     <string name="ui_modelova_bunka_value_value_vzdialenost_value_km_hodina_uda_3e3abccc">"Model cell %1$s, %2$s, distance %3$s km. Data hour: "</string>
@@ -201,10 +184,8 @@
     <string name="ui_modelova_teplota_povrchovej_vrstvy_mora_7d6ec8aa" formatted="false">"Modelled temperature of the sea surface layer."</string>
     <string name="ui_modelove_maximum_cf189a4c" formatted="false">"▲ Modelled maximum"</string>
     <string name="ui_modelove_minimum_97d29dc6" formatted="false">"▼ Modelled minimum"</string>
-    <string name="ui_modelove_udaje_nie_meranie_zo_stanice_open_meteo_com_cc_by_1b91e112" formatted="false">"Modelled data, not station measurements.\nOpen-Meteo.com · CC BY 4.0\nAir quality and pollen: CAMS/Copernicus via Open-Meteo\nRadar, nowcast, cells and lightning: LibreWXR (librewxr.net)\nAlerts: MeteoAlarm, KDE and local estimates"</string>
     <string name="ui_modelove_udaje_nie_su_urcene_na_navigaciu_ani_bezpecnostne_8cde5256" formatted="false">"Modelled data are not intended for navigation or safety decisions. Tapping a tile opens the Sea screen."</string>
     <string name="ui_modelove_udaje_nie_su_urcene_na_navigaciu_ani_bezpecnostne_b26ce977" formatted="false">"Modelled data are not intended for navigation or safety decisions. They may not describe a specific harbour or beach."</string>
-    <string name="ui_modelove_udaje_pre_zvolenu_lokalitu_nie_meranie_zo_stanice_6895cfe0" formatted="false">"Modelled data for the selected location, not a station measurement. A dash means the value is unavailable."</string>
     <string name="ui_modelovy_uv_index_podla_stupnice_who_v_noci_je_nulovy_ff39b5cb" formatted="false">"Modelled UV index on the WHO scale. It is zero at night."</string>
     <string name="ui_modely_923c7200" formatted="false">"Models"</string>
     <string name="ui_modely_sa_overuju_postupne_podla_teplotnych_udajov_najbliz_15bfab73" formatted="false">"Models are verified one by one based on temperature data for the next few hours and the proximity of the model cell. Other variables may have different coverage. An already verified model can be selected while others are still being verified."</string>
@@ -227,12 +208,8 @@
     <string name="ui_nahradne_uv_nie_je_dostupne_d90ceb69" formatted="false">" Fallback UV is not available."</string>
     <string name="ui_najsilnejsi_vietor_a_narazy_dna_ruzica_ukazuje_kam_fuka_je_d6d05be8" formatted="false">"The strongest wind and gusts of the day. The wind rose shows where the wind is blowing to. Units follow the settings; colour thresholds are based on km/h."</string>
     <string name="ui_najsilnejsie_o_235015eb" formatted="false">"Strongest at "</string>
-    <string name="ui_najsilnejsie_o_value_valuevalue_7f222bf2">"Strongest at %1$s · %2$s%3$s"</string>
-    <string name="ui_najsilnejsie_value_61d58ca0">"strongest: %1$s"</string>
     <string name="ui_najviac_3_grafy_kazdy_s_1_az_4_premennymi_prepinac_urcuje_b037d8ed" formatted="false">"Up to 3 charts, each with 1 to 4 variables. The switch determines whether the chart is shown."</string>
     <string name="ui_najviac_tri_grafy_kazdy_s_jednou_az_styrmi_velicinami_8d7b0051" formatted="false">"Up to three charts, each with one to four variables."</string>
-    <string name="ui_najviac_tri_najvyznamnejsie_druhy_podla_stupna_a_pomeru_k_65df291a" formatted="false">"Up to the three most significant species by level and ratio to the high-concentration threshold. CAMS/Copernicus model, not an individual forecast of allergy symptoms."</string>
-    <string name="ui_najviac_value_49103e3f">"At most %1$s"</string>
     <string name="ui_najvyssi_europsky_aqi_dna_nie_americky_index_dbdc436d" formatted="false">"Highest European AQI of the day, not the US index."</string>
     <string name="ui_najvyssia_a_najnizsia_teplota_dna_jednotky_sa_riadia_nasta_944fd0b1" formatted="false">"Highest and lowest temperature of the day. Units follow the settings; colours are based on the original °C."</string>
     <string name="ui_najvyssia_denna_koncentracia_pelu_8c321cba" formatted="false">"Highest daily pollen concentration: "</string>
@@ -242,7 +219,6 @@
     <string name="ui_narazy_b151d6fb" formatted="false">"Gusts"</string>
     <string name="ui_narazy_df599680" formatted="false">"Gusts "</string>
     <string name="ui_narazy_su_kratkodobe_maxima_rychlosti_vetra_pri_silnom_vet_fd7f47bd" formatted="false">"Gusts are short-term peaks in wind speed. In strong wind they can be much higher than the average wind."</string>
-    <string name="ui_narazy_value_8270e71d">"Gusts %1$s"</string>
     <string name="ui_narazy_vetra_31d92aae" formatted="false">"Wind gusts."</string>
     <string name="ui_nasledujuci_den_3872abbe" formatted="false">"Next day"</string>
     <string name="ui_nastavenia_4465d758" formatted="false">"Settings"</string>
@@ -276,16 +252,13 @@
     <string name="ui_normalna_b50a82f9" formatted="false">"Normal"</string>
     <string name="ui_nov_3e630d29" formatted="false">"New Moon"</string>
     <string name="ui_nowcast_nie_je_na_serveri_dostupny_zobrazena_je_len_histor_76b4d741" formatted="false">"Nowcast is not available on the server; only history is shown."</string>
-    <string name="ui_nowcast_sa_nepodarilo_nacitat_neznamena_to_ze_nebudu_zrazk_def9a9ee" formatted="false">"Nowcast could not be loaded; this does not mean there will be no precipitation."</string>
-    <string name="ui_nowcast_zrazok_60_min_24463d15" formatted="false">"Precipitation nowcast (60 min)"</string>
     <string name="ui_nowcast_zrazok_753057c8" formatted="false">"Precipitation nowcast"</string>
     <string name="ui_obalka_3db174bd" formatted="false">"Uncertainty band"</string>
     <string name="ui_obalka_je_vypnuta_4765cc9d" formatted="false">"The uncertainty band is off."</string>
     <string name="long_line_median" formatted="false">"The uncertainty band is on. The line shows the middle scenario, the median (P50): half of the ensemble runs come out higher and half lower. The band around the line shows how far the runs differ; the narrower it is, the more certain the forecast."</string>
     <string name="long_bars_band" formatted="false">"A bar shows the median (P50). The light band above and behind it reaches from the lower to the upper percentile of the band; the taller it is, the more the runs differ."</string>
-    <string name="long_fallback_note">"Filled in from the Best match model: %1$s."</string>
+    <string name="long_fallback_note">"Filled in from Best match: %1$s"</string>
     <string name="long_tip_median" formatted="false">"The ensemble median (P50) is shown."</string>
-    <string name="long_tip_model" formatted="false">"the ensemble does not have this quantity; the forecast of the model is shown."</string>
     <string name="long_line_model" formatted="false">"The uncertainty band is off. The line shows the forecast of the selected model. With the band on you see the middle scenario of many runs and how certain the forecast is."</string>
     <string name="ui_obalka_nie_je_dostupna_d25f5508" formatted="false">"The uncertainty band is not available"</string>
     <string name="ui_obalka_pravdepodobnosti_zrazok_ensemble_neposkytuje_priamo_0a151f6a" formatted="false">"Precipitation probability uncertainty band: the ensemble does not provide probability directly, so it is derived from the members. The lower bound is the share of members with at least 1 mm of precipitation per hour, the upper bound the share with at least 0.1 mm."</string>
@@ -310,12 +283,9 @@
     <string name="ui_odstranit_d24effb5" formatted="false">"Remove"</string>
     <string name="ui_odstranit_graf_76f7f441" formatted="false">"Remove chart?"</string>
     <string name="ui_odstranit_lokalitu_7ed2d74e" formatted="false">"Remove location"</string>
-    <string name="ui_oficialna_vystraha_85131657" formatted="false">" · official alert"</string>
     <string name="ui_oficialna_vystraha_95c0276a" formatted="false">"Official alert"</string>
     <string name="ui_oficialne_vystrahy_a_lokalne_odhady_z_predpovede_farba_zod_2d393e9d" formatted="false">"Official alerts and local estimates from the forecast. The colour corresponds to the severity level."</string>
-    <string name="ui_oficialne_vystrahy_meteoalarm_kde_a_samostatne_oznacene_lo_fbb8b096" formatted="false">"Official MeteoAlarm/KDE alerts and separately marked local estimates from the model forecast."</string>
     <string name="ui_oliva_3462b6a4" formatted="false">"Olive"</string>
-    <string name="ui_open_meteo_15_minutova_modelova_predpoved_ff7057a6" formatted="false">"Open-Meteo · 15-minute model forecast."</string>
     <string name="ui_oranzova_240b737c" formatted="false">"ORANGE"</string>
     <string name="ui_oranzova_ab35bb41" formatted="false">"Orange"</string>
     <string name="ui_orkan_8f9a5a59" formatted="false">"Hurricane"</string>
@@ -348,22 +318,18 @@
     <string name="ui_plati_od_97113b0d" formatted="false">"Valid from "</string>
     <string name="ui_plna_zlta_ciara_svetlejsia_vypln_medzi_ciarou_a_obzorom_sv_ad4af0e2" formatted="false">"Solid yellow line, with a lighter fill between the line and the horizon. A lighter chart background marks daytime."</string>
     <string name="ui_plynula_interpolacia_nemeni_hodinove_hodnoty_ani_polohu_ex_84f1971f" formatted="false">"Smooth interpolation does not change the hourly values or the position of the extremes. In custom charts, metres share a single axis; temperature and seconds have their own axes. Tap the legend to temporarily hide a variable."</string>
-    <string name="ui_pm10_value_840f8ad6">"PM10 %1$s"</string>
-    <string name="ui_pm2_5_value_4038bed9">"PM2.5 %1$s"</string>
     <string name="ui_pocitova_acd4f8bb" formatted="false">"Feels like"</string>
     <string name="ui_pocitova_teplota_a08f2e01" formatted="false">"Feels-like temperature"</string>
     <string name="ui_pocitova_teplota_vietor_vlhkost_ziarenie_0cf6ca0d" formatted="false">"Feels-like temperature (wind, humidity, radiation)."</string>
     <string name="ui_pocitova_teplota_zohladnuje_vietor_vlhkost_a_slnecne_ziare_1f74486b" formatted="false">"The feels-like temperature takes wind, humidity and solar radiation into account. It can differ considerably from the air temperature."</string>
     <string name="ui_pocitovo_b1afb67c" formatted="false">"feels like "</string>
     <string name="ui_pocitovo_e11312e3" formatted="false">"Feels like "</string>
-    <string name="ui_pocitovo_value_2f1c5876">"Feels like %1$s"</string>
     <string name="ui_pod_prahom_zvysenej_urovne_b3b23adf" formatted="false">"below the elevated-level threshold"</string>
     <string name="ui_podkladove_dlazdice_openstreetmap_sa_nenacitali_77cb8583" formatted="false">"The OpenStreetMap base tiles failed to load."</string>
     <string name="ui_podrobna_predpoved_6372d922" formatted="false">"Detailed forecast"</string>
     <string name="ui_podrobnosti_4a928310" formatted="false">"Details"</string>
     <string name="ui_podrz_prst_v_grafe_na_odcitanie_cas_posuvas_tahom_na_nadpi_22830073" formatted="false">"Press and hold on the chart to read values. Move the time by dragging the title or the edges; the charts scroll together. Pull down to refresh."</string>
     <string name="ui_pohyb_na_920fce15" formatted="false">"moving "</string>
-    <string name="ui_pokrytie_oblohy_jasno_pod_12_5_prevazne_jasno_pod_37_5_pol_5cd2eda1" formatted="false">"Sky cover: clear below 12.5%, mostly clear below 37.5%, partly cloudy below 62.5%, mostly cloudy below 87.5%, otherwise overcast."</string>
     <string name="ui_poladovica_459cceb0" formatted="false">"Icy conditions"</string>
     <string name="ui_polohu_sa_nepodarilo_zistit_94d1d68c" formatted="false">"The location could not be determined."</string>
     <string name="ui_polojasno_6ccdd079" formatted="false">"Partly clear"</string>
@@ -389,7 +355,6 @@
     <string name="ui_prachove_castice_pm10_7e459420" formatted="false">"Particulate matter PM10"</string>
     <string name="ui_prachove_castice_pm2_5_a_pm10_sa_zobrazuju_vzdy_v_g_m3_pel_6c94244c" formatted="false">"Particulate matter PM2.5 and PM10 are always shown in µg/m³, pollen in grains per m³. The conversion to ppb and ppm applies at 25 °C and 1 atm. The choice applies to the Air quality and pollen screen; the Now screen still shows the European AQI."</string>
     <string name="ui_prahy_zvysena_vysoka_jelsa_50_200_breza_50_400_trava_20_50_b9196393" formatted="false">"Elevated / high thresholds: alder 50 / 200, birch 50 / 400, grass 20 / 50, mugwort 20 / 50, ragweed 10 / 50, olive 50 / 200 grains/m³."</string>
-    <string name="ui_pravd_value_81df4778">"Prob. %1$s"</string>
     <string name="ui_pravdepodobnost_bc2683dc" formatted="false">"Probability"</string>
     <string name="ui_pravdepodobnost_zrazok_c9b0a84a" formatted="false">"Precipitation probability"</string>
     <string name="ui_pravdepodobnost_zrazok_dc4a8c6f" formatted="false">"Precipitation probability."</string>
@@ -397,7 +362,6 @@
     <string name="ui_predchadzajuci_den_e52ce20c" formatted="false">"Previous day"</string>
     <string name="ui_predpoved_20fdfd9d" formatted="false">"Forecast"</string>
     <string name="ui_predpoved_nie_je_dostupna_obnovis_ju_potiahnutim_nadol_b6b1e2f8" formatted="false">"The forecast is not available. Pull down to refresh it."</string>
-    <string name="ui_predpoved_nie_je_dostupna_potiahni_nadol_a_skus_znova_d03cf27d" formatted="false">"The forecast is not available. Pull down and try again."</string>
     <string name="ui_predpovedny_model_666f632c" formatted="false">"Forecast model"</string>
     <string name="ui_prehanky_ef949e7b" formatted="false">"Showers"</string>
     <string name="ui_prehrat_9b880ad3" formatted="false">"Play"</string>
@@ -427,7 +391,6 @@
     <string name="ui_radar_a_burky_4218b3cf" formatted="false">"Radar and thunderstorms"</string>
     <string name="ui_radar_a_satelit_dea02d0a" formatted="false">"Radar and satellite"</string>
     <string name="ui_rastie_a5341d12" formatted="false">"Waxing"</string>
-    <string name="ui_referencny_cas_value_b8abe88e">"Reference time: %1$s"</string>
     <string name="ui_relativna_vlhkost_vzduchu_7dfed857" formatted="false">"Relative humidity."</string>
     <string name="ui_relativna_vlhkost_vzduchu_a_rosny_bod_rosny_bod_je_teplota_c1b0a236" formatted="false">"Relative humidity and dew point. The dew point is the temperature at which the air would become saturated with water vapour. The higher it is, the more humid the air feels."</string>
     <string name="ui_relativna_vlhkost_vzduchu_v_pod_30_je_vzduch_suchy_525c9825" formatted="false">"Relative humidity in %. Below 30% the air is dry."</string>
@@ -448,7 +411,6 @@
     <string name="ui_rychlost_animacie_fc172f06" formatted="false">"Animation speed"</string>
     <string name="ui_rychly_pokles_tlaku_casto_predchadza_zhorseniu_pocasia_nie_ace0ce61" formatted="false">"A rapid pressure drop often precedes worsening weather. It is not an alert, however."</string>
     <string name="ui_s_8de0b3c4" formatted="false">"N"</string>
-    <string name="ui_s_value_km_b12c6a08">"N · %1$s km"</string>
     <string name="ui_satelit_4a02d9f5" formatted="false">"Satellite"</string>
     <string name="ui_silna_vichrica_2d7e107a" formatted="false">"Storm"</string>
     <string name="ui_silne_narazy_vetra_7b7b006f" formatted="false">"Strong wind gusts"</string>
@@ -480,7 +442,6 @@
     <string name="ui_stlpceky_ukazuju_uhrn_zrazok_za_predchadzajucu_hodinu_vo_v_f54831bd" formatted="false">"The bars show the precipitation total for the previous hour as water equivalent, including snow. The bar colour depends on the precipitation type."</string>
     <string name="ui_strucny_popis_e8d7e5f7" formatted="false">"Short description"</string>
     <string name="ui_stupa_c05574b4" formatted="false">"Rising"</string>
-    <string name="ui_stupnov_55efc5ad" formatted="false">" degrees"</string>
     <string name="ui_suchy_vzduch_b65d36c7" formatted="false">"Dry air"</string>
     <string name="ui_suhrn_dna_12a3ae07" formatted="false">"Day summary"</string>
     <string name="ui_suvisle_zrazky_ae2adfaf" formatted="false">"Continuous precipitation."</string>
@@ -510,12 +471,9 @@
     <string name="ui_udaj_nie_je_dostupny_f3105a65" formatted="false">"Value is not available"</string>
     <string name="ui_udaje_nie_su_dostupne_4e729f61" formatted="false">"Data are not available"</string>
     <string name="ui_udaje_nie_su_dostupne_f7a6149a" formatted="false">"Data are not available."</string>
-    <string name="ui_udaje_o_burkovych_bunkach_nie_su_dostupne_05ced842" formatted="false">"Storm cell data are not available"</string>
     <string name="ui_udaje_sa_nepodarilo_nacitat_value_to_neznamena_dobru_kvali_7eb3f020">"The data could not be loaded: %1$s. This does not mean the air quality is good. Pull down to refresh."</string>
     <string name="ui_udaje_sa_nepodarilo_obnovit_potiahni_nadol_a_skus_znova_zo_cd3e0669" formatted="false">"The data could not be refreshed. Pull down and try again. The data shown may come from a previous load."</string>
-    <string name="ui_udaje_sa_nepodarilo_obnovit_zobrazene_udaje_mozu_byt_stars_d68150be" formatted="false">"The data could not be refreshed. The data shown may be out of date."</string>
     <string name="ui_uhrn_je_vo_vodnom_ekvivalente_nie_vyska_snehu_f9add673" formatted="false">"The total is water equivalent, not snow depth."</string>
-    <string name="ui_uhrn_za_uvedeny_modelovy_interval_pravdepodobnost_nevyjadr_3f71976b" formatted="false">"Total for the stated model interval. Probability does not express intensity. Nowcast is shown when precipitation is falling now or in the next hour."</string>
     <string name="ui_uhrn_zrazok_za_hodinu_vo_vodnom_ekvivalente_2eed557b" formatted="false">"Precipitation total for the hour as water equivalent."</string>
     <string name="ui_uhrn_zrazok_za_posledny_interval_modelu_farba_bodky_a_hodn_2547a048" formatted="false">"Precipitation total for the last model interval. The dot and value colour depend on the precipitation type."</string>
     <string name="ui_ulozene_lokality_e678b27e" formatted="false">"Saved locations"</string>
@@ -531,19 +489,14 @@
     <string name="ui_uv_index_podla_stupnice_who_20ec7a75" formatted="false">"UV index on the WHO scale."</string>
     <string name="ui_uz_je_pri_vas_f67eeb25" formatted="false">"already at your location"</string>
     <string name="ui_v_de5a6f78" formatted="false">"E"</string>
-    <string name="ui_v_dostupnych_udajoch_nie_je_ziadny_pel_96308221" formatted="false">"There is no pollen in the available data."</string>
-    <string name="ui_v_okoli_100_km_sa_nenasla_burkova_bunka_ce84559e" formatted="false">"no storm cell found within 100 km"</string>
     <string name="ui_v_poludnie_hladaj_tien_0209161d" formatted="false">"Seek shade at midday."</string>
     <string name="ui_v_poludnie_hladaj_tien_pouzi_klobuk_a_krem_s_ochrannym_fak_963ad988" formatted="false">"Seek shade at midday, and use a hat and sunscreen."</string>
     <string name="ui_v_poludnie_sa_slnku_vyhybaj_19ae3bee" formatted="false">"Avoid the sun at midday."</string>
     <string name="ui_v_poludnie_sa_slnku_vyhybaj_pouzivaj_spf_50_oblecenie_a_ok_211537fe" formatted="false">"Avoid the sun at midday, and use SPF 50, clothing and sunglasses."</string>
     <string name="ui_v_zobrazenej_oblasti_librewxr_nevratil_ziadne_vystrahy_pok_025fb013" formatted="false">"LibreWXR returned no alerts for the visible area (coverage may be incomplete; official alerts are on the Alerts tab)."</string>
     <string name="ui_value_bft_value_87b5fd30">"%1$s Bft · %2$s"</string>
-    <string name="ui_value_dbz_be53f7a7">" · %1$s dBZ"</string>
     <string name="ui_value_h_value_min_49a3b581">"%1$s h %2$s min"</string>
     <string name="ui_value_km_d66a9de4">"%1$s km"</string>
-    <string name="ui_value_km_na_value_bf0f0787">"%1$s km %2$s"</string>
-    <string name="ui_value_min_value_246677fa">"+%1$s min: %2$s"</string>
     <string name="ui_value_value_bft_8f127059">"%1$s (%2$s Bft)"</string>
     <string name="ui_value_value_km_h_47ef61f2">"%1$s – %2$s km/h"</string>
     <string name="ui_vanok_565e5344" formatted="false">"Light air"</string>
@@ -559,9 +512,7 @@
     <string name="ui_vichrica_c95b9839" formatted="false">"Strong gale"</string>
     <string name="ui_viditelnost_7f90db41" formatted="false">"Visibility"</string>
     <string name="ui_vietor_8a3ebf26" formatted="false">"Wind"</string>
-    <string name="ui_vietor_a_narazy_vo_vyske_10_m_farby_a_slovny_stupen_su_pod_ffe78baa" formatted="false">"Wind and gusts at a height of 10 m. Colours and verbal levels follow the Beaufort scale from 0 to 12 and are not official alerts. The wind rose shows where the wind is blowing to."</string>
     <string name="ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4">"The wind is blowing from the %1$s; the arrow shows where it is blowing to; north is up"</string>
-    <string name="ui_vietor_fuka_zo_smeru_value_value_sipka_ukazuje_kam_fuka_se_f9fef730">"The wind is blowing from the %1$s, %2$s; the arrow shows where it is blowing to; north is up"</string>
     <string name="ui_vietor_vo_vyske_10_m_ab4342ae" formatted="false">"Wind at a height of 10 m."</string>
     <string name="ui_vietor_vo_vyske_10_m_ruzica_ukazuje_kam_vietor_fuka_nie_od_6acbaeff" formatted="false">"Wind at a height of 10 m. The wind rose shows where the wind is blowing to, not where it comes from. Value colour: yellow from 50 km/h, orange from 62 km/h, red from 89 km/h. This is not an official alert."</string>
     <string name="ui_vietor_vo_vyske_10_m_sipky_nad_grafom_ukazuju_kam_vietor_f_c7fac450" formatted="false">"Wind at a height of 10 m. The arrows above the chart show where the wind is blowing to (every 12 hours), not where it comes from."</string>
@@ -587,7 +538,6 @@
     <string name="ui_vychod_slnka_230bd00a" formatted="false">"Sunrise"</string>
     <string name="ui_vychod_zapad_a_dlzka_dna_sa_pocitaju_v_zariadeni_pre_lokal_87ba3c62" formatted="false">"Sunrise, sunset and day length are calculated on the device for the location and selected date. Times are in the local time of the location and may differ by a minute or two from published tables."</string>
     <string name="ui_vychod_zapad_faza_a_trend_mesiaca_424a0465" formatted="false">"Moonrise, moonset, phase and trend of the Moon."</string>
-    <string name="ui_vyhlad_na_24_hodin_62605462" formatted="false">"24-hour outlook"</string>
     <string name="ui_vyhlad_na_5_dni_90f1b8c5" formatted="false">"5-day outlook"</string>
     <string name="ui_vyhladavanie_zlyhalo_skontroluj_pripojenie_3fbe572d" formatted="false">"Search failed. Check your connection."</string>
     <string name="ui_vypnute_6eaf04b7" formatted="false">"Off"</string>
@@ -609,11 +559,9 @@
     <string name="ui_vyznamna_vyska_vln_sipka_ukazuje_smer_sirenia_sever_je_hor_07286d2b" formatted="false">"Significant wave height. The arrow shows the direction of travel; north is up."</string>
     <string name="ui_vyznamna_vyska_vln_sipky_ukazuju_kam_sa_vlny_siria_cba86ed0" formatted="false">"Significant wave height; the arrows show where the waves travel to."</string>
     <string name="ui_z_bbeebd87" formatted="false">"W"</string>
-    <string name="ui_za_value_min_ce9a8163">"in %1$s min"</string>
     <string name="ui_zaciatok_nie_je_uvedeny_3c3b11e6" formatted="false">" (start not specified)"</string>
     <string name="ui_zadaj_dve_cisla_od_0_do_100_v_rastucom_poradi_79646f92" formatted="false">"Enter two numbers from 0 to 100 in ascending order."</string>
     <string name="ui_zajtra_c3e86eb2" formatted="false">"Tomorrow"</string>
-    <string name="ui_zaloha_vybrany_zdroj_nebol_dostupny_58663d88" formatted="false">" · Fallback: the selected source was not available."</string>
     <string name="ui_zamracene_829159bb" formatted="false">"Overcast"</string>
     <string name="ui_zapad_mesiaca_c401b9f3" formatted="false">"Moonset"</string>
     <string name="ui_zapad_slnka_5426053b" formatted="false">"Sunset"</string>
@@ -623,7 +571,6 @@
     <string name="ui_zavriet_7c32fd0b" formatted="false">"Close"</string>
     <string name="ui_zbalit_7f5c0896" formatted="false">"Collapse"</string>
     <string name="ui_zbalit_den_f8207c5b" formatted="false">"Collapse day"</string>
-    <string name="ui_zdroj_librewxr_odhad_nie_oficialna_vystraha_3c713275" formatted="false">"Source: LibreWXR · estimate, not an official alert"</string>
     <string name="ui_zdroj_open_meteo_marine_api_5566e207" formatted="false">". Source: Open-Meteo Marine API."</string>
     <string name="ui_zdroje_072dfba9" formatted="false">" · Sources:"</string>
     <string name="ui_zdroje_2f1b3da1" formatted="false">" · Sources: "</string>

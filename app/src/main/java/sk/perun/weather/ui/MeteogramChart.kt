@@ -146,8 +146,8 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
 
     // Every axis is as wide as its longest number.
     p.textSize=9*dn
-    // The axis icons: 10 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
-    val glyph=((if(hPx<96*dn) 10 else if("cloud" in show) 18 else 16)*dn).roundToInt()
+    // The axis icons: 12 dp at two cells. Otherwise as tall as the row of weather icons when the cloud band gives the room below them, a little smaller without it.
+    val glyph=((if(hPx<96*dn) 12 else if("cloud" in show) 18 else 16)*dn).roundToInt()
     fun labels(a:MeteoAxis):List<String> = (0..4).map { weatherUnitNumber(a.lo+a.step*it,a.decimals)+a.suffix }
     (left+right).forEach { a -> a.w=max(labels(a).maxOf { p.measureText(it) }+5*dn,glyph+4*dn) }
     val plotL=left.sumOf { it.w.toDouble() }.toFloat()+2*dn
@@ -239,7 +239,7 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
         p.color=a.color;p.textAlign=if(dir<0) Paint.Align.RIGHT else Paint.Align.LEFT
         val text=labels(a)
         for(k in 0..4 step stride) cv.drawText(text[k],inner+dir*3*dn,bottom-plotH*k/4+3.2f*dn,p)
-        cv.drawBitmap(widgetIconBitmap(a.icon,a.color,glyph),inner+dir*a.w/2-glyph/2f,if(small) 0f else (headH-glyph)/2f,null)
+        cv.drawBitmap(widgetIconBitmap(a.icon,a.color,glyph,glyph/dn),inner+dir*a.w/2-glyph/2f,if(small) 0f else (headH-glyph)/2f,null)
     }
     var edge=plotL
     left.forEach { axisColumn(it,edge,-1);edge-=it.w }

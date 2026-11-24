@@ -67,17 +67,7 @@ internal fun parseLongEnsembleVariable(root:JSONObject,key:String,p:LongEnvelope
     // The 50th percentile of the members; only its lower value is used.
     val median=times.indices.mapNotNull {i->ensembleBand(values(i),50,51)?.let {times[i] to it}}
     if(median.isNotEmpty()) result[key+LongMedianSuffix]=median
-    if(key=="precipitation") {
-        val probability=times.indices.mapNotNull {i->
-            val finite=values(i).filter {it.isFinite() && it>=0.0}
-            if(finite.size<2) null else times[i] to EnsembleBand(
-                100.0*finite.count {it>=1.0}/finite.size,
-                100.0*finite.count {it>=0.1}/finite.size,
-                0.0,100.0,finite.size,
-            )
-        }
-        if(probability.isNotEmpty()) result["precipitation_probability"]=probability
-    }
+    // The probability of precipitation is not derived from the members; its line stays the forecast of the model.
     return result
 }
 
@@ -137,7 +127,6 @@ internal suspend fun loadLongEnsemble(
         append(uiText(R.string.ui_chybajuce_udaje_sa_nedoplnaju_z_ineho_ensemble_b2b00123))
         if(missing.isNotEmpty()) append(uiText(R.string.ui_bez_dostatocnych_clenov_value_3d74c527, missing))
         if(failed.isNotEmpty()) append(uiText(R.string.ui_poziadavka_zlyhala_alebo_ju_api_odmietlo_value_nie_je_to_p_61af315a, failed))
-        if("precipitation_probability" in bands) append(uiText(R.string.ui_pasmo_pravdepodobnosti_zrazok_nie_je_percentilove_hranice_defaa900))
     }
     LocationEnsembleData(bands,note,bands.keys.filter {!it.endsWith(LongMedianSuffix)}.associateWith {source})
 }
