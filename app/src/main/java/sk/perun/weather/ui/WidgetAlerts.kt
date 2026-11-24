@@ -1,5 +1,7 @@
 package sk.perun.weather.ui
 
+import android.content.Context
+import kotlinx.coroutines.CancellationException
 import org.json.JSONArray
 import org.json.JSONObject
 import java.time.Instant
@@ -22,6 +24,25 @@ internal fun widgetAlert(alerts:List<AlertItem>,from:Instant,to:Instant):AlertIt
 internal fun widgetDays(from:Instant,zone:ZoneId,days:Long):Pair<Instant,Instant> {
     val day=from.atZone(zone).toLocalDate()
     return from to day.plusDays(days).atStartOfDay(zone).toInstant()
+}
+
+/** The next 24 hours: the period of the widgets without a time axis (Compact, Sun and Moon, Air and pollen). */
+internal fun widgetNextDay(now:Instant=Instant.now()):Pair<Instant,Instant> = now to now.plusSeconds(24*3600)
+
+/**
+ * The official warnings of a place for the widgets that do not load the forecast (Sun and Moon, Air and pollen), kept for
+ * 25 minutes so that the widgets download them at most once in that time. A failed download keeps the last ones for up to
+ * six hours. Network: call it from a worker only.
+ */
+internal fun widgetPlaceAlerts(c:Context,l:Location):List<AlertItem> {
+    val p=c.applicationContext.getSharedPreferences("perun_widget_alerts",Context.MODE_PRIVATE)
+    val key=BackgroundRefresh.locationKey(l);val at=p.getLong(key+"_at",0L);val now=System.currentTimeMillis()/1000
+    if(now-at<25*60) return widgetAlertsFrom(p.getString(key,null))
+    return try {
+        val fresh=widgetAlertsJson(fetchOfficialAlerts(l,LocationSourceStore(c).read(l).alertSource))
+        p.edit().putString(key,fresh).putLong(key+"_at",now).apply()
+        widgetAlertsFrom(fresh)
+    } catch(e:CancellationException) { throw e } catch(e:Exception) { if(now-at<6*3600) widgetAlertsFrom(p.getString(key,null)) else emptyList() }
 }
 
 /** One local day, from its midnight to the next one. */

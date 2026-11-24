@@ -234,8 +234,8 @@ internal object WidgetRender {
         // The two layouts differ in the place of the refresh button: the middle of the row, or the second row.
         val v=RemoteViews(c.packageName,if(row) R.layout.wg_compact_row else R.layout.wg_compact)
         val dn=c.resources.displayMetrics.density
-        // The rest of today.
-        val a=widgetDays(Instant.now(),d.zone,1).let { (from,to)->widgetAlert(d.alerts,from,to) }
+        // The next 24 hours.
+        val a=widgetNextDay().let { (from,to)->widgetAlert(d.alerts,from,to) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
         val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN,a?.awareness.orEmpty())

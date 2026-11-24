@@ -124,19 +124,6 @@ internal object SkyWidgets {
         WorkManager.getInstance(c.applicationContext).enqueueUniquePeriodicWork(Periodic,ExistingPeriodicWorkPolicy.KEEP,PeriodicWorkRequestBuilder<SkyWidgetWorker>(30,TimeUnit.MINUTES).build())
     }
     fun cancel(c:Context) { WorkManager.getInstance(c.applicationContext).cancelUniqueWork(Periodic) }
-    /**
-     * The official warnings of the place, kept for 25 minutes so that the half-hourly redraw downloads them at most once.
-     * A failed download keeps the last ones for up to six hours. Called from the worker only (network).
-     */
-    private fun alerts(c:Context,l:Location):List<AlertItem> {
-        val p=prefs(c);val key="alerts_"+BackgroundRefresh.locationKey(l);val at=p.getLong(key+"_at",0L);val now=System.currentTimeMillis()/1000
-        if(now-at<25*60) return widgetAlertsFrom(p.getString(key,null))
-        return try {
-            val fresh=fetchOfficialAlerts(l,LocationSourceStore(c).read(l).alertSource)
-            p.edit().putString(key,widgetAlertsJson(fresh)).putLong(key+"_at",now).apply()
-            widgetAlertsFrom(widgetAlertsJson(fresh))
-        } catch(e:CancellationException) { throw e } catch(e:Exception) { if(now-at<6*3600) widgetAlertsFrom(p.getString(key,null)) else emptyList() }
-    }
     /** Draws one widget; false when the place is missing. A tap opens the Sun and Moon screen. */
     fun render(c:Context,id:Int,all:List<Location>,active:Location?):Boolean {
         val cfg=read(c,id)
@@ -152,8 +139,8 @@ internal object SkyWidgets {
         val padH=if(wDp<120) 6 else 10;val padV=if(hDp<100) 6 else 10
         val wPx=((wDp-2*padH)*dn).roundToInt().coerceIn(40,1400);val hPx=((hDp-2*padV)*dn).roundToInt().coerceIn(40,900)
         val v=RemoteViews(c.packageName,R.layout.wg_sky)
-        // The warning of today, drawn behind the place where the widget shows it.
-        val warning=widgetDays(Instant.now(),zone,1).let { (from,to)->widgetAlert(alerts(c,l),from,to) }
+        // The warning of the next 24 hours, drawn behind the place where the widget shows it.
+        val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
         val warningPicture=warning?.let { widgetAlertBitmap(it.event,it.level,(18*dn).roundToInt(),it.awareness) }
         v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture))
         v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+it.event } ?: ""))
@@ -238,7 +225,7 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
         while(t.length>1 && p.measureText(t+"\u2026")>room) t=t.dropLast(1)
         return if(p.measureText(t+"\u2026")<=room) t+"\u2026" else ""
     }
-    // The place with the warning of today behind it, as in the other widgets: the symbol a little taller than the letters,
+    // The place with the warning of the next 24 hours behind it, as in the other widgets: the symbol a little taller than the letters,
     // 4 dp after the name and in the middle of its letters. Without a warning the text alone.
     fun placeText(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean,room:Float,align:Paint.Align=Paint.Align.LEFT) {
         val a=warning;val sz=(size+3)*dn;val aw=if(a!=null) sz+4*dn else 0f

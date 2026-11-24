@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.2.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.3.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -26,7 +26,7 @@ A long press on the app icon offers shortcuts to Now, Forecast, Maps and Alerts.
 
 ### Forecast
 
-The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time. Precipitation is drawn as bars, and a swipe over the name of the day opens the next or the previous day. At the cursor, precipitation is shown as snow depth for snow, as an amount for rain, and as both for rain with snow.
+The forecast lists the coming days for one parameter at a time. The bar at the top switches between temperature, precipitation, wind, cloud cover, UV, humidity, visibility and others, and you can also swipe between them. Opening a day shows its hourly detail, with one row for every parameter and a cursor you can drag to read the values at a given time. Precipitation is drawn as bars, and a swipe over the name of the day opens the next or the previous day. At the cursor, precipitation is shown as snow depth for snow, as an amount for rain, and as both for rain with snow. The daily cloud cover is the median of the hours between sunrise and sunset.
 
 <p align="center">
   <img src="docs/screenshots/forecast-days.png" alt="Forecast by day for temperature" width="260">
@@ -35,7 +35,7 @@ The forecast lists the coming days for one parameter at a time. The bar at the t
 
 ### Charts and uncertainty
 
-The charts show several days at once. With the uncertainty band switched on, each curve shows the median of an ensemble forecast (P50) together with its range (percentiles P10 to P90 by default), so you can see how sure the forecast is, not only what it says. The touch cursor shows the values at the chosen time and the alerts active at that moment. When the selected weather model lacks a value, the app fills it in from the Best match model and says so.
+The charts show several days at once. With the uncertainty band switched on, each curve shows the median of an ensemble forecast (P50) together with its range (percentiles P10 to P90 by default), so you can see how sure the forecast is, not only what it says. The touch cursor shows the values at the chosen time and the alerts active at that moment. The precipitation probability is the forecast of the model, without a band. When the selected weather model lacks a value, the app fills it in from the Best match model and says so.
 
 <p align="center">
   <img src="docs/screenshots/charts.png" alt="Temperature and precipitation charts with an uncertainty band" width="260">
@@ -58,7 +58,7 @@ The text of an alert is shown in the language of the issuing service; the app do
 
 ### Air quality and pollen
 
-The air quality index on the European or the US scale, particulate matter, gases and pollen, with the same two views as the forecast: the coming days for one parameter, and the hourly detail of a day.
+The air quality index on the European or the US scale, particulate matter, gases and pollen, with the same two views as the forecast: the coming days for one parameter, and the hourly detail of a day. A swipe over the header of the hourly detail opens the next or the previous day.
 
 <p align="center">
   <img src="docs/screenshots/air-quality.png" alt="Air quality index by day" width="260">
@@ -83,7 +83,7 @@ A weather map with radar, including its short-term forecast, and other LibreWXR 
 
 ### Sun and Moon
 
-Sunrise and sunset, the length of the day and its change, moonrise and moonset, the time the Moon is above the horizon and the phase of the Moon.
+Sunrise and sunset, the length of the day and its change, moonrise and moonset, the time the Moon is above the horizon and the phase of the Moon. A tap on a row explains its value in words.
 
 <p align="center">
   <img src="docs/screenshots/sun-moon.png" alt="Sun and Moon screen" width="260">
@@ -108,7 +108,9 @@ Seven home-screen widgets are available, each with its own settings, which open 
 - Air and pollen: the air quality index or the pollen, with pollutants or kinds of pollen at larger sizes.
 - Sun and Moon: the Sun or the Moon, with more values at larger sizes.
 
-The wind direction is an arrow that points to where the wind blows to: behind the wind speed in Compact, Next 6 hours and 6 days, and as a row above the chart in Meteogram.
+The wind direction is an arrow that points to where the wind blows to: behind the wind speed in Compact, Next 6 hours and 6 days, and as a row above the chart in Meteogram. The pressure icon shows the trend of the pressure.
+
+A widget that shows a place also shows the strongest official warning of the period it covers: the next 24 hours, the hours of its chart, the six days or the shown day. Local estimates stay in the app.
 
 The widgets are new; their look and behaviour may still change.
 

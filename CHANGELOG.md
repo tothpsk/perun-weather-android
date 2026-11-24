@@ -2,6 +2,40 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.3.0] - 2026-11-24
+
+### Added
+
+- Widgets: every widget that shows a place shows the strongest official warning of the period it covers, and at an equal level the one that starts first: the next 24 hours in Compact, Sun and Moon, and Air and pollen, six hours in Next 6 hours, the hours of the chart in Meteogram, six days in 6 days and the shown day in Day by hours.
+- Sun and Moon, and Air and pollen widgets: the warning stands behind the name of the place. These widgets download the warnings at most once in 25 minutes.
+- Compact, Next 6 hours and 6 days widgets: the pressure icon shows the trend of the pressure as on Now; without a known trend it shows a gauge.
+- Now, storms tile: the help explains the dots of the storm cells on the radar and their colours by radar reflectivity.
+- Air quality and pollen, expanded day: a swipe over the header of the chart opens the next or the previous day.
+- Sun and Moon: a tap on the change of the day length, the time the Moon is above the horizon or the phase explains the value in words. A day as long as the day before has its own wording.
+- Forecast, cloud cover: an (i) button beside the heading explains the daily value.
+
+### Changed
+
+- Icons: one set of outline icons for the app, the widgets and the notifications. The line is 1.75 of the 24 grid and at least 1.0 dp, and the drawings are fitted to their key shapes, so that icons of one size look equally large. Warnings have their own icons by the type of the hazard, taken from the code of the warning where the issuer sends it.
+- Now: the tile graphics are 40 dp drawings with the line of the icons; the day arc and the UV and air quality scales are 64 x 40 dp. The glow behind the weather symbol is left out.
+- Now: the wind and wave tiles show an arrow instead of a compass, in the colour of the Beaufort scale or of the wave height. The sea temperature tile shows a thermometer on a wave, the sea level tile a wave with the arrow of the trend.
+- Now and Forecast: the daily cloud cover is the median of the hours between sunrise and sunset instead of the mean of the whole day.
+- Now, precipitation tile: rain and snow stand on one line, separated by a comma, and the line shrinks only when it does not fit.
+- Forecast: the compass is replaced by the arrow of the wind direction, in the list of days and in the expanded day. The pressure row and the pressure mode have a gauge icon.
+- Forecast, expanded day, and Air quality and pollen, expanded day: the curves start just above the bottom of their row, as in the Day by hours widget.
+- Forecast: the footer names what was filled in from Best match and what from GFS. Now and Ensemble use the same wording, "Filled in from Best match: ...".
+- Ensemble: the precipitation probability is the forecast of the model, without a band; the tip and the help of the chart are shorter.
+- Air quality and pollen: the description of a kind of pollen leaves out the word "Pollen".
+- Settings, units: one card with a divider instead of two cards.
+- Meteogram widget at two rows: the icons of the axes are 12 dp.
+- Sun and Moon widget, the Moon in one row: rise and set at four cells, and the trend as well when there is room.
+- Sun and Moon screen: the Moon of the phase row is drawn as an icon, with the line of the other icons.
+
+### Fixed
+
+- 6 days and Day by hours widgets: the warning followed different rules from the other widgets and could be missing while Next 6 hours showed it.
+- Sun and Moon widget, the Moon at four cells in one row: only the rise was shown.
+
 ## [1.2.0] - 2026-11-23
 
 ### Added
