@@ -116,36 +116,15 @@ private fun DrawScope.tkText(measurer:TextMeasurer,text:String,cx:Float,cy:Float
 }
 
 
-@Composable internal fun TkDropGraphic(fraction:Double,color:Color,modifier:Modifier) {
-    HumidityGraphic(fraction,color,modifier)
+@Composable internal fun TkFlakeGraphic(strength:Double,color:Color,long:Dp=TileLong) {
+    TkGlyph(Glyph.Snow,color.copy(alpha=(.35+.65*strength.coerceIn(0.0,1.0)).toFloat()),long)
 }
 
-@Composable internal fun TkFlakeGraphic(strength:Double,color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) { drawGlyph(Glyph.Snow,color.copy(alpha=(.35+.65*strength.coerceIn(0.0,1.0)).toFloat())) }
-}
+@Composable internal fun TkEyeGraphic(color:Color) { TkGlyph(Glyph.EyeTile,color,muted=Color(0xFFBBC4D2)) }
 
-@Composable internal fun TkEyeGraphic(color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) { drawGlyph(Glyph.EyeTile,color,muted=Color(0xFFBBC4D2)) }
-}
-
-@Composable internal fun TkTrendGraphic(change:Double,color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) {
-        val angle=if(change.isFinite()) (-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat() else 0f
-        drawGlyph(Glyph.Trend,color,muted=Color(0xFF8C9BB2),turn=angle)
-    }
-}
-
-@Composable internal fun TkPollenGraphic(color:Color,modifier:Modifier) {
-    Canvas(modifier.aspectRatio(1f)) {
-        val k=size.width/24f
-        scale(k,k,Offset.Zero) {
-            drawCircle(color,3f,Offset(12f,12f))
-            for(i in 0 until 6) {
-                val a=i*PI/3
-                drawCircle(color.copy(alpha=.75f),2.4f,Offset((12+7.5*cos(a)).toFloat(),(12+7.5*sin(a)).toFloat()))
-            }
-        }
-    }
+@Composable internal fun TkTrendGraphic(change:Double,color:Color) {
+    val angle=if(change.isFinite()) (-change/3.0*60.0).coerceIn(-60.0,60.0).toFloat() else 0f
+    TkGlyph(Glyph.Trend,color,muted=Color(0xFF8C9BB2),turn=angle)
 }
 
 @Composable internal fun HelpText(text:String) { Text(text,color=ForecastMuted,fontSize=14.sp) }

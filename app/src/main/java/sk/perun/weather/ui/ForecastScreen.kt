@@ -244,7 +244,7 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
             ForecastDayTitle(day.date,bundle.zone,false,Modifier.weight(1f))
             if(incomplete) Text("•",color=Color(0xFFFFB74D),modifier=Modifier.semantics { contentDescription=uiText(R.string.ui_neuplne_udaje_b649939a) })
             val code=day.hours.minByOrNull { abs(Instant.ofEpochSecond(it.time).atZone(bundle.zone).hour-12) }?.v("weather_code") ?: Double.NaN
-            WeatherSymbol(if(code.isFinite()) code.toInt() else -1,26.dp);ForecastChevron(open)
+            WeatherSymbol(if(code.isFinite()) code.toInt() else -1,24.dp);ForecastChevron(open)
         }
         ForecastCompactBody(top={
             if(v==FV.Temp) Text(buildAnnotatedString {
@@ -273,16 +273,29 @@ private fun forecastDayName(date:LocalDate,zone:ZoneId):String {
         },graphic={
             if(!a.isFinite()) Text("—",color=ForecastMuted,fontSize=24.sp) else when(v) {
                 FV.Wind->if(direction.isFinite() && wind>0) TkDirectionArrow(direction,windBeaufortColor(wind),40.dp,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(direction))) else Text("—",color=ForecastMuted)
-                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color,Modifier.size(40.dp))
-                FV.Visibility->TkEyeGraphic(color,Modifier.size(40.dp))
-                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend),Modifier.size(40.dp)) else Text("—",color=ForecastMuted)
-                FV.Uv->SummaryGlyph(SummaryIcon.Uv,uvColor(a),40.dp)
-                FV.Cloud->CloudFill((a/100).coerceIn(0.0,1.0),color,null,0,Modifier.width(48.dp))
-                FV.Rain->CloudFill(sqrt((a/20).coerceIn(0.0,1.0)),RainBlue,null,if(a>0) 1 else 0,Modifier.width(48.dp))
-                else->SummaryGlyph(SummaryIcon.Temp,tint(FV.Temp,day.max("temperature_2m")),40.dp)
+                FV.Humidity->HumidityPercentDrop((a/100).coerceIn(0.0,1.0),color)
+                FV.Visibility->TkEyeGraphic(color)
+                FV.Pressure->if(trend.isFinite()) TkTrendGraphic(trend,tint(FV.Trend,trend)) else Text("—",color=ForecastMuted)
+                FV.Uv->TkGlyph(Glyph.Uv,uvColor(a))
+                FV.Cloud->TkFillGraphic(Glyph.Cloud,(a/100).coerceIn(0.0,1.0),color)
+                FV.Rain->ForecastRainGraphic(day,a)
+                else->TkGlyph(Glyph.Temp,tint(FV.Temp,day.max("temperature_2m")))
             }
         })
     }
+}
+// As the precipitation tile of the Now screen: the drop filled by the sum (full at 20 mm), the flake for snow alone
+// (stronger up to 10 cm), both for rain with snow.
+@Composable private fun ForecastRainGraphic(day:ForecastDay,sum:Double) {
+    val snow=day.sum("snowfall").takeIf { it.isFinite() } ?: 0.0
+    val wet=(day.sum("rain").takeIf { it.isFinite() } ?: 0.0)+(day.sum("showers").takeIf { it.isFinite() } ?: 0.0)>0
+    val fill=sqrt((sum/20).coerceIn(0.0,1.0))
+    val strength=sqrt((snow/10).coerceIn(0.0,1.0))
+    if(snow>0 && wet) Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.Bottom) {
+        HumidityGraphic(fill,RainBlue,30.dp)
+        TkFlakeGraphic(strength,Color(0xFFE8EAF0),26.dp)
+    } else if(snow>0) TkFlakeGraphic(strength,Color(0xFFE8EAF0))
+    else HumidityGraphic(fill,RainBlue)
 }
 @Composable private fun ForecastDayScale(day:ForecastDay,bundle:ForecastBundle,v:FV) {
     val all=bundle.days.flatMap { it.values(v.key) }

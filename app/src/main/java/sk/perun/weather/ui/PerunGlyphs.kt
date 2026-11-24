@@ -91,12 +91,15 @@ internal const val GlyphLine=1.75f
 /** Draws a glyph over the whole draw area. dp: the size of the area in dp (for pictures drawn at density 1). */
 internal fun DrawScope.drawGlyph(g:Glyph,color:Color,muted:Color=color,turn:Float=0f,dp:Float=size.width/density) {
     val k=size.width/24f
-    val line=max(GlyphLine,1.3f*24f/dp.coerceAtLeast(1f))*g.line
-    scale(k,k,Offset.Zero) {
-        for(l in g.layers) {
-            val c=if(l.muted) muted else color
-            if(l.turns && turn!=0f) rotate(turn,Offset(12f,12f)) { paint(l,c,line) } else paint(l,c,line)
-        }
+    val line=max(GlyphLine,1.3f*24f/dp.coerceAtLeast(1f))
+    scale(k,k,Offset.Zero) { drawGlyphLayers(g,color,muted,turn,line) }
+}
+
+/** The layers of a glyph in its 24 grid; line: the line of a layer of weight 1 in units of the grid. */
+internal fun DrawScope.drawGlyphLayers(g:Glyph,color:Color,muted:Color=color,turn:Float=0f,line:Float=GlyphLine) {
+    for(l in g.layers) {
+        val c=if(l.muted) muted else color
+        if(l.turns && turn!=0f) rotate(turn,Offset(12f,12f)) { paint(l,c,line*g.line) } else paint(l,c,line*g.line)
     }
 }
 private fun DrawScope.paint(l:GlyphLayer,c:Color,line:Float) {

@@ -75,7 +75,7 @@ private fun outlookCloudName(v:Double)=when { !v.isFinite()->uiText(R.string.ui_
     val weekday=x.date.format(DateTimeFormatter.ofPattern("EEEE",locale)).replaceFirstChar { it.titlecase(locale) }
     Column(Modifier.width(126.dp).clip(shape).background(Color(0x7519212D)).border(1.dp,Color(0xFF4B586C),shape).padding(12.dp),verticalArrangement=Arrangement.spacedBy(6.dp)) {
         Column { Text(if(index==0) uiText(R.string.ui_dnes_ce1bed34) else weekday,fontSize=16.sp,fontWeight=FontWeight.Bold);Text(x.date.format(DateTimeFormatter.ofPattern(appPattern("d.M."),appLocale())),fontSize=14.sp,color=ForecastMuted) }
-        if(mode==OutlookMode.Wind && x.wind.isFinite() && x.wind>0 && x.windDirection.isFinite()) WindCompass(x.windDirection,ForecastGreen,Modifier.size(54.dp)) else WeatherSymbol(x.code,54.dp)
+        if(mode==OutlookMode.Wind && x.wind.isFinite() && x.wind>0 && x.windDirection.isFinite()) Box(Modifier.size(54.dp),contentAlignment=Alignment.Center) { TkDirectionArrow(x.windDirection,windBeaufortColor(x.wind),TileLong,uiText(R.string.ui_vietor_fuka_zo_smeru_value_sipka_ukazuje_kam_fuka_sever_je_983405a4,cardinal(x.windDirection))) } else WeatherSymbol(x.code,54.dp)
         when(mode) {
             OutlookMode.Temp -> {
                 Text(buildAnnotatedString {
@@ -92,7 +92,7 @@ private fun outlookCloudName(v:Double)=when { !v.isFinite()->uiText(R.string.ui_
                     if(x.snow>0) Muted(overviewNumber(u.precipitation.fromSnowCentimetres(x.snow)," ${u.precipitation.snowSymbol}",if(u.precipitation==PrecipitationUnit.Imperial || x.snow<.1) 2 else 1),Color(0xFFE8EAF0))
                 }
                 Bar(0.0,if(has) max(.06,min(1.0,sqrt(eq/20.0))) else 0.0,listOf(type ?: RainBlue))
-                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { Umbrella(probabilityColor(x.probability),22.dp);Text(overviewNumber(x.probability," %"),fontSize=14.sp,fontWeight=FontWeight.Bold) }
+                Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(6.dp)) { Umbrella(probabilityColor(x.probability),18.dp);Text(overviewNumber(x.probability," %"),fontSize=14.sp,fontWeight=FontWeight.Bold) }
             }
             OutlookMode.Wind -> {
                 Value(u.wind.fromKmh(x.wind),u.wind.symbol,windAlert(x.wind) ?: Color(0xFFE8EAF0),if(u.wind==WindSpeedUnit.MetresPerSecond) 1 else 0)
