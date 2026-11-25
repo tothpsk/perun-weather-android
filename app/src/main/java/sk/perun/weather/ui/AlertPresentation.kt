@@ -23,6 +23,17 @@ internal data class AlertDisplayGroup(val label: String,val items: List<AlertIte
 
 // These labels are presentation categories, NEVER proof that two CAP messages are identical.
 private fun presentationKind(a: AlertItem): String? {
+    when (hazardOfAwareness(a.awareness)) {
+        AlertHazard.Wind -> return uiText(R.string.ui_vietor_8a3ebf26)
+        AlertHazard.Rain -> return uiText(R.string.ui_dazd_8eda180e)
+        AlertHazard.Storm -> return uiText(R.string.ui_burky_a079c974)
+        AlertHazard.Snow -> return uiText(R.string.ui_sneh_27400f08)
+        AlertHazard.Ice -> return uiText(R.string.ui_poladovica_459cceb0)
+        AlertHazard.Heat -> return uiText(R.string.ui_horucava_d2c7a7d1)
+        AlertHazard.Cold -> return uiText(R.string.ui_chlad_7284d347)
+        null -> {}
+        else -> return null
+    }
     val words=a.event.lowercase(Locale.ROOT).split(Regex("[^a-z]+")).toSet()
     val kinds=listOf(
         uiText(R.string.ui_vietor_8a3ebf26) to setOf("wind","winds","gust","gusts","vent","vents","rafales","sturm","sturmb","orkan"),

@@ -185,3 +185,26 @@ private fun textRank(language: String, preferred: String): Int {
 
 /** The text to show: the preferred language, the same language without region, English, then the original. */
 internal fun pickText(texts: List<AlertText>, preferred: String = "sk-SK"): AlertText? = texts.minByOrNull { textRank(it.language, preferred) }
+
+/** Marks an AlertItem.awareness that already names the kind of the hazard, so every icon uses the unified result. */
+internal const val HazardPrefix = "hazard:"
+internal fun hazardOfAwareness(awareness: String): AlertHazard? =
+    if (awareness.startsWith(HazardPrefix)) AlertHazard.entries.firstOrNull { it.name == awareness.removePrefix(HazardPrefix) } else null
+
+/**
+ * The warning in the form the screens, widgets and notifications use until they read UnifiedAlert themselves.
+ * The text is the one of [preferred]; [origin] is the service that issued a warning passed on by an aggregator.
+ */
+internal fun UnifiedAlert.toAlertItem(issuer: String, origin: String = "", preferred: String = AppLocale.locale().toLanguageTag()): AlertItem {
+    val text = pickText(texts, preferred)
+    val event = text?.event?.takeIf { it.isNotBlank() } ?: text?.headline.orEmpty()
+    return AlertItem(
+        event = event, level = level.key, local = local, start = start, end = end,
+        issuer = issuer, title = text?.headline.orEmpty(),
+        identifier = key?.identifier ?: sources.firstOrNull()?.sourceId.orEmpty(), senderId = key?.sender.orEmpty(),
+        language = text?.language.orEmpty(), eventCode = "",
+        areaKey = if (areas.isEmpty()) "" else "geo:" + areas.sorted().joinToString(";"),
+        originUri = web, via = sources.map { it.source }.toSet(),
+        awareness = hazards.firstOrNull()?.let { HazardPrefix + it.name }.orEmpty(), origin = origin,
+    )
+}

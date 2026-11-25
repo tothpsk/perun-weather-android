@@ -2,6 +2,20 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [Unreleased]
+
+### Changed
+
+- Alerts: a new installation turns on all alert sources: local estimates, MeteoAlarm, LibreWXR and the FOSS public alert server. An update keeps the sources chosen before.
+- Alerts: MeteoAlarm, LibreWXR and the FOSS public alert server read every warning from its whole CAP message. The kind of the hazard comes from the codes of the message, so an icing warning gets the ice icon in every source, and a warning of two hazards (for example freezing rain and blowing snow) starts with the first of them. The text is in the language of the app when the message has it.
+- Alerts: whole CAP messages are kept on the phone until they expire, so a refresh downloads only new warnings. One refresh downloads at most 48 new messages for a place; the rest follow at the next refresh, and the list says it may be incomplete.
+
+### Fixed
+
+- Alerts: MeteoAlarm read the issuer of at most eight warnings of a place; now every warning has it.
+- Alerts: warnings of the German weather service (DWD) without a MeteoAlarm level get their level from the DWD severity, which is one step lower than at other issuers.
+- Alerts: green MeteoAlarm warnings are not shown.
+
 ## [1.3.1] - 2026-11-25
 
 ### Added

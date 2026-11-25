@@ -137,6 +137,7 @@ private fun matches(t:String,words:List<String>,term:String):Boolean = when {
 
 /** The kind of a warning: the MeteoAlarm awareness_type when the issuer sends it, otherwise the words of its name. */
 internal fun alertHazard(text:String,awareness:String="",headline:String=""):AlertHazard {
+    hazardOfAwareness(awareness)?.let { return it }
     val t=plain(text)
     val words=t.split(Regex("""[^\p{L}\p{N}]+""")).filter { it.isNotEmpty() }
     fun has(kind:AlertHazard)=HazardWords.any { (k,terms)->k==kind && terms.any { matches(t,words,it) } }
