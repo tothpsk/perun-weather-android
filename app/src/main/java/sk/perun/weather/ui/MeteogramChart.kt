@@ -43,16 +43,19 @@ internal fun meteoSpanAxis(min:Double,max:Double,minStep:Double,steps:Int=4):Pai
 
 /** Quantities of the Meteogram widget that the overview does not load by the hour, with their Open-Meteo names. */
 internal val MeteoExtraKeys=linkedMapOf("feels" to "apparent_temperature","dew" to "dew_point_2m","humidity" to "relative_humidity_2m","pressure" to "pressure_msl","uv" to "uv_index","visibility" to "visibility")
+/** The parts of the precipitation by the hour: they give the bars of the Meteogram widget the colour of rain, showers, snow or rain with snow. */
+internal val MeteoPrecipKinds=listOf("rain","showers","snowfall")
 
 /** Hourly values of the extra quantities by local time; loaded only for a meteogram that shows one of them. What the model lacks is taken from best_match. Empty when the request fails. */
 internal suspend fun loadMeteogramExtra(l:Location,model:String,keys:List<String>):Map<String,Map<LocalDateTime,Double>> = withContext(Dispatchers.IO) {
     val wanted=keys.filter { it in MeteoExtraKeys }
-    if(wanted.isEmpty()) return@withContext emptyMap<String,Map<LocalDateTime,Double>>()
+    val kinds="precip" in keys
+    if(wanted.isEmpty() && !kinds) return@withContext emptyMap<String,Map<LocalDateTime,Double>>()
     fun read(url:String):Map<String,Map<LocalDateTime,Double>> {
         val h=JSONObject(String(fetchBytes(url),Charsets.UTF_8)).getJSONObject("hourly")
         val t=h.getJSONArray("time")
         val out=HashMap<String,Map<LocalDateTime,Double>>()
-        for((key,name) in MeteoExtraKeys) {
+        for((key,name) in MeteoExtraKeys+MeteoPrecipKinds.associateWith { it }) {
             val a=h.optJSONArray(name) ?: continue
             val m=HashMap<LocalDateTime,Double>()
             for(i in 0 until t.length()) {
@@ -67,9 +70,9 @@ internal suspend fun loadMeteogramExtra(l:Location,model:String,keys:List<String
     try {
         val tz=URLEncoder.encode(l.timezone.ifBlank { "auto" },"UTF-8")
         val elevation=l.elevation?.let { "&elevation=$it" } ?: ""
-        val base="https://api.open-meteo.com/v1/forecast?latitude=${l.latitude}&longitude=${l.longitude}&timezone=$tz$elevation&forecast_hours=50&hourly="+MeteoExtraKeys.values.joinToString(",")
+        val base="https://api.open-meteo.com/v1/forecast?latitude=${l.latitude}&longitude=${l.longitude}&timezone=$tz$elevation&forecast_hours=50&hourly="+(MeteoExtraKeys.values+MeteoPrecipKinds).joinToString(",")
         val own=read(if(model=="best_match") base else base+"&models="+URLEncoder.encode(model,"UTF-8"))
-        if(model!="best_match" && wanted.any { it !in own }) {
+        if(model!="best_match" && (wanted.any { it !in own } || (kinds && ("rain" !in own || "snowfall" !in own)))) {
             val fallback=try { read(base) } catch(e:CancellationException) { throw e } catch(e:Exception) { emptyMap() }
             fallback+own
         } else own
@@ -218,7 +221,11 @@ internal fun meteogramBitmap(c:Context,d:OverviewData,u:WeatherUnits,hours:Int,s
             val v=rain[i]
             if(v.isFinite() && v>0.0) {
                 val chance=if(h.probability.isFinite()) h.probability else 100.0
-                p.color=android.graphics.Color.argb((90+chance*1.6).toInt().coerceIn(0,255),79,195,247)
+                // The colour of the kind of precipitation, as in the app. Snow is darker under dark text, where the light colour would not be seen.
+                val part={ key:String -> more[key]?.get(h.time) ?: Double.NaN }
+                val wet=part("rain")>0.0 || part("showers")>0.0;val snowy=part("snowfall")>0.0
+                val rgb=when { wet && snowy->0xB388FF;snowy->if(dark) 0x7F93B0 else 0xE8EAF0;wet && !(part("rain")>0.0)->0x2196C9;else->0x4FC3F7 }
+                p.color=android.graphics.Color.argb((90+chance*1.6).toInt().coerceIn(0,255),(rgb shr 16) and 255,(rgb shr 8) and 255,rgb and 255)
                 cv.drawRect((x(i)-step*0.35f).coerceAtLeast(plotL),y(axis,v).coerceAtLeast(top),(x(i)+step*0.35f).coerceAtMost(plotR),bottom,p)
             }
         }

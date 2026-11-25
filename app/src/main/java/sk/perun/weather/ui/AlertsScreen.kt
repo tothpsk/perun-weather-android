@@ -21,6 +21,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
@@ -51,6 +54,8 @@ private val MainText=Color(0xFFE8EAF0)
 private val WarnText=Color(0xFFFFB74D)
 private val TrackColor=Color(0xFF2A3446)
 private val SelectedEdge=Color(0xFF4FC3F7)
+// The column of the hazard icons in front of the bars of the chart.
+private val GanttGutter=28.dp
 private val LevelColors=mapOf("neutral" to Color(0xFF5B6577),"yellow" to Color(0xFFFDD835),"orange" to Color(0xFFFB8C00),"red" to Color(0xFFE53935))
 private val LevelRank=mapOf("neutral" to 0,"yellow" to 1,"orange" to 2,"red" to 3)
 private val LevelNames=mapOf("neutral" to uiText(R.string.ui_neutralna_85457835),"yellow" to uiText(R.string.ui_zlta_f4e40449),"orange" to uiText(R.string.ui_oranzova_240b737c),"red" to uiText(R.string.ui_cervena_b7b3d767))
@@ -215,7 +220,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     Box(Modifier.fillMaxWidth().pointerInput(from,to) {
         awaitEachGesture {
             val down=awaitFirstDown(requireUnconsumed=false)
-            fun pick(px: Float) { cursor=from.plusMillis(((px/size.width).coerceIn(0f,1f)*total).toLong()) }
+            val gutter=GanttGutter.toPx(); fun pick(px: Float) { cursor=from.plusMillis((((px-gutter)/(size.width-gutter).coerceAtLeast(1f)).coerceIn(0f,1f)*total).toLong()) }
             pick(down.position.x)
             try {
                 do {
@@ -227,10 +232,10 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
         }
     }.drawWithContent {
         drawContent()
-        val axisPx=axisHeight.toPx(); val pad=3.dp.toPx()
+        val axisPx=axisHeight.toPx(); val pad=3.dp.toPx(); val gutter=GanttGutter.toPx()
         fun marker(t: Instant,color: Color,label: String,badgeY: Float) {
             if (t.isBefore(from) || !t.isBefore(to)) return
-            val x=frac(t)*size.width
+            val x=gutter+frac(t)*(size.width-gutter)
             val m=measurer.measure(label,TextStyle(color=color,fontSize=9.sp)); val badgeH=m.size.height+2*pad
             val bx=(x-m.size.width/2).coerceIn(pad,(size.width-m.size.width-pad).coerceAtLeast(pad))
             drawLine(color,Offset(x,badgeY+badgeH),Offset(x,size.height-axisPx),1.dp.toPx())
@@ -245,7 +250,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
             val limit=Constraints(maxWidth=(size.width*.6f).toInt().coerceAtLeast(1))
             val measured=lines.map { (s,c) ->measurer.measure(s,TextStyle(color=c,fontSize=10.sp),overflow=TextOverflow.Ellipsis,maxLines=1,constraints=limit) }
             val boxW=measured.maxOf { it.size.width }+2*pad; val boxH=measured.sumOf { it.size.height }+2*pad
-            val cx=frac(t)*size.width; val gap=6.dp.toPx()
+            val cx=gutter+frac(t)*(size.width-gutter); val gap=6.dp.toPx()
             val bx=if (cx+gap+boxW<=size.width) cx+gap else (cx-gap-boxW).coerceAtLeast(0f)
             var ty=44.dp.toPx()
             drawRoundRect(Color(0xFF111A24),Offset(bx,ty),Size(boxW,boxH),CornerRadius(3.dp.toPx()))
@@ -257,8 +262,9 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
         Column(verticalArrangement=Arrangement.spacedBy(8.dp)) {
             Spacer(Modifier.height(32.dp))
             items.forEachIndexed { idx,a ->
-                Column(Modifier.fillMaxWidth().clickable { onSelect(idx) }.padding(vertical=2.dp),verticalArrangement=Arrangement.spacedBy(3.dp)) {
-                    Text(labelOf(a),fontSize=12.sp,color=MainText,maxLines=2)
+                Row(Modifier.fillMaxWidth().heightIn(min=28.dp).clickable(onClickLabel=labelOf(a)) { onSelect(idx) }.semantics { contentDescription=labelOf(a) },verticalAlignment=Alignment.CenterVertically) {
+                    // The icon stands for the name; the name is in the card below and beside the cursor.
+                    Box(Modifier.width(GanttGutter)) { AlertGlyph(alertHazard(a.event+" "+a.title,a.awareness),if (levelOf(a)=="neutral") MainText else colorOf(a),20.dp) }
                     val s=a.start; val e=a.end
                     if (s==null || e==null) Text(uiText(R.string.ui_interval_nie_je_cely_uvedeny_pozri_detail_c84fdda4),fontSize=11.sp,color=ForecastMuted)
                     else if (!e.isAfter(s)) Text(uiText(R.string.ui_neplatny_interval_v_podklade_b9f0925c),fontSize=11.sp,color=WarnText)
@@ -271,7 +277,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                     }
                 }
             }
-            Canvas(Modifier.fillMaxWidth().height(axisHeight)) {
+            Canvas(Modifier.fillMaxWidth().padding(start=GanttGutter).height(axisHeight)) {
                 val labelTop=7.dp.toPx(); val ts=TextStyle(fontSize=10.sp)
                 val bounds=listOf(from)+days+listOf(to)
                 val dates=bounds.dropLast(1).map { it.atZone(z).toLocalDate() }
@@ -290,7 +296,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     }
 }
 @Composable private fun AlertCard(a: AlertItem,z: ZoneId,selected: Boolean,modifier: Modifier) {
-    val surface=LevelSurface[levelOf(a)]
+    val uri=LocalUriHandler.current; val surface=LevelSurface[levelOf(a)]
     AlertPanel(surface?.first ?: PanelBg,if (selected) SelectedEdge else (surface?.second ?: EdgeColor),modifier) {
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
             Canvas(Modifier.padding(top=5.dp).size(12.dp)) { drawCircle(colorOf(a)) }
@@ -299,6 +305,10 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                 Text((LevelNames[levelOf(a)] ?: "")+" · "+issuerOf(a),fontSize=13.sp,color=ForecastMuted)
                 if (a.title.isNotBlank() && a.title!=a.event) Text(a.title,fontSize=13.sp,color=ForecastMuted)
                 Text(timeRange(a,z),fontSize=13.sp)
+                // MeteoAlarm passes on the warnings of the national services: the service that issued the warning and its page.
+                if (a.origin.isNotBlank()) Text(uiText(R.string.alert_origin,a.origin),fontSize=13.sp,color=ForecastMuted)
+                val page=a.originUri.takeIf { a.origin.isNotBlank() && (it.startsWith("https://") || it.startsWith("http://")) }
+                if (page!=null) Text(page,Modifier.clickable(onClickLabel=uiText(R.string.alert_origin_open)) { runCatching { uri.openUri(page) } },fontSize=13.sp,color=SelectedEdge,maxLines=2,overflow=TextOverflow.Ellipsis)
             }
         }
     }

@@ -136,7 +136,7 @@ internal class WidgetWorker(context:Context,params:WorkerParameters):CoroutineWo
                 if(data==null) { failed=true;continue }
                 val views=try {
                     // Hourly values the overview does not load, only for a meteogram that shows one of them.
-                    val more=if(kind==MeteogramWidget::class.java && cfg.meteo.any { it in MeteoExtraKeys }) loadMeteogramExtra(l,sources.read(l).weatherModel,cfg.meteo) else emptyMap()
+                    val more=if(kind==MeteogramWidget::class.java && cfg.meteo.any { it in MeteoExtraKeys || it=="precip" }) loadMeteogramExtra(l,sources.read(l).weatherModel,cfg.meteo) else emptyMap()
                     WidgetRender.render(c,kind,id,cfg,l,data.first,data.second,units,manager.getAppWidgetOptions(id),more)
                 } catch(e:CancellationException) { throw e } catch(e:Exception) { null }
                 if(views==null) { failed=true;continue }
