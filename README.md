@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.3.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.3.1 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -43,7 +43,7 @@ The charts show several days at once. With the uncertainty band switched on, eac
 
 ### Alerts
 
-Active alerts are drawn on a timeline and listed with their severity, issuer and period of validity. Four independent sources can be combined freely, and each is shown under its own heading without merging duplicates:
+Active alerts are drawn on a timeline and listed with their severity, issuer and period of validity. The chart marks every alert with the icon of its hazard, and the name of the issuer links to the page of the warning when the source gives one. Four independent sources can be combined freely, and each is shown under its own heading without merging duplicates:
 
 - Local alerts computed in the app from the forecast.
 - MeteoAlarm for Europe. A place gets the alerts of the warning areas it lies in, by its position.
@@ -102,7 +102,7 @@ Seven home-screen widgets are available, each with its own settings, which open 
 
 - Compact: the current weather in one row.
 - Next 6 hours: the current conditions and the coming hours.
-- Meteogram: a chart of the coming days.
+- Meteogram: a chart of the coming days, with precipitation bars coloured by kind. A tap opens Now for the place of the widget.
 - Day by hours: the hours of one day as a chart. Arrows switch the day and a tap opens that day in Forecast.
 - 6 days: the forecast by day.
 - Air and pollen: the air quality index or the pollen, with pollutants or kinds of pollen at larger sizes.
