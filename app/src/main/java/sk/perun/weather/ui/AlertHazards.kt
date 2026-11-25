@@ -89,7 +89,7 @@ internal enum class AlertHazard(private val data:String) {
 
 internal const val AlertLine=1.75f
 
-private val AwarenessTypes=mapOf(
+internal val AwarenessTypes=mapOf(
     1 to AlertHazard.Wind,2 to AlertHazard.Snow,3 to AlertHazard.Storm,4 to AlertHazard.Fog,5 to AlertHazard.Heat,
     6 to AlertHazard.Cold,7 to AlertHazard.Coastal,8 to AlertHazard.Fire,9 to AlertHazard.Avalanche,10 to AlertHazard.Rain,
     12 to AlertHazard.Flood,13 to AlertHazard.RainFlood,14 to AlertHazard.Marine,15 to AlertHazard.Drought,
