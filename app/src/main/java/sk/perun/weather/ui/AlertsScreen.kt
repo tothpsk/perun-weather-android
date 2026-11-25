@@ -105,10 +105,10 @@ private fun alertSourceTitle(name: String)=if (name=="KDE") "FOSS Public Alert S
 private class AlertsData(val items: List<AlertItem>,val reports: List<SourceReport>,val localOk: Boolean,val zone: ZoneId,val labels: List<String>)
 private suspend fun loadAlerts(l: Location,source: String,model: String): AlertsData=withContext(Dispatchers.IO) { coroutineScope {
     val tasks=mutableListOf<Deferred<SourceReport>>()
-    val chosen=alertSourceSet(source)
-    if ("meteo" in chosen && hasMeteoAlarm(l.countryCode)) tasks+=async { meteoReport(l) }
-    if ("libre" in chosen) tasks+=async { libreReport(l) }
-    if ("kde" in chosen) tasks+=async { kdeReport(l) }
+    val chosen=alertSourceSet(source); val budget=CapBudget()
+    if ("meteo" in chosen && hasMeteoAlarm(l.countryCode)) tasks+=async { meteoReport(l,budget) }
+    if ("libre" in chosen) tasks+=async { libreReport(l,budget) }
+    if ("kde" in chosen) tasks+=async { kdeReport(l,budget) }
     val hourlyTask=async { if ("local" !in chosen) null else try { loadHourly(l,model) } catch (e: CancellationException) { throw e } catch (e: Exception) { null } }
     val raw=tasks.awaitAll(); val h=hourlyTask.await(); val now=Instant.now()
     val reports=raw.map { it.copy(items=it.items.filter { a ->a.end?.isAfter(now)!=false }) }

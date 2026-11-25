@@ -10,14 +10,14 @@ import java.security.MessageDigest
 internal data class LocationSourcePreferences(
     val weatherModel:String="best_match",
     val ensembleModel:String=LocationModelCatalogue.AutomaticEnsemble,
-    val alertSource:String="kde",
+    val alertSource:String=AlertSourceDefaults.value,
     val nowcastSource:String="libre",
 )
 internal val AlertSourceIds=listOf("local","meteo","libre","kde")
 // "v2:" plus comma-separated ids. Older values ("kde" or "libre") meant local estimates, MeteoAlarm and that one source.
 internal fun alertSourceSet(value:String):Set<String> = if(value.startsWith("v2:")) value.removePrefix("v2:").split(",").filter {it in AlertSourceIds}.toSet() else setOf("local","meteo",if(value=="libre") "libre" else "kde")
 internal fun alertSourceValue(ids:Set<String>):String="v2:"+AlertSourceIds.filter {it in ids}.joinToString(",")
-internal fun normalizeAlertSource(raw:String?):String=alertSourceValue(alertSourceSet(raw ?: "kde"))
+internal fun normalizeAlertSource(raw:String?):String=alertSourceValue(alertSourceSet(raw ?: AlertSourceDefaults.value))
 internal fun locationSourceKey(location:Location):String {
     require(location.latitude.isFinite() && location.longitude.isFinite())
     require(location.latitude in -90.0..90.0 && location.longitude in -180.0..180.0)
@@ -35,7 +35,7 @@ internal class LocationSourceStore(context:Context) {
             LocationSourcePreferences(
                 o.optString("weatherModel","best_match").takeIf {it in LocationModelCatalogue.weatherIds} ?: "best_match",
                 o.optString("ensembleModel",LocationModelCatalogue.AutomaticEnsemble).takeIf {it in LocationModelCatalogue.ensembleIds} ?: LocationModelCatalogue.AutomaticEnsemble,
-                normalizeAlertSource(o.optString("alertSource","kde")),
+                normalizeAlertSource(o.optString("alertSource",AlertSourceDefaults.value)),
                 o.optString("nowcastSource","libre").takeIf {it in setOf("libre","openmeteo")} ?: "libre",
             )
         }.getOrDefault(LocationSourcePreferences())

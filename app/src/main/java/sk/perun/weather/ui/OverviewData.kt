@@ -116,7 +116,7 @@ internal fun localAlertHits(times: List<Instant>, code: DoubleArray, gust: Doubl
     }
 }
 
-internal suspend fun loadOverview(location: Location, alertSource: String = "kde", model: String = "best_match"): OverviewData = withContext(Dispatchers.IO) {
+internal suspend fun loadOverview(location: Location, alertSource: String = AlertSourceDefaults.value, model: String = "best_match"): OverviewData = withContext(Dispatchers.IO) {
     require(model in LocationModelCatalogue.weatherIds) { uiText(R.string.ui_neznamy_predpovedny_model_value_28933271, model) }
     coroutineScope {
         val where = "latitude=${location.latitude}&longitude=${location.longitude}&timezone=" +
