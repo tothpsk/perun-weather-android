@@ -2,6 +2,23 @@
 
 All notable changes to Perun Weather for Android. The format follows [Keep a Changelog](https://keepachangelog.com/) and versions follow semantic versioning.
 
+## [1.3.1] - 2026-11-25
+
+### Added
+
+- Meteogram widget: the precipitation bars are coloured by the kind of precipitation: rain, showers, snow and rain with snow.
+- Alerts, details of a MeteoAlarm warning: the issuer is shown. Its name is a link to the page of the warning when MeteoAlarm gives one, and plain text when it does not.
+- Now, wave tile: the direction of the waves shows the degrees beside the point of the compass, for example NW · 322°.
+
+### Changed
+
+- Alerts, chart: the icon of the hazard stands above a bar instead of text.
+- Meteogram widget: a tap opens Now for the place of the widget, not Forecast. The refresh control is separate.
+
+### Fixed
+
+- Alert icons: an alert of the shared snow and ice group is drawn by its own name. An icing warning no longer gets the snowflake because its general headline says "Snow-ice". A headline alone does not decide between snow and ice; it is used only when the name of the alert does not say.
+
 ## [1.3.0] - 2026-11-24
 
 ### Added

@@ -59,6 +59,13 @@ private fun seaBandFor(tile:MarineTile,raw:Double,next:Double):SeaBand? = if(!ra
 private fun seaTemperatureColor(c:Double)=when {!c.isFinite()->SeaScaleGrey;c<10->Color(0xFF4FC3F7);c<18->Color(0xFF4D8D7C);c<24->Color(0xFF66D17A);c<28->Color(0xFFFFB74D);else->Color(0xFFFF6B6B)}
 private fun waveHeightColor(m:Double)=when {!m.isFinite()->SeaScaleGrey;m<0.5->Color(0xFF66D17A);m<1.25->Color(0xFFB5D46A);m<2.5->Color(0xFFFFD166);m<4->Color(0xFFFB8C00);else->Color(0xFFE53935)}
 private fun wavePeriodColor(s:Double)=when {!s.isFinite()->SeaScaleGrey;s<6->Color(0xFF8FD3F4);s<10->Color(0xFF4FC3F7);else->Color(0xFF7C6FCD)}
+// Sixteen directions from the eight of cardinal(): a direction between two of them joins the nearer of north, east, south and west with the nearer of the other four.
+private fun cardinal16(degrees:Double):String {
+    if(!degrees.isFinite()) return "—"
+    val i=((degrees/22.5+0.5).toInt()%16+16)%16
+    return if(i%2==0) cardinal(i*22.5) else cardinal(((i+1)/4*4%16)*22.5)+cardinal((i/4*4+2)*22.5)
+}
+private fun waveHeading(bearing:Double):String = cardinal(bearing)+" · "+Math.round(bearing)%360+"°"
 internal class OverviewCell(val key:String,val content:@Composable (Modifier)->Unit)
 @Composable internal fun TileRows(cells:List<OverviewCell>) {
     val order=rememberOverviewTileOrder()
@@ -153,10 +160,12 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
                         val sub=if(!raw.isFinite()) uiText(R.string.ui_udaj_nedostupny_8bbc9c94) else when(tile) {
                             MarineTile.Temperature->if(dayValues.isEmpty()) "" else weatherUnitNumber(dayValues.minOrNull()!!,1)+"–"+weatherUnitNumber(dayValues.maxOrNull()!!,1)+uiText(R.string.ui_dnes_b6dcb499)
                             MarineTile.Level->uiText(R.string.ui_msl_be8d7660)+trend
-                            MarineTile.Waves->if(bearing.isFinite()) uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing) else uiText(R.string.ui_smer_nedostupny_f96aaf53)
+                            MarineTile.Waves->if(bearing.isFinite()) uiText(R.string.ui_smer_sirenia_e0efaa7c)+waveHeading(bearing) else uiText(R.string.ui_smer_nedostupny_f96aaf53)
                             MarineTile.Period->uiText(R.string.ui_modelova_hodina_97a95bf3)
                         }
-                        Text(sub,color=ForecastMuted,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis)
+                        // The heading of the waves keeps its degrees: it is shown without the words when the row is too narrow for both.
+                        var narrow by remember(sub) {mutableStateOf(false)}
+                        Text(if(narrow && tile==MarineTile.Waves && bearing.isFinite()) waveHeading(bearing) else sub,color=ForecastMuted,fontSize=12.sp,maxLines=1,overflow=TextOverflow.Ellipsis,onTextLayout={if(it.hasVisualOverflow) narrow=true})
                     }
                     // The graphics of the tiles of the Now screen: 40 dp with their line, standing on the bottom of the text.
                     val tileBox=rememberTileTextBox()
@@ -164,7 +173,7 @@ internal class MarineOverviewState(val data:MarineData?,val pending:Boolean)
                         when(tile) {
                             MarineTile.Temperature->TkGlyph(Glyph.SeaTemp,levelTone)
                             MarineTile.Level->TkGlyph(if(!next.isFinite() || !raw.isFinite() || abs(next-raw)<=.01) Glyph.Wave else if(next>raw) Glyph.SeaLevel else Glyph.SeaLevelDown,levelTone)
-                            MarineTile.Waves->if(bearing.isFinite()) TkDirectionArrow(d.at("wave_direction",i),levelTone,TileLong,uiText(R.string.ui_smer_sirenia_e0efaa7c)+cardinal(bearing)) else TkGlyph(Glyph.Wave,levelTone)
+                            MarineTile.Waves->if(bearing.isFinite()) TkDirectionArrow(d.at("wave_direction",i),levelTone,TileLong,uiText(R.string.ui_smer_sirenia_e0efaa7c)+waveHeading(bearing)) else TkGlyph(Glyph.Wave,levelTone)
                             MarineTile.Period->TkGlyph(Glyph.SeaPeriod,levelTone)
                         }
                     }

@@ -136,15 +136,24 @@ private fun matches(t:String,words:List<String>,term:String):Boolean = when {
 }
 
 /** The kind of a warning: the MeteoAlarm awareness_type when the issuer sends it, otherwise the words of its name. */
-internal fun alertHazard(text:String,awareness:String=""):AlertHazard {
+internal fun alertHazard(text:String,awareness:String="",headline:String=""):AlertHazard {
     val t=plain(text)
     val words=t.split(Regex("""[^\p{L}\p{N}]+""")).filter { it.isNotEmpty() }
     fun has(kind:AlertHazard)=HazardWords.any { (k,terms)->k==kind && terms.any { matches(t,words,it) } }
     val code=awareness.substringBefore(';').trim().toIntOrNull() ?: AwarenessInText.find(t)?.groupValues?.get(1)?.toIntOrNull()
     val byCode=code?.let { AwarenessTypes[it] }
-    if(byCode==AlertHazard.Snow) return if(has(AlertHazard.Ice) && !has(AlertHazard.Snow)) AlertHazard.Ice else AlertHazard.Snow
+    fun snowOrIce(value:String):AlertHazard? {
+        val normalized=plain(value)
+        val tokens=normalized.split(Regex("[^\\p{L}\\p{N}]+")).filter { it.isNotEmpty() }
+        fun hasKind(kind:AlertHazard)=HazardWords.any { (k,terms)->k==kind && terms.any { matches(normalized,tokens,it) } }
+        val ice=hasKind(AlertHazard.Ice)
+        val snow=hasKind(AlertHazard.Snow)
+        return when { snow->AlertHazard.Snow; ice->AlertHazard.Ice; else->null }
+    }
+    if(byCode==AlertHazard.Snow) return snowOrIce(text) ?: snowOrIce(headline) ?: AlertHazard.Snow
     if(byCode!=null) return byCode
-    return HazardWords.firstOrNull { (_,terms)->terms.any { matches(t,words,it) } }?.first ?: AlertHazard.Generic
+    return HazardWords.firstOrNull { (_,terms)->terms.any { matches(t,words,it) } }?.first
+        ?: if(headline.isNotBlank()) alertHazard(headline) else AlertHazard.Generic
 }
 
 internal fun DrawScope.drawAlertHazard(kind:AlertHazard,color:Color) {

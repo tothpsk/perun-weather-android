@@ -25,6 +25,8 @@ internal data class AlertItem(
     val via: Set<String> = emptySet(),
     // MeteoAlarm awareness_type of the CAP message ("1; Wind"), when the issuer sends it.
     val awareness: String = "",
+    // The national service that issued a warning passed on by MeteoAlarm (senderName of its CAP message), when the message could be read.
+    val origin: String = "",
 )
 internal data class OfficialAlerts(val items: List<AlertItem>, val incomplete: Boolean)
 private const val ATOM_NS = "http://www.w3.org/2005/Atom"
@@ -103,6 +105,29 @@ private fun areaIdentity(areas: List<Element>): String = areas.map { a ->
     }
 }.filter { it.isNotBlank() }.sorted().joinToString("|")
 
+private class MeteoOrigin(val sender: String, val web: String, val awareness: String)
+// The CAP message behind a feed entry names the national service that issued the warning. One message is read for a warning
+// and at most eight for a place; a message that cannot be read leaves the warning without its origin.
+private fun meteoOrigin(e: Element, seen: HashMap<String, MeteoOrigin?>): MeteoOrigin? {
+    val links = e.getElementsByTagNameNS(ATOM_NS, "link"); var url: String? = null
+    for (i in 0 until links.length) {
+        val link = links.item(i) as? Element ?: continue
+        if (link.getAttribute("type") == "application/cap+xml") { url = link.getAttribute("href"); break }
+    }
+    val href = url?.takeIf { it.startsWith("https://") } ?: return null
+    val key = href.substringBefore('?')
+    if (seen.containsKey(key)) return seen[key]
+    if (seen.size >= 8) return null
+    val origin = try {
+        val infos = parseXml(fetchBytes(href)).documentElement.children(CAP_NS, "info")
+        val index = href.substringAfter("index_info=", "").takeWhile { it.isDigit() }.toIntOrNull()
+        val info = index?.let { infos.getOrNull(it) } ?: infos.firstOrNull()
+        if (info == null) null else MeteoOrigin(info.childText("senderName").orEmpty(), info.childText("web").orEmpty(), info.capParameter("awareness_type").orEmpty())
+    } catch (x: Exception) { null }
+    seen[key] = origin
+    return origin
+}
+
 // A place gets the entries of the warning areas it lies in. Names decide only when the position cannot:
 // no outlines for the country, a point outside all outlines, or an entry whose code the outlines do not know.
 internal fun meteoAlarm(l: Location, stats: IntArray? = null): List<AlertItem> {
@@ -111,7 +136,7 @@ internal fun meteoAlarm(l: Location, stats: IntArray? = null): List<AlertItem> {
     val placeCodes = MeteoAlarmAreas.codes(country, l.latitude, l.longitude)
     val placeNames = alertAreaNames(l)
     val doc = parseXml(fetchBytes("https://feeds.meteoalarm.org/feeds/meteoalarm-legacy-atom-$slug"))
-    val entries = doc.getElementsByTagNameNS(ATOM_NS, "entry"); val result = mutableListOf<AlertItem>()
+    val entries = doc.getElementsByTagNameNS(ATOM_NS, "entry"); val result = mutableListOf<AlertItem>(); val origins = HashMap<String, MeteoOrigin?>()
     for (i in 0 until entries.length) {
         val e = entries.item(i) as? Element ?: continue
         val title = e.text(ATOM_NS, "title") ?: continue
@@ -126,13 +151,14 @@ internal fun meteoAlarm(l: Location, stats: IntArray? = null): List<AlertItem> {
             else area != null && areaCore(area).let { it.isNotEmpty() && it in placeNames }
         if (!matches) continue
         val id = e.text(CAP_NS, "identifier")?.takeIf { it.isNotBlank() } ?: e.text(ATOM_NS, "id")?.let { "atom:$it" }.orEmpty()
+        val origin = meteoOrigin(e, origins)
         result += AlertItem(
             event = e.text(CAP_NS, "event")?.takeIf { it.isNotBlank() } ?: title, level = level, local = false,
             start = capInstant(e.text(CAP_NS, "onset") ?: e.text(CAP_NS, "effective")), end = capInstant(e.text(CAP_NS, "expires")),
             issuer = "MeteoAlarm", title = title, identifier = id,
             senderId = e.text(CAP_NS, "sender")?.takeIf { it.isNotBlank() } ?: "meteoalarm:$slug",
             language = e.text(CAP_NS, "language") ?: e.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang"),
-            areaKey = region?.let { "region:" + cleanRegion(it) }.orEmpty(), via = setOf("MeteoAlarm"),
+            areaKey = region?.let { "region:" + cleanRegion(it) }.orEmpty(), via = setOf("MeteoAlarm"), originUri = origin?.web.orEmpty(), awareness = origin?.awareness.orEmpty(), origin = origin?.sender.orEmpty(),
         )
     }
     return mergeAlertRecords(selectAlertLanguages(result))
