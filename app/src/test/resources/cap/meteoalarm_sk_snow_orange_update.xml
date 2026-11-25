@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>2.49.0.0.703.0.SK.261124090100.6b055258_BA_U4</identifier>
+  <sender>http://www.shmu.sk</sender>
+  <sent>2026-11-25T10:48:24-00:00</sent>
+  <status>Actual</status>
+  <msgType>Update</msgType>
+  <scope>Public</scope>
+  <references>http://www.shmu.sk,2.49.0.0.703.0.SK.261124090100.6b055258_BA_U3,2026-11-25T09:17:06-00:00</references>
+  <info>
+    <language>sk</language>
+    <category>Met</category>
+    <event>Výstraha pred silným snežením</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Severe</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-24T09:01:00-00:00</effective>
+    <onset>2026-11-25T23:00:00-00:00</onset>
+    <expires>2026-11-26T23:00:00-00:00</expires>
+    <senderName>Slovenský Hydrometeorologický ústav</senderName>
+    <headline>Žiadne ďalšie informácie nie sú dostupné</headline>
+    <description>V okrese Bratislava sa očakáva výskyt sneženia, pri ktorom spadne
+za 12 hodín lokálne, najmä v Záhorskej a karpatskej časti mesta, okolo 15 cm snehu.
+Predpokladaná výška nového snehu je v danej ročnej dobe a oblasti nadpriemerná
+a pravdepodobnosť spôsobenia škôd je vysoká.</description>
+    <instruction>BUĎTE PRIPRAVENÍ na sneh a/alebo ľad spôsobujúci narušenie cestnej,
+železničnej a leteckej dopravy ako aj aktivít vonku.</instruction>
+    <web>http://www.shmu.sk/?page=987</web>
+    <contact>Slovenský Hydrometeorologický ústav, Jeséniova 17, 833 15 Bratislava, +421 2 59 415 111</contact>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>3; orange; Severe</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Bratislava</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>SK100</value>
+      </geocode>
+    </area>
+  </info>
+  <info>
+    <language>en-GB</language>
+    <category>Met</category>
+    <event>Severe snow warning</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Severe</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-24T09:01:00-00:00</effective>
+    <onset>2026-11-25T23:00:00-00:00</onset>
+    <expires>2026-11-26T23:00:00-00:00</expires>
+    <senderName>Slovak Hydrometeorological Institute</senderName>
+    <headline>No detailed description available</headline>
+    <description>We expect heavy snowfall of 15 cm in district Bratislava.
+This snow depth represents danger for human activities.</description>
+    <instruction>BE PREPARED for widespread snow and/or ice leading to disruption to road, rail
+and air transport and outdoor activities.</instruction>
+    <web>http://www.shmu.sk/?page=987</web>
+    <contact>Slovak Hydrometeorological Institute, Jeseniova 17, 833 15 Bratislava, Slovakia, +421 2 59 415 111</contact>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>3; orange; Severe</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Bratislava</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>SK100</value>
+      </geocode>
+    </area>
+  </info>
+</alert>
