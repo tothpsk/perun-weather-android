@@ -47,6 +47,8 @@ internal data class UnifiedAlert(
     val texts: List<AlertText>,
     val sources: List<AlertSourceRef>,
     val local: Boolean = false,
+    // Joined with a warning of another source by hazard, level, area and time, because one of them had no CAP message.
+    val looseMatch: Boolean = false,
 )
 
 private val DwdLanguageSuffix = Regex("\\.[A-Z]{3}$")

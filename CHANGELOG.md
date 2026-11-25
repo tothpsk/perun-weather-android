@@ -8,6 +8,7 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 - Alerts: a new installation turns on all alert sources: local estimates, MeteoAlarm, LibreWXR and the FOSS public alert server. An update keeps the sources chosen before.
 - Alerts: MeteoAlarm, LibreWXR and the FOSS public alert server read every warning from its whole CAP message. The kind of the hazard comes from the codes of the message, so an icing warning gets the ice icon in every source, and a warning of two hazards (for example freezing rain and blowing snow) starts with the first of them. The text is in the language of the app when the message has it.
+- Alerts: the same warning from MeteoAlarm, LibreWXR and the FOSS public alert server is shown once, with all its sources in the issuer line. Warnings are joined by the identifier of their CAP message, not by their text. An updated or cancelled warning removes its older version. The Alerts screen shows the official warnings in one group instead of one group for each source.
 - Alerts: whole CAP messages are kept on the phone until they expire, so a refresh downloads only new warnings. One refresh downloads at most 48 new messages for a place; the rest follow at the next refresh, and the list says it may be incomplete.
 
 ### Fixed

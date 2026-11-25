@@ -631,7 +631,8 @@
     <string name="alert_source_kde" formatted="false">"FOSS Public Alert Server (svet)"</string>
     <string name="alert_source_local_short" formatted="false">"Lokálne"</string>
     <string name="alert_sources_off" formatted="false">"Žiadny zdroj"</string>
-    <string name="alert_sources_note" formatted="false">"V Európe svetové zdroje opakujú výstrahy MeteoAlarmu, často po anglicky. Zdroje sa navzájom nezlučujú."</string>
+    <string name="alert_sources_note" formatted="false">"V Európe svetové zdroje opakujú výstrahy MeteoAlarmu. Tá istá výstraha z viacerých zdrojov sa zobrazí raz, so všetkými zdrojmi."</string>
+    <string name="alert_group_official" formatted="false">"Oficiálne výstrahy"</string>
     <string name="alert_sources_none" formatted="false">"Nie je zapnutý žiadny zdroj výstrah. Zapni ho cez ceruzku."</string>
     <string name="alert_cursor_none" formatted="false">"Bez výstrahy"</string>
     <string name="alert_source_libre_info" formatted="false">"Úradné meteorologické výstrahy z celého sveta. LibreWXR ich preberá z uzla Svetovej meteorologickej organizácie (WMO) a z americkej NWS."</string>
