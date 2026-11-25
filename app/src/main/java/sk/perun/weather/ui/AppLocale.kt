@@ -48,7 +48,7 @@ internal fun appLocale():Locale=AppLocale.locale()
 
 private val EnPatterns=mapOf(
     "d. M." to "d MMM","d.M." to "d MMM","d. M. HH:mm" to "d MMM HH:mm","d. M. yyyy HH:mm" to "d MMM yyyy HH:mm",
-    "EEEE d. MMMM · HH:mm" to "EEEE d MMMM · HH:mm","EEE d." to "EEE d","d. MMMM · HH:mm" to "d MMMM · HH:mm","EEEE d. M. yyyy" to "EEEE d MMM yyyy",
+    "EEEE d. MMMM · HH:mm" to "EEEE d MMMM · HH:mm","EEE d." to "EEE d","d. MMMM · HH:mm" to "d MMMM · HH:mm","EEEE d. M. yyyy" to "EEEE d MMM yyyy","EEE d. M. HH:mm" to "EEE d MMM HH:mm",
 )
 /** Date patterns are written in the Slovak form; English uses the day-month-name form. */
 internal fun appPattern(slovak:String):String = if(AppLocale.language()=="en") EnPatterns[slovak] ?: slovak else slovak
