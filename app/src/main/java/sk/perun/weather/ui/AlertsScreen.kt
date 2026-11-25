@@ -111,10 +111,12 @@ private suspend fun loadAlerts(l: Location,source: String,model: String): Alerts
     if ("kde" in chosen) tasks+=async { kdeReport(l,budget) }
     val hourlyTask=async { if ("local" !in chosen) null else try { loadHourly(l,model) } catch (e: CancellationException) { throw e } catch (e: Exception) { null } }
     val raw=tasks.awaitAll(); val h=hourlyTask.await(); val now=Instant.now()
-    val reports=raw.map { it.copy(items=it.items.filter { a ->a.end?.isAfter(now)!=false }) }
+    val reports=raw
+    // One warning for all sources: the same CAP message from MeteoAlarm, LibreWXR and FOSS is one row.
+    val official=officialItems(reports.flatMap { it.alerts }).filter { a ->a.end?.isAfter(now)!=false }
     val order=compareByDescending<AlertItem> { rankOf(it) }.thenBy { it.start ?: Instant.MAX }
     val local=if (h!=null) localEstimates(h,now) else emptyList()
-    val groups=reports.map { alertSourceTitle(it.name) to it.items.sortedWith(order) }+listOf(LocalIssuer to local.sortedWith(order))
+    val groups=listOf(uiText(R.string.alert_group_official) to official.sortedWith(order))+listOf(LocalIssuer to local.sortedWith(order))
     val items=groups.flatMap { it.second }; val labels=groups.flatMap { g ->g.second.map { g.first } }
     val z=h?.zone ?: runCatching { ZoneId.of(l.timezone) }.getOrNull() ?: ZoneId.systemDefault()
     AlertsData(items,reports,h!=null || "local" !in chosen,z,labels)
@@ -187,8 +189,8 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     val requesters=remember(d.items) { List(d.items.size) { BringIntoViewRequester() } }
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         d.reports.forEach { r ->
-            if (r.error!=null) Text(r.name+uiText(R.string.ui_nepodarilo_sa_nacitat_7b748049)+r.error+uiText(R.string.ui_to_neznamena_ze_ziadne_vystrahy_nie_su_ac01ebd6),color=WarnText,fontSize=13.sp)
-            if (r.incomplete) Text(r.name+uiText(R.string.ui_niektore_spravy_sa_nenacitali_zoznam_nemusi_byt_uplny_f75f0167),color=WarnText,fontSize=13.sp)
+            if (r.error!=null) Text(alertSourceTitle(r.name)+uiText(R.string.ui_nepodarilo_sa_nacitat_7b748049)+r.error+uiText(R.string.ui_to_neznamena_ze_ziadne_vystrahy_nie_su_ac01ebd6),color=WarnText,fontSize=13.sp)
+            if (r.incomplete) Text(alertSourceTitle(r.name)+uiText(R.string.ui_niektore_spravy_sa_nenacitali_zoznam_nemusi_byt_uplny_f75f0167),color=WarnText,fontSize=13.sp)
         }
         if (!d.localOk) Text(uiText(R.string.ui_lokalne_odhady_z_predpovede_sa_nepodarilo_vypocitat_db7210d0),color=WarnText,fontSize=13.sp)
         if (d.items.isEmpty()) {

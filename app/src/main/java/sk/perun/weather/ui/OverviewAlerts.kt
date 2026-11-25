@@ -29,7 +29,9 @@ internal data class AlertItem(
     // The national service that issued a warning passed on by MeteoAlarm (senderName of its CAP message), when the message could be read.
     val origin: String = "",
 )
-internal data class OfficialAlerts(val items: List<AlertItem>, val incomplete: Boolean)
+internal data class OfficialAlerts(val alerts: List<UnifiedAlert>, val incomplete: Boolean) {
+    val items: List<AlertItem> by lazy { officialItems(alerts) }
+}
 private const val ATOM_NS = "http://www.w3.org/2005/Atom"
 private const val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
 private const val KDE_AREA_URL = "https://alerts.kde.org/alert/area"
@@ -90,7 +92,7 @@ private fun capLink(e: Element): String? {
     }
     return null
 }
-private class MeteoEntry(val capUrl: String?, val infoIndex: Int?, val areaIndex: Int?, val emma: String?, val area: String?, val fallback: AlertItem)
+private class MeteoEntry(val capUrl: String?, val infoIndex: Int?, val areaIndex: Int?, val emma: String?, val area: String?, val fallback: UnifiedAlert?)
 
 // A place gets the entries of the warning areas it lies in. Names decide only when the position cannot:
 // no outlines for the country, a point outside all outlines, or an entry whose code the outlines do not know.
@@ -119,16 +121,19 @@ internal fun meteoAlarm(l: Location, stats: IntArray? = null, budget: CapBudget 
         val atomId = e.text(ATOM_NS, "id").orEmpty()
         val id = e.text(CAP_NS, "identifier")?.takeIf { it.isNotBlank() } ?: atomId.takeIf { it.isNotBlank() }?.let { "atom:$it" }.orEmpty()
         val event = e.text(CAP_NS, "event")?.takeIf { it.isNotBlank() } ?: title
-        val kind = classifyHazards(HazardInput(null, emptyList(), event, "", title)).first.first()
-        val fallback = AlertItem(
-            event = event, level = level, local = false,
-            start = capInstant(e.text(CAP_NS, "onset") ?: e.text(CAP_NS, "effective")), end = capInstant(e.text(CAP_NS, "expires")),
-            issuer = "MeteoAlarm", title = title, identifier = id,
-            senderId = e.text(CAP_NS, "sender")?.takeIf { it.isNotBlank() } ?: "meteoalarm:$slug",
-            language = e.text(CAP_NS, "language") ?: e.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang"),
-            areaKey = region?.let { "region:" + cleanRegion(it) }.orEmpty(), via = setOf("MeteoAlarm"),
-            awareness = HazardPrefix + kind.name,
-        )
+        val (kinds, kindBasis) = classifyHazards(HazardInput(null, emptyList(), event, "", title))
+        val start = capInstant(e.text(CAP_NS, "onset") ?: e.text(CAP_NS, "effective")) ?: capInstant(e.text(CAP_NS, "sent")) ?: Instant.now()
+        val fallback = capInstant(e.text(CAP_NS, "expires"))?.let { end ->
+            UnifiedAlert(
+                key = null, supersedes = emptySet(), msgType = e.text(CAP_NS, "message_type")?.takeIf { it.isNotBlank() } ?: "Alert",
+                hazards = kinds, hazardBasis = kindBasis,
+                level = when (level) { "red" -> AlertLevel.Red; "orange" -> AlertLevel.Orange; "yellow" -> AlertLevel.Yellow; else -> AlertLevel.Neutral },
+                levelBasis = if (level == "neutral") Basis.Fallback else Basis.EnglishEvent,
+                start = start, end = end, expires = end, sent = start, areas = emptySet(), issuer = "", web = "",
+                texts = listOf(AlertText((e.text(CAP_NS, "language") ?: e.getAttributeNS("http://www.w3.org/XML/1998/namespace", "lang")).ifBlank { "en" }, event, title, "", "", area.orEmpty())),
+                sources = listOf(AlertSourceRef("MeteoAlarm", id, capLink(e).orEmpty())),
+            )
+        }
         matched += MeteoEntry(capLink(e), entryIndex(atomId, "index_info"), entryIndex(atomId, "index_area"), code, area, fallback)
     }
     val byMessage = matched.filter { it.capUrl != null }.groupBy { it.capUrl!! }
@@ -144,15 +149,14 @@ internal fun meteoAlarm(l: Location, stats: IntArray? = null, budget: CapBudget 
             val pick: (CapArea) -> Boolean = if (exact.size == group.size) { a -> a in exact } else { a ->
                 a.geocodes.any { it.first == "EMMA_ID" && it.second in codes } || a.description in names
             }
-            m.toUnified(AlertSourceRef("MeteoAlarm", url, url), m.areasLike(pick)).filter { it.msgType != "Cancel" }
-                .map { it.toAlertItem(issuer = "MeteoAlarm", origin = it.issuer) }
+            m.toUnified(AlertSourceRef("MeteoAlarm", url, url), m.areasLike(pick))
         }
         // A message that cannot be read, or whose areas are not found, keeps the warnings of the feed.
         val keepFeed = message == null || (message.msgType != "Cancel" && message.infos.none { leadingNumber(it.parameter("awareness_level")) == 1 })
-        if (alerts.isNullOrEmpty() && keepFeed) group.map { it.fallback } else alerts.orEmpty()
+        if (alerts.isNullOrEmpty() && keepFeed) group.mapNotNull { it.fallback } else alerts.orEmpty()
     }
-    val withoutMessage = matched.filter { it.capUrl == null }.map { it.fallback }
-    return OfficialAlerts(mergeAlertRecords(fromMessages + withoutMessage), incomplete)
+    val withoutMessage = matched.filter { it.capUrl == null }.mapNotNull { it.fallback }
+    return OfficialAlerts(fromMessages + withoutMessage, incomplete)
 }
 private fun pointInPolygon(lat: Double, lon: Double, text: String): Boolean {
     val p = try { text.trim().split(Regex("\\s+")).filter { it.isNotEmpty() }.map { val a = it.split(",", limit = 2); a[1].toDouble() to a[0].toDouble() } } catch (e: Exception) { return false }
@@ -189,8 +193,8 @@ private fun kdeDiagnostic(message: String) {
 private fun kdeFailure(e: Exception): String = e.message?.takeIf { Regex("HTTP [0-9]{3}").matches(it) } ?: e.javaClass.simpleName
 private class KdeDiagnostics {
     val fetched = AtomicInteger(); val failed = AtomicInteger(); val overBudget = AtomicInteger(); val inactive = AtomicInteger(); val accepted = AtomicInteger()
-    fun summary(ids: Int, merged: Int): String =
-        "KDE summary: ids=$ids read=${fetched.get()} failed=${failed.get()} overBudget=${overBudget.get()} inactive=${inactive.get()} accepted=${accepted.get()} merged=$merged"
+    fun summary(ids: Int, alerts: Int): String =
+        "KDE summary: ids=$ids read=${fetched.get()} failed=${failed.get()} overBudget=${overBudget.get()} inactive=${inactive.get()} accepted=${accepted.get()} alerts=$alerts"
 }
 // Only the info blocks in force now: effective (or sent) has passed and expires has not.
 private fun CapMessage.inForce(now: Instant): CapMessage = copy(infos = infos.filter { i ->
@@ -215,23 +219,22 @@ internal fun kdeAlerts(lat: Double, lon: Double, budget: CapBudget = CapBudget()
                 diagnostics.fetched.incrementAndGet()
                 val message=read.message.inForce(now)
                 if (message.infos.isEmpty()) diagnostics.inactive.incrementAndGet()
-                message.toUnified(AlertSourceRef("KDE",uuid,detail),message.areasLike(inPlace)).filter { it.msgType!="Cancel" }
-                    .map { it.toAlertItem(issuer=it.issuer.ifBlank { "KDE CAP" }) }.also { diagnostics.accepted.addAndGet(it.size) }
+                message.toUnified(AlertSourceRef("KDE",uuid,detail),message.areasLike(inPlace)).also { diagnostics.accepted.addAndGet(it.size) }
             }
             CapFetch.OverBudget -> { diagnostics.overBudget.incrementAndGet(); null }
             CapFetch.Failed -> { diagnostics.failed.incrementAndGet(); null }
         }
     }
     if (result.any { it==null }) incomplete=true
-    val merged=try { mergeAlertRecords(result.filterNotNull().flatten()) } catch (e: Exception) { kdeDiagnostic("KDE merge failed: "+kdeFailure(e)); throw e }
-    kdeDiagnostic(diagnostics.summary(ids.length(),merged.size))
-    return OfficialAlerts(merged,incomplete)
+    val alerts=result.filterNotNull().flatten()
+    kdeDiagnostic(diagnostics.summary(ids.length(),alerts.size))
+    return OfficialAlerts(alerts,incomplete)
 }
 private fun libreOfficialAlerts(location: Location,budget: CapBudget): OfficialAlerts {
     val report=libreReport(location,budget)
     if (report.error!=null) throw IllegalStateException(report.error)
     val now=Instant.now()
-    return OfficialAlerts(report.items.filter { it.end?.isAfter(now)!=false },report.incomplete)
+    return OfficialAlerts(report.alerts.filter { it.end.isAfter(now) },report.incomplete)
 }
 private fun extraOfficialAlerts(location: Location,source: String,budget: CapBudget): OfficialAlerts =
     if (source=="libre") libreOfficialAlerts(location,budget) else kdeAlerts(location.latitude,location.longitude,budget)
@@ -240,12 +243,13 @@ internal fun fetchOfficialAlertsStrict(location: Location,source: String=AlertSo
     val set=alertSourceSet(source); val budget=CapBudget()
     val meteo=if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location,budget=budget) else OfficialAlerts(emptyList(),false)
     val extras=listOf("libre","kde").filter { it in set }.map { extraOfficialAlerts(location,it,budget) }
-    return OfficialAlerts(meteo.items+extras.flatMap { it.items },meteo.incomplete || extras.any { it.incomplete })
+    return OfficialAlerts(meteo.alerts+extras.flatMap { it.alerts },meteo.incomplete || extras.any { it.incomplete })
 }
 internal fun fetchOfficialAlerts(location: Location,source: String=AlertSourceDefaults.value): List<AlertItem> {
     val now=Instant.now()
     val set=alertSourceSet(source); val budget=CapBudget()
-    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location,budget=budget).items else emptyList() } catch (e: Exception) { emptyList() }
-    val extra=listOf("libre","kde").filter { it in set }.flatMap { id -> try { extraOfficialAlerts(location,id,budget).items } catch (e: Exception) { emptyList() } }
-    return (meteo+extra).filter { it.end?.isAfter(now)!=false }
+    val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location,budget=budget).alerts else emptyList() } catch (e: Exception) { emptyList() }
+    val extra=listOf("libre","kde").filter { it in set }.flatMap { id -> try { extraOfficialAlerts(location,id,budget).alerts } catch (e: Exception) { emptyList() } }
+    // One warning for all sources, as on the Alerts screen.
+    return officialItems(meteo+extra).filter { it.end?.isAfter(now)!=false }
 }

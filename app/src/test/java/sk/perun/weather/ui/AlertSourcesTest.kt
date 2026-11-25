@@ -34,12 +34,13 @@ class AlertSourcesTest : ResourceStringsTestBase() {
         assertEquals("Poľadovica", groupAlertPresentation(listOf(a)).single().label)
     }
 
-    @Test fun meteoAlarmAndKdeNowMatchByRecord() {
-        val meteo = item("meteoalarm_sk_icing.xml", "MeteoAlarm")
-        val kde = item("kde_sk_icing.xml", "KDE")
-        assertEquals(meteo.areaKey, kde.areaKey)
-        val merged = mergeAlertRecords(listOf(meteo, kde)).single()
-        assertEquals(setOf("MeteoAlarm", "KDE"), merged.via)
+    @Test fun meteoAlarmAndKdeAreOneWarning() {
+        val meteo = message("meteoalarm_sk_icing.xml").toUnified(AlertSourceRef("MeteoAlarm", "m", ""))
+        val kde = message("kde_sk_icing.xml").toUnified(AlertSourceRef("KDE", "k", ""))
+        val one = officialItems(meteo + kde, "sk-SK").single()
+        assertEquals(setOf("MeteoAlarm", "KDE"), one.via)
+        assertEquals("MeteoAlarm, FOSS", one.issuer)
+        assertEquals("Slovenský Hydrometeorologický ústav", one.origin)
     }
 
     @Test fun translatedAreasAreFoundByTheirCodes() {
@@ -51,9 +52,9 @@ class AlertSourcesTest : ResourceStringsTestBase() {
     @Test fun libreReadsItsCapMessage() {
         val m = message("meteoalarm_sk_icing.xml")
         val a = libreFromCap(m, "https://example.org/cap", setOf("Bratislava")).single()
-        assertEquals("LibreWXR", a.issuer)
-        assertEquals("Slovenský Hydrometeorologický ústav", a.origin)
-        assertEquals(setOf("LibreWXR"), a.via)
+        assertEquals(listOf("LibreWXR"), a.sources.map { it.source })
+        assertEquals("Slovenský Hydrometeorologický ústav", a.issuer)
+        assertEquals(listOf(AlertHazard.Ice), a.hazards)
         assertEquals(1, libreFromCap(m, "https://example.org/cap", setOf("Elsewhere")).size)
     }
 

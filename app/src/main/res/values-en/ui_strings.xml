@@ -618,7 +618,8 @@
     <string name="alert_source_kde" formatted="false">"FOSS Public Alert Server (world)"</string>
     <string name="alert_source_local_short" formatted="false">"Local"</string>
     <string name="alert_sources_off" formatted="false">"No source"</string>
-    <string name="alert_sources_note" formatted="false">"In Europe the worldwide sources repeat MeteoAlarm alerts, often in English. Sources are not merged with each other."</string>
+    <string name="alert_sources_note" formatted="false">"In Europe the worldwide sources repeat MeteoAlarm alerts. The same alert from several sources is shown once, with all its sources."</string>
+    <string name="alert_group_official" formatted="false">"Official alerts"</string>
     <string name="alert_sources_none" formatted="false">"No alert source is switched on. Switch one on using the pencil."</string>
     <string name="alert_cursor_none" formatted="false">"No alert"</string>
     <string name="alert_source_libre_info" formatted="false">"Official weather alerts from around the world. LibreWXR takes them from the World Meteorological Organization (WMO) alert hub and from the US National Weather Service."</string>
