@@ -174,7 +174,7 @@ internal fun classifyHazards(input: HazardInput): Pair<List<AlertHazard>, Basis>
 }
 
 private fun languageKey(s: String) = s.trim().replace('_', '-').lowercase(Locale.ROOT)
-private fun textRank(language: String, preferred: String): Int {
+internal fun textRank(language: String, preferred: String): Int {
     val key = languageKey(language); val wanted = languageKey(preferred)
     return when {
         key == wanted -> 0
