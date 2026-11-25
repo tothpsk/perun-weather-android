@@ -6,9 +6,7 @@ import kotlinx.coroutines.CancellationException
 import org.json.JSONObject
 import java.util.Locale
 
-internal data class SourceReport(val name: String,val alerts: List<UnifiedAlert>,val error: String?,val note: String?=null,val incomplete: Boolean=false) {
-    val items: List<AlertItem> by lazy { officialItems(alerts) }
-}
+internal data class SourceReport(val name: String,val alerts: List<UnifiedAlert>,val error: String?,val note: String?=null,val incomplete: Boolean=false)
 internal fun meteoReport(l: Location,budget: CapBudget=CapBudget()): SourceReport = try {
     val stats=IntArray(1); val region=alertRegion(l); val r=meteoAlarm(l,stats,budget); val items=r.alerts
     val note=if (items.isEmpty() && stats[0]>0) uiQuantityText(R.plurals.unmatched_alert_count, stats[0], stats[0], region ?: "–") else null

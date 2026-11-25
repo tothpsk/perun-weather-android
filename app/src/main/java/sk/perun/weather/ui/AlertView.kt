@@ -64,3 +64,14 @@ internal fun languageName(tag: String, ui: Locale): String {
     if (locale.language.isEmpty() || locale.language == "und") return ""
     return locale.getDisplayLanguage(ui).replaceFirstChar { it.titlecase(ui) }
 }
+
+/**
+ * Whether a warning is announced: not when any of its references (or of an earlier version of the app, [legacy]) was
+ * already announced; an update of announced warnings ([updates]) only when its level [rank] is higher than theirs.
+ * [known] maps the announced references to their levels.
+ */
+internal fun shouldAnnounce(refs: Collection<String>, legacy: Collection<String>, updates: Collection<String>, rank: Int, known: Map<String, Int>): Boolean {
+    if (refs.any { it in known } || legacy.any { it in known }) return false
+    val before = updates.mapNotNull { known[it] }
+    return before.isEmpty() || before.max() < rank
+}

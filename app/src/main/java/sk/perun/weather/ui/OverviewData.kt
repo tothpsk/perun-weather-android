@@ -36,7 +36,7 @@ internal data class OverviewData(
     val precipitation: Double, val rain: Double, val showers: Double, val snowfall: Double,
     val probability: Double, val intervalSeconds: Int,
     val sunrise: Instant?, val sunset: Instant?,
-    val days: List<OutlookDay>, val air: OverviewAir?, val alerts: List<AlertItem>,
+    val days: List<OutlookDay>, val air: OverviewAir?, val alerts: List<UnifiedAlert>,
     val fallback: List<String> = emptyList(),
     val hours: List<OverviewHour> = emptyList(),
     val series: List<OverviewHour> = emptyList(),
@@ -258,7 +258,7 @@ internal suspend fun loadOverview(location: Location, alertSource: String = Aler
         val hours = upcoming.take(6)
         // An hour that cannot be parsed gets the epoch, so its window is long over and it never matches.
         val alertTimes = times.map { runCatching { LocalDateTime.parse(it).atZone(zone).toInstant() }.getOrDefault(Instant.EPOCH) }
-        val alerts = alertTask.await() + (if ("local" in alertSourceSet(alertSource)) localAlertHits(alertTimes, code, gust, precip, temp, Instant.now()).map { AlertItem(it.event, it.level, true) } else emptyList())
+        val alerts = alertTask.await() + (if ("local" in alertSourceSet(alertSource)) Instant.now().let { now -> localAlertHits(alertTimes, code, gust, precip, temp, now).map { localAlert(it, now) } } else emptyList())
         OverviewData(
             time = nowTime, zone = zone, latitude = location.latitude, longitude = location.longitude,
             temperature = c.optDouble("temperature_2m"), apparent = c.optDouble("apparent_temperature"), code = c.optInt("weather_code", -1), isDayFlag = c.optInt("is_day", 1) == 1,

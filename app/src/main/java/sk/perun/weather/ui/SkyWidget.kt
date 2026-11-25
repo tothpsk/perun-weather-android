@@ -141,9 +141,9 @@ internal object SkyWidgets {
         val v=RemoteViews(c.packageName,R.layout.wg_sky)
         // The warning of the next 24 hours, drawn behind the place where the widget shows it.
         val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
-        val warningPicture=warning?.let { widgetAlertBitmap(it.event,it.level,(18*dn).roundToInt(),it.awareness) }
+        val warningPicture=warning?.let { widgetAlertBitmap(it,(18*dn).roundToInt()) }
         v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture))
-        v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+it.event } ?: ""))
+        v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+alertName(it) } ?: ""))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {

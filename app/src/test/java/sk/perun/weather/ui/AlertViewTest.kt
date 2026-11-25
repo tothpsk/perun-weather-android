@@ -71,4 +71,13 @@ class AlertViewTest {
         assertEquals("German", languageName("de-DE", Locale.UK))
         assertEquals("", languageName("und", Locale.UK))
     }
+
+    @Test fun aWarningIsAnnouncedOnceAndAnUpdateOnlyWhenItRises() {
+        val known = mapOf("p|shmu|U3" to AlertLevel.Yellow.rank, "p|old-id" to 99)
+        assertTrue(shouldAnnounce(listOf("p|shmu|A"), emptyList(), emptyList(), 2, known))
+        assertFalse(shouldAnnounce(listOf("p|meteo|B", "p|shmu|U3"), emptyList(), emptyList(), 2, known))
+        assertFalse(shouldAnnounce(listOf("p|shmu|C"), listOf("p|old-id"), emptyList(), 2, known))
+        assertTrue(shouldAnnounce(listOf("p|shmu|U4"), emptyList(), listOf("p|shmu|U3"), AlertLevel.Orange.rank, known))
+        assertFalse(shouldAnnounce(listOf("p|shmu|U4"), emptyList(), listOf("p|shmu|U3"), AlertLevel.Yellow.rank, known))
+    }
 }

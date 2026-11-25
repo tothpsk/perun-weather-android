@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         publishAppShortcuts(this)
         enableEdgeToEdge()
         setContent {
-            PerunTheme { PerunApp(notificationIntent?.getStringExtra("perun_route"),notificationIntent?.getStringExtra("perun_location"),notificationToken) }
+            PerunTheme { PerunApp(notificationIntent?.getStringExtra("perun_route"),notificationIntent?.getStringExtra("perun_location"),notificationToken,notificationIntent?.getStringExtra("perun_alert")) }
         }
     }
 }

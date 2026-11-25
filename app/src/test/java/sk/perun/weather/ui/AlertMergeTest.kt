@@ -101,8 +101,9 @@ class AlertMergeTest {
         assertEquals(Basis.EventCode, mergeUnified(listOf(feed, keyed)).single().hazardBasis)
     }
 
-    @Test fun issuerLineListsTheSources() {
-        val a = alert(source = "KDE"); val b = alert(source = "MeteoAlarm"); val c = alert(source = "LibreWXR")
-        assertEquals("MeteoAlarm, LibreWXR, FOSS", officialItems(listOf(a, b, c), "sk-SK").single().issuer)
+    @Test fun theWarningKeepsAllItsKeys() {
+        val a = alert(key = CapKey("s", "id-1"), source = "MeteoAlarm")
+        val b = alert(key = CapKey("s", "id-2"), source = "KDE")
+        assertEquals(setOf(CapKey("s", "id-1"), CapKey("s", "id-2")), mergeUnified(listOf(a, b)).single().capKeys())
     }
 }

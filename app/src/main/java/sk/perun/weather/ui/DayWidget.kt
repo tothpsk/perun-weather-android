@@ -166,7 +166,7 @@ internal object DayWidgets {
             file(c,id).writeText(text)
         }
         // Official warnings with their validity, so that the header can show the one of the shown day. A failed request stores none.
-        val alerts=try { loadOverview(l,src.alertSource,src.weatherModel).alerts.filter { !it.local && it.level in Levels } }
+        val alerts=try { loadOverview(l,src.alertSource,src.weatherModel).alerts.filter { !it.local && it.level.key in Levels } }
             catch(e:CancellationException) { throw e } catch(e:Exception) { emptyList() }
         prefs(c).edit().putString("key_$id",stamp(c,l)).putLong("at_$id",System.currentTimeMillis()/1000).putString("alert_$id",widgetAlertsJson(alerts)).apply()
     }
@@ -237,8 +237,8 @@ internal object DayWidgets {
         val alert=widgetDay(date,data.zone).let { (from,to)->widgetAlert(widgetAlertsFrom(p.getString("alert_$id",null)),from,to) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))
-            v.setContentDescription(R.id.wg_alert,alert.event)
+            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert,54))
+            v.setContentDescription(R.id.wg_alert,alertName(alert))
         }
         val o=manager.getAppWidgetOptions(id)
         val wDp=o.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH).takeIf { it>0 } ?: 300

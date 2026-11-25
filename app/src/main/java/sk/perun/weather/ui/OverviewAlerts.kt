@@ -16,22 +16,7 @@ import kotlin.math.min
 import kotlin.math.sin
 import kotlin.math.sqrt
 
-internal data class AlertItem(
-    val event: String, val level: String, val local: Boolean,
-    val start: Instant? = null, val end: Instant? = null,
-    val issuer: String = "", val title: String = "",
-    val identifier: String = "", val senderId: String = "",
-    val language: String = "", val eventCode: String = "",
-    val areaKey: String = "", val originUri: String = "",
-    val via: Set<String> = emptySet(),
-    // MeteoAlarm awareness_type of the CAP message ("1; Wind"), or HazardPrefix + the kind when the unified model knows it.
-    val awareness: String = "",
-    // The national service that issued a warning passed on by MeteoAlarm (senderName of its CAP message), when the message could be read.
-    val origin: String = "",
-)
-internal data class OfficialAlerts(val alerts: List<UnifiedAlert>, val incomplete: Boolean) {
-    val items: List<AlertItem> by lazy { officialItems(alerts) }
-}
+internal data class OfficialAlerts(val alerts: List<UnifiedAlert>, val incomplete: Boolean)
 private const val ATOM_NS = "http://www.w3.org/2005/Atom"
 private const val CAP_NS = "urn:oasis:names:tc:emergency:cap:1.2"
 private const val KDE_AREA_URL = "https://alerts.kde.org/alert/area"
@@ -245,11 +230,11 @@ internal fun fetchOfficialAlertsStrict(location: Location,source: String=AlertSo
     val extras=listOf("libre","kde").filter { it in set }.map { extraOfficialAlerts(location,it,budget) }
     return OfficialAlerts(meteo.alerts+extras.flatMap { it.alerts },meteo.incomplete || extras.any { it.incomplete })
 }
-internal fun fetchOfficialAlerts(location: Location,source: String=AlertSourceDefaults.value): List<AlertItem> {
+internal fun fetchOfficialAlerts(location: Location,source: String=AlertSourceDefaults.value): List<UnifiedAlert> {
     val now=Instant.now()
     val set=alertSourceSet(source); val budget=CapBudget()
     val meteo=try { if ("meteo" in set && hasMeteoAlarm(location.countryCode)) meteoAlarm(location,budget=budget).alerts else emptyList() } catch (e: Exception) { emptyList() }
     val extra=listOf("libre","kde").filter { it in set }.flatMap { id -> try { extraOfficialAlerts(location,id,budget).alerts } catch (e: Exception) { emptyList() } }
     // One warning for all sources, as on the Alerts screen.
-    return officialItems(meteo+extra).filter { it.end?.isAfter(now)!=false }
+    return mergeUnified(meteo+extra).filter { it.end.isAfter(now) }
 }

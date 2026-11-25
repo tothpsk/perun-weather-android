@@ -13,12 +13,11 @@ internal val WidgetAlertLevels=listOf("red","orange","yellow")
 
 /**
  * The warning of a widget: the strongest official warning whose validity overlaps the period that the widget shows
- * (from inclusive, to exclusive); at an equal level the one that starts first. A warning without a start is valid
- * from the beginning, one without an end until the end of the period.
+ * (from inclusive, to exclusive); at an equal level the one that starts first.
  */
-internal fun widgetAlert(alerts:List<AlertItem>,from:Instant,to:Instant):AlertItem? =
-    alerts.filter { a -> !a.local && a.level in WidgetAlertLevels && (a.start?.isBefore(to) ?: true) && (a.end?.isAfter(from) ?: true) }
-        .minWithOrNull(compareBy<AlertItem>({ WidgetAlertLevels.indexOf(it.level) },{ it.start ?: Instant.MIN }))
+internal fun widgetAlert(alerts:List<UnifiedAlert>,from:Instant,to:Instant):UnifiedAlert? =
+    alerts.filter { a -> !a.local && a.level.key in WidgetAlertLevels && a.start.isBefore(to) && a.end.isAfter(from) }
+        .minWithOrNull(compareBy<UnifiedAlert>({ WidgetAlertLevels.indexOf(it.level.key) },{ it.start }))
 
 /** The period of whole local days from the day of `from` on, `days` days long. */
 internal fun widgetDays(from:Instant,zone:ZoneId,days:Long):Pair<Instant,Instant> {
@@ -34,7 +33,7 @@ internal fun widgetNextDay(now:Instant=Instant.now()):Pair<Instant,Instant> = no
  * 25 minutes so that the widgets download them at most once in that time. A failed download keeps the last ones for up to
  * six hours. Network: call it from a worker only.
  */
-internal fun widgetPlaceAlerts(c:Context,l:Location):List<AlertItem> {
+internal fun widgetPlaceAlerts(c:Context,l:Location):List<UnifiedAlert> {
     val p=c.applicationContext.getSharedPreferences("perun_widget_alerts",Context.MODE_PRIVATE)
     val key=BackgroundRefresh.locationKey(l);val at=p.getLong(key+"_at",0L);val now=System.currentTimeMillis()/1000
     if(now-at<25*60) return widgetAlertsFrom(p.getString(key,null))
@@ -48,21 +47,31 @@ internal fun widgetPlaceAlerts(c:Context,l:Location):List<AlertItem> {
 /** One local day, from its midnight to the next one. */
 internal fun widgetDay(date:LocalDate,zone:ZoneId):Pair<Instant,Instant> = date.atStartOfDay(zone).toInstant() to date.plusDays(1).atStartOfDay(zone).toInstant()
 
-/** Official warnings as kept by the widgets between two downloads: level, event, validity and the type of the hazard. */
-internal fun widgetAlertsJson(alerts:List<AlertItem>):String {
+/** Official warnings as kept by the widgets between two downloads: level, short name, validity and the kinds of the hazard. */
+internal fun widgetAlertsJson(alerts:List<UnifiedAlert>):String {
     val a=JSONArray()
-    alerts.filter { !it.local && it.level in WidgetAlertLevels }.forEach {
-        a.put(JSONObject().put("level",it.level).put("event",it.event).put("start",it.start?.epochSecond ?: 0L).put("end",it.end?.epochSecond ?: 0L).put("awareness",it.awareness))
+    alerts.filter { !it.local && it.level.key in WidgetAlertLevels }.forEach {
+        a.put(JSONObject().put("level",it.level.key).put("event",alertName(it)).put("start",it.start.epochSecond).put("end",it.end.epochSecond)
+            .put("hazards",it.hazards.joinToString(",") { h -> h.name }))
     }
     return a.toString()
 }
 
-internal fun widgetAlertsFrom(raw:String?):List<AlertItem> {
+/**
+ * The stored warnings. Entries of earlier versions have no "hazards" and give the kind by "awareness" or the name;
+ * a missing start or end means an open validity.
+ */
+internal fun widgetAlertsFrom(raw:String?):List<UnifiedAlert> {
     val list=raw?.let { runCatching { JSONArray(it) }.getOrNull() } ?: return emptyList()
     return (0 until list.length()).mapNotNull { i ->
         val o=list.optJSONObject(i) ?: return@mapNotNull null
-        val start=o.optLong("start",0L);val end=o.optLong("end",0L)
-        AlertItem(event=o.optString("event"),level=o.optString("level"),local=false,
-            start=if(start>0L) Instant.ofEpochSecond(start) else null,end=if(end>0L) Instant.ofEpochSecond(end) else null,awareness=o.optString("awareness"))
+        val level=AlertLevel.entries.firstOrNull { it.key==o.optString("level") } ?: return@mapNotNull null
+        val start=o.optLong("start",0L);val end=o.optLong("end",0L);val event=o.optString("event")
+        val hazards=o.optString("hazards").split(',').mapNotNull { n -> AlertHazard.entries.firstOrNull { it.name==n.trim() } }
+            .ifEmpty { listOf(alertHazard(event,o.optString("awareness"))) }
+        val from=if(start>0L) Instant.ofEpochSecond(start) else Instant.EPOCH
+        val to=if(end>0L) Instant.ofEpochSecond(end) else Instant.ofEpochSecond(253402300799L)
+        UnifiedAlert(null,emptySet(),"Alert",hazards,Basis.AwarenessCode,level,Basis.AwarenessCode,from,to,to,from,emptySet(),"","",
+            listOf(AlertText("",event,"","","","")),emptyList())
     }
 }

@@ -32,7 +32,7 @@ private fun markRank(level: String) = AlertRank[level] ?: 0
 // Official alerts of each place from the sources chosen for that place, without the local estimates, so that the list
 // agrees with the Now and Alerts screens. Responses come through the same cache (5 minutes), two places at a time.
 // A source that fails gives no alerts for that place, as on the Now screen; the result of each place is reported as it arrives.
-internal suspend fun loadLocationAlerts(context: Context, places: List<Location>, onResult: (String, List<AlertItem>) -> Unit) = coroutineScope {
+internal suspend fun loadLocationAlerts(context: Context, places: List<Location>, onResult: (String, List<UnifiedAlert>) -> Unit) = coroutineScope {
     val store = LocationSourceStore(context)
     val gate = Semaphore(2)
     places.forEach { place ->
@@ -50,21 +50,21 @@ internal suspend fun loadLocationAlerts(context: Context, places: List<Location>
 
 // The same chip as on the Now screen without the text: the icon of the kind and the colour of the level of the first group,
 // and "+N" for the other groups, in the colour of the highest level among them.
-@Composable internal fun LocationAlertMark(items: List<AlertItem>) {
+@Composable internal fun LocationAlertMark(items: List<UnifiedAlert>) {
     if (items.isEmpty()) return
-    val groups = remember(items) { groupAlertPresentation(items.sortedByDescending { markRank(it.level) }) }
+    val groups = remember(items) { groupAlertPresentation(items.sortedByDescending { it.level.rank }) }
     val first = groups.first()
-    val level = first.items.maxByOrNull { markRank(it.level) }?.level ?: first.items.first().level
+    val level = first.level
     val color = AlertColors[level] ?: MarkGrey
     val rest = groups.drop(1)
-    val restRank = if (rest.isEmpty()) 0 else rest.maxOf { g -> g.items.maxOf { markRank(it.level) } }
+    val restRank = if (rest.isEmpty()) 0 else rest.maxOf { g -> markRank(g.level) }
     val moreColor = AlertColors[MarkLevels[restRank.coerceIn(0, 3)]] ?: MarkGrey
     val description = uiText(R.string.ui_vystraha_a0ff184b) + if (rest.isEmpty()) "" else " +" + rest.size
     Row(
         Modifier.padding(end = 4.dp).semantics(mergeDescendants = true) { contentDescription = description },
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        AlertGlyph(alertHazard(first.items.first().event + " " + first.label, first.items.first().awareness), color, 22.dp)
+        AlertGlyph(first.hazard, color, 22.dp)
         if (rest.isNotEmpty()) Box(Modifier.border(1.dp, moreColor, RoundedCornerShape(8.dp)).padding(horizontal = 6.dp, vertical = 2.dp)) {
             Text("+" + rest.size, fontSize = 12.sp, fontWeight = FontWeight.Bold, color = moreColor)
         }
