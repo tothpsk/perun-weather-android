@@ -17,6 +17,8 @@ class AlertHazardTest {
     @Test fun snowIceSplitsIntoSnowAndIce() {
         assertEquals(AlertHazard.Ice,kind("Výstraha pred poľadovicou","2; snow-ice"))
         assertEquals(AlertHazard.Snow,kind("Yellow Snow-ice Warning","2; snow-ice"))
+        assertEquals(AlertHazard.Ice,alertHazard("Moderate icing warning","2; snow-ice","Yellow Snow-ice Warning issued for Slovakia - Bratislava"))
+        assertEquals(AlertHazard.Snow,alertHazard("Moderate snow warning","2; snow-ice","Yellow Snow-ice Warning issued for Slovakia - Bratislava"))
         assertEquals(AlertHazard.Ice,kind("Freezing rain, icing"))
         assertEquals(AlertHazard.Ice,kind("icy surfaces"))
         assertEquals(AlertHazard.Snow,kind("Road ice and snow"))

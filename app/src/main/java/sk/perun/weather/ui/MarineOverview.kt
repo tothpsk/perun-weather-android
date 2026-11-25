@@ -65,7 +65,7 @@ private fun cardinal16(degrees:Double):String {
     val i=((degrees/22.5+0.5).toInt()%16+16)%16
     return if(i%2==0) cardinal(i*22.5) else cardinal(((i+1)/4*4%16)*22.5)+cardinal((i/4*4+2)*22.5)
 }
-private fun waveHeading(bearing:Double):String = cardinal16(bearing)+" · "+Math.round(bearing)%360+"°"
+private fun waveHeading(bearing:Double):String = cardinal(bearing)+" · "+Math.round(bearing)%360+"°"
 internal class OverviewCell(val key:String,val content:@Composable (Modifier)->Unit)
 @Composable internal fun TileRows(cells:List<OverviewCell>) {
     val order=rememberOverviewTileOrder()

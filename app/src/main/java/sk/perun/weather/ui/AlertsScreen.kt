@@ -21,10 +21,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChanged
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -264,7 +266,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
             items.forEachIndexed { idx,a ->
                 Row(Modifier.fillMaxWidth().heightIn(min=28.dp).clickable(onClickLabel=labelOf(a)) { onSelect(idx) }.semantics { contentDescription=labelOf(a) },verticalAlignment=Alignment.CenterVertically) {
                     // The icon stands for the name; the name is in the card below and beside the cursor.
-                    Box(Modifier.width(GanttGutter)) { AlertGlyph(alertHazard(a.event+" "+a.title,a.awareness),if (levelOf(a)=="neutral") MainText else colorOf(a),20.dp) }
+                    Box(Modifier.width(GanttGutter)) { AlertGlyph(alertHazard(a.event,a.awareness,a.title),if (levelOf(a)=="neutral") MainText else colorOf(a),20.dp) }
                     val s=a.start; val e=a.end
                     if (s==null || e==null) Text(uiText(R.string.ui_interval_nie_je_cely_uvedeny_pozri_detail_c84fdda4),fontSize=11.sp,color=ForecastMuted)
                     else if (!e.isAfter(s)) Text(uiText(R.string.ui_neplatny_interval_v_podklade_b9f0925c),fontSize=11.sp,color=WarnText)
@@ -296,7 +298,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     }
 }
 @Composable private fun AlertCard(a: AlertItem,z: ZoneId,selected: Boolean,modifier: Modifier) {
-    val uri=LocalUriHandler.current; val surface=LevelSurface[levelOf(a)]
+    val surface=LevelSurface[levelOf(a)]
     AlertPanel(surface?.first ?: PanelBg,if (selected) SelectedEdge else (surface?.second ?: EdgeColor),modifier) {
         Row(horizontalArrangement=Arrangement.spacedBy(10.dp)) {
             Canvas(Modifier.padding(top=5.dp).size(12.dp)) { drawCircle(colorOf(a)) }
@@ -306,9 +308,19 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                 if (a.title.isNotBlank() && a.title!=a.event) Text(a.title,fontSize=13.sp,color=ForecastMuted)
                 Text(timeRange(a,z),fontSize=13.sp)
                 // MeteoAlarm passes on the warnings of the national services: the service that issued the warning and its page.
-                if (a.origin.isNotBlank()) Text(uiText(R.string.alert_origin,a.origin),fontSize=13.sp,color=ForecastMuted)
-                val page=a.originUri.takeIf { a.origin.isNotBlank() && (it.startsWith("https://") || it.startsWith("http://")) }
-                if (page!=null) Text(page,Modifier.clickable(onClickLabel=uiText(R.string.alert_origin_open)) { runCatching { uri.openUri(page) } },fontSize=13.sp,color=SelectedEdge,maxLines=2,overflow=TextOverflow.Ellipsis)
+                if (a.origin.isNotBlank()) {
+                    val label=uiText(R.string.alert_origin,a.origin)
+                    val page=a.originUri.takeIf { it.startsWith("https://") || it.startsWith("http://") }
+                    val at=label.lastIndexOf(a.origin)
+                    val text=buildAnnotatedString {
+                        if (page==null || at<0) append(label) else {
+                            append(label.substring(0,at))
+                            withLink(LinkAnnotation.Url(page,TextLinkStyles(style=SpanStyle(color=SelectedEdge)))) { append(a.origin) }
+                            append(label.substring(at+a.origin.length))
+                        }
+                    }
+                    Text(text,fontSize=13.sp,color=ForecastMuted)
+                }
             }
         }
     }

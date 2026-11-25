@@ -168,7 +168,7 @@ internal object WidgetRender {
             else->meteo(c,w,l,d,u,o,pal,more)
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",when(w.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
-        v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,if(kind==MeteogramWidget::class.java) "forecast" else "overview",BackgroundRefresh.locationKey(l)))
+        v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,"overview",BackgroundRefresh.locationKey(l)))
         v.setImageViewResource(R.id.wg_refresh,R.drawable.ic_wg_refresh)
         v.setInt(R.id.wg_refresh,"setColorFilter",pal.muted)
         v.setOnClickPendingIntent(R.id.wg_refresh,PendingIntent.getBroadcast(c,20000+id,Intent(c,kind).setAction(PerunWidgets.ActionRefresh),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
