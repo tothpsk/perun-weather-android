@@ -51,6 +51,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.net.URLEncoder
 import java.time.Duration
+import java.time.Instant
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -69,6 +70,7 @@ internal data class NotificationSettings(
     val currentParams:List<String> = listOf("wind","rain","uv"),
     val status:Boolean=false,val statusParam:String="feels",val statusLoc:String="active",
     val dailyLoc:String="active",val tomorrowLoc:String="active",
+    val alertsOngoing:Boolean=false,
 )
 private const val K_TEMP=0
 private const val K_WIND=1
@@ -272,6 +274,7 @@ internal object Notifier {
             p.getStringSet("alertLocations",null)?.toSet() ?: emptySet(),
             padded,p.getBoolean("status",false),(p.getString("statusParam","feels") ?: "feels").takeIf { it in StatusOptions } ?: "feels",
             p.getString("statusLoc","active") ?: "active",p.getString("dailyLoc","active") ?: "active",p.getString("tomorrowLoc","active") ?: "active",
+            p.getBoolean("alertsOngoing",false),
         )
     }
     fun writeRules(p:SharedPreferences,rules:List<NotifyRule>) {
@@ -341,7 +344,7 @@ internal object Notifier {
         ContextCompat.checkSelfPermission(c,Manifest.permission.POST_NOTIFICATIONS)==PackageManager.PERMISSION_GRANTED && NotificationManagerCompat.from(c).areNotificationsEnabled()
 
     /** small==null uses the system template (BigTextStyle); otherwise the custom views sit inside the system frame. */
-    private fun show(c:Context,channel:String,id:Int,title:String,text:String,small:RemoteViews?,big:RemoteViews?,ongoing:Boolean=false,icon:IconCompat?=null,target:String="overview",location:String="",detail:String=text,color:Int=0xFF4FC3F7.toInt(),alert:String="") {
+    private fun show(c:Context,channel:String,id:Int,title:String,text:String,small:RemoteViews?,big:RemoteViews?,ongoing:Boolean=false,icon:IconCompat?=null,target:String="overview",location:String="",detail:String=text,color:Int=0xFF4FC3F7.toInt(),alert:String="",group:String?=null,summary:Boolean=false,sortKey:String?=null,timeout:Long=0L,silent:Boolean=false) {
         if(ContextCompat.checkSelfPermission(c,Manifest.permission.POST_NOTIFICATIONS)!=PackageManager.PERMISSION_GRANTED) return
         val launch=c.packageManager.getLaunchIntentForPackage(c.packageName)?.apply {
             data=android.net.Uri.parse("perun://notification/"+id+"/"+android.net.Uri.encode(location))
@@ -353,6 +356,11 @@ internal object Notifier {
         if(icon!=null) b.setSmallIcon(icon) else b.setSmallIcon(R.drawable.ic_notification)
         b.setContentTitle(title).setContentText(text).setColor(color)
             .setContentIntent(pending).setOngoing(ongoing).setOnlyAlertOnce(ongoing).setAutoCancel(!ongoing)
+        if(group!=null) b.setGroup(group)
+        if(summary) b.setGroupSummary(true).setGroupAlertBehavior(NotificationCompat.GROUP_ALERT_CHILDREN)
+        if(sortKey!=null) b.setSortKey(sortKey)
+        if(timeout>0L) b.setTimeoutAfter(timeout)
+        if(silent) b.setSilent(true)
         if(small!=null) {
             b.setStyle(NotificationCompat.DecoratedCustomViewStyle()).setCustomContentView(small)
             if(big!=null) b.setCustomBigContentView(big)
@@ -360,6 +368,10 @@ internal object Notifier {
         try { NotificationManagerCompat.from(c).notify(id,b.build()) } catch(e:SecurityException) { }
     }
     fun cancelCurrent(c:Context) { NotificationManagerCompat.from(c).cancel(IdCurrent) }
+    // One group of warning notifications for each place; its summary is the persistent notification when that is on.
+    private fun alertGroup(key:String)="perun_alerts:"+key
+    private fun alertSummaryId(key:String)=70000+(key.hashCode() and 0xFFF)
+    fun cancelAlertSummary(c:Context,key:String) { NotificationManagerCompat.from(c).cancel(alertSummaryId(key)) }
     fun cancelStatus(c:Context) { NotificationManagerCompat.from(c).cancel(IdStatus) }
 
     private fun units(c:Context):WeatherUnits = readForecastPreferences(c.getSharedPreferences("perun_forecast",Context.MODE_PRIVATE)).units
@@ -420,10 +432,12 @@ internal object Notifier {
         if(s.current && active) postCurrent(c,l,d,ex,u,gas,s.currentParams,if(merged) statusValue else null)
         if(merged) cancelStatus(c) else if(statusHere) postStatus(c,l,d,ex,u,s.statusParam,statusValue ?: "–",statusAir,scale,gas)
         val alertsHere=when(s.alertScope) {"all"->true;"custom"->key in s.alertLocations;else->active}
+        if(!(s.alerts && alertsHere && s.alertsOngoing)) cancelAlertSummary(c,key)
         if(s.alerts && alertsHere) {
             val sent=(p.getStringSet("sentAlerts",null) ?: emptySet()).toMutableSet()
             val min=Levels.indexOf(s.alertLevel);var changed=false
             // Entries are "place|reference#rank"; entries of earlier versions are "place|identifier" without a rank.
+            var posted=false
             val known=sent.associate { e -> if('#' in e) e.substringBeforeLast('#') to (e.substringAfterLast('#').toIntOrNull() ?: 99) else e to 99 }.toMutableMap()
             d.alerts.forEach { a ->
                 if(Levels.indexOf(a.level.key)<min) return@forEach
@@ -435,8 +449,12 @@ internal object Notifier {
                 val announce=shouldAnnounce(refs,legacy,updates,a.level.rank,known)
                 remember()
                 if(!announce) return@forEach
-                postAlert(c,l,d,a,2000+((key+"|"+alertRef(a)).hashCode() and 0xFFFF))
+                postAlert(c,l,d,a,2000+((key+"|"+alertRef(a)).hashCode() and 0xFFFF));posted=true
             }
+            val now=Instant.now()
+            val valid=d.alerts.filter { it.activeAt(now) && Levels.indexOf(it.level.key)>=min }.sortedWith(compareByDescending<UnifiedAlert> { it.level.rank }.then(alertOrder(now)))
+            if(s.alertsOngoing) { if(valid.isEmpty()) cancelAlertSummary(c,key) else postAlertSummary(c,l,d,valid,true) }
+            else if(posted) postAlertSummary(c,l,d,valid.ifEmpty { d.alerts.filter { it.end.isAfter(now) && Levels.indexOf(it.level.key)>=min } },false)
             if(changed) p.edit().putStringSet("sentAlerts",sent.toList().takeLast(500).toSet()).apply()
         }
         val rules=s.rules.filter { locMatch(it.loc,key,active) }
@@ -491,7 +509,25 @@ internal object Notifier {
         val level=levelName(a.level.key)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")
         val about=listOfNotNull(text?.description,text?.headline,text?.event.takeIf { !a.local }).firstOrNull { informative(it,name) }?.trim().orEmpty()
         val detail=listOf(level+" · "+period,about).filter { it.isNotBlank() }.joinToString("\n")
-        show(c,ChAlerts,id,title,level+" · "+period,alertView(c,icon,title,null),alertView(c,icon,title,detail),target="alerts",location=BackgroundRefresh.locationKey(l),detail=detail,color=color,alert=alertRef(a))
+        val key=BackgroundRefresh.locationKey(l)
+        show(c,ChAlerts,id,title,level+" · "+period,alertView(c,icon,title,null),alertView(c,icon,title,detail),target="alerts",location=key,detail=detail,color=color,alert=alertRef(a),
+            group=alertGroup(key),sortKey=(9-a.level.rank).toString()+a.start.epochSecond,timeout=Duration.between(Instant.now(),a.end).toMillis().coerceAtLeast(1L))
+    }
+    /**
+     * The summary of the warnings of a place, which groups their notifications. Persistent: it stays while a warning is
+     * valid and goes away at the end of the last one. Content: the strongest warning, "+n" for the others, and all of them
+     * with their validity when expanded. It never makes a sound; new warnings announce themselves.
+     */
+    private fun postAlertSummary(c:Context,l:Location,d:OverviewData,alerts:List<UnifiedAlert>,ongoing:Boolean) {
+        val top=alerts.firstOrNull() ?: return
+        val key=BackgroundRefresh.locationKey(l);val zone=d.zone
+        val color=alertColor(top.level.key);val icon=alertHazardBitmap(alertIconKind(top),color,72)
+        fun nameOf(a:UnifiedAlert)=if(a.local) alertText(a)?.event?.takeIf { it.isNotBlank() } ?: alertName(a) else alertName(a)
+        val title=nameOf(top)+(if(alerts.size>1) " +"+(alerts.size-1) else "")+" · "+l.name
+        val lines=alerts.map { a -> nameOf(a)+" · "+levelName(a.level.key)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")+" · "+uiText(R.string.nt_alert_period,a.start.atZone(zone).format(DayDm),a.end.atZone(zone).format(DayDm)) }
+        val end=alerts.maxOf { it.end }
+        show(c,ChAlerts,alertSummaryId(key),title,lines.first(),alertView(c,icon,title,null),alertView(c,icon,title,lines.joinToString("\n")),ongoing=ongoing,target="alerts",location=key,
+            detail=lines.joinToString("\n"),color=color,alert=alertRef(top),group=alertGroup(key),summary=true,timeout=Duration.between(Instant.now(),end).toMillis().coerceAtLeast(1L),silent=true)
     }
     private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit) {
         val title=ruleLabel(r,u,gas);val now=uiText(R.string.nt_rule_text,m.label(),valueText(m,v,u,gas))
@@ -526,6 +562,7 @@ internal object Notifier {
         schedule(wm,"tomorrow",s.enabled && s.tomorrow,s.tomorrowHour)
         if(!(s.enabled && s.current)) cancelCurrent(c)
         if(!(s.enabled && s.status)) cancelStatus(c)
+        if(!(s.enabled && s.alerts && s.alertsOngoing)) LocationStore(c).load().forEach { cancelAlertSummary(c,BackgroundRefresh.locationKey(it)) }
     }
     private fun schedule(wm:WorkManager,kind:String,on:Boolean,hour:Int) {
         if(!on) { wm.cancelUniqueWork(SummaryWork+kind);return }
@@ -737,6 +774,7 @@ private val DialogEdge=Color(0xFF4B586C)
                 }
             }
         }
+        SwitchRow(uiText(R.string.nt_alerts_ongoing),s.alertsOngoing,uiText(R.string.nt_alerts_ongoing_note)) { edit(true) { putBoolean("alertsOngoing",it) } }
     }
     HorizontalDivider(color=divider)
     Row(Modifier.fillMaxWidth(),verticalAlignment=Alignment.CenterVertically) { Box(Modifier.weight(1f)) { Label(uiText(R.string.nt_rules)) };SettingsInfo(uiText(R.string.nt_rules_note)) }

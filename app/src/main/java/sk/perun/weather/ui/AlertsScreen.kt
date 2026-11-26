@@ -354,7 +354,7 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
             }
             Row(Modifier.fillMaxWidth().height(axisHeight)) {
             // The hint of the chart in the corner under the icons, as the (i) of the Forecast charts.
-            Box(Modifier.width(gutterDp).fillMaxHeight(),contentAlignment=Alignment.CenterStart) { Box(Modifier.requiredSize(36.dp).offset(x=(-6).dp)) { SettingsInfo(uiText(R.string.alert_detail_hint)) } }
+            Box(Modifier.width(gutterDp).fillMaxHeight(),contentAlignment=Alignment.CenterStart) { ChartHint(uiText(R.string.alert_detail_hint)) }
             Canvas(Modifier.weight(1f).height(axisHeight)) {
                 val labelTop=7.dp.toPx(); val ts=TextStyle(fontSize=10.sp)
                 val bounds=listOf(from)+days+listOf(to)
@@ -370,6 +370,21 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
                     drawText(label,topLeft=Offset(x0+((x1-x0)-label.size.width)/2f,labelTop))
                 }
             }
+            }
+        }
+    }
+}
+// The (i) of the charts: a short tap shows the hint in a bubble.
+@Composable private fun ChartHint(text: String) {
+    var open by remember { mutableStateOf(false) }
+    Box(Modifier.size(28.dp).offset(x=(-6).dp).clickable(role=androidx.compose.ui.semantics.Role.Button,onClickLabel=uiText(R.string.ui_strucny_popis_e8d7e5f7)) { open=true }.semantics { contentDescription=text },contentAlignment=Alignment.Center) {
+        Text("\u24D8",color=ForecastMuted,fontSize=16.sp)
+        if (open) {
+            LaunchedEffect(text) { delay(5000); open=false }
+            Popup(alignment=Alignment.BottomStart,onDismissRequest={ open=false },properties=PopupProperties(focusable=true)) {
+                Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=MainText,border=BorderStroke(1.dp,SelectedEdge),shadowElevation=4.dp) {
+                    Text(text,Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
+                }
             }
         }
     }
@@ -392,6 +407,8 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
     val choices=remember(a) { languageChoices(a.texts,preferred) }
     var language by remember(a) { mutableIntStateOf(0) }
     val text=choices.getOrNull(language) ?: textOf(a)
+    // The detail stands outside the panels, so it sets the light text colour itself.
+    CompositionLocalProvider(LocalContentColor provides MainText) {
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(12.dp)).padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
@@ -445,6 +462,7 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
             Text(label,Modifier.clickable(onClickLabel=label) { onSelect(o) },fontSize=13.sp,color=SelectedEdge)
         }
         if (!a.local) Text(uiText(R.string.alert_detail_updated,ClockFormat.format(a.sent.atZone(z))),fontSize=12.sp,color=ForecastMuted)
+    }
     }
 }
 @Composable private fun AlertCard(a: UnifiedAlert,z: ZoneId,selected: Boolean,onClick: ()->Unit) {
