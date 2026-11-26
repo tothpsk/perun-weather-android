@@ -376,14 +376,14 @@ internal object Notifier {
     // Valid now before the coming ones, then the higher level, then the earlier start.
     private fun alertSortKey(a:UnifiedAlert)=(if(a.activeAt(Instant.now())) "0" else "1")+(9-a.level.rank)+a.start.epochSecond
     private fun announceId(key:String,a:UnifiedAlert)=2000+((key+"|"+alertRef(a)).hashCode() and 0xFFFF)
-    // One persistent notification for each kind of warning of a place: the same set of hazards, official or local.
-    private fun alertKind(a:UnifiedAlert)=(if(a.local) "L:" else "O:")+a.hazards.map { it.name }.sorted().joinToString(",")
+    // One persistent notification for each warning of a place, as the cards of the Alerts screen.
+    private fun alertKind(a:UnifiedAlert)=alertRef(a)+"|"+a.level.key+"|"+a.start.epochSecond
     private fun kindId(key:String,kind:String)=80000+((key+"|"+kind).hashCode() and 0xFFFF)
     /** Removes the persistent notifications of a place: the header and the notifications of the kinds. */
     fun cancelAlertSummary(c:Context,key:String) {
         val nm=NotificationManagerCompat.from(c);nm.cancel(alertSummaryId(key))
         runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
-            .filter { it.notification.group==alertGroup(key) && it.id>=80000 }.forEach { nm.cancel(it.id) }
+            .filter { it.notification.group==alertGroup(key) && it.id in 80000 until RuleIdBase }.forEach { nm.cancel(it.id) }
     }
     fun cancelStatus(c:Context) { NotificationManagerCompat.from(c).cancel(IdStatus) }
 
@@ -444,6 +444,41 @@ internal object Notifier {
         val statusValue=if(statusHere) statusText(s.statusParam,d,ex,u,statusAir,scale,gas) else null
         if(s.current && active) postCurrent(c,l,d,ex,u,gas,s.currentParams,if(merged) statusValue else null)
         if(merged) cancelStatus(c) else if(statusHere) postStatus(c,l,d,ex,u,s.statusParam,statusValue ?: "–",statusAir,scale,gas)
+        // The rule notifications of the place come first, so its group knows how many lines it has besides the warnings.
+        val ruleIds=HashSet<Int>();var alertLines=0
+        ruleIds+=groupIds(c,key).filter { it>=RuleIdBase }
+        val rules=s.rules.filter { locMatch(it.loc,key,active) }
+        if(rules.isNotEmpty()) {
+            val air=if(rules.any { spec(it.metric).group==G_AIR || spec(it.metric).group==G_POLLEN }) loadAirNow(l) else emptyMap()
+            val ed=p.edit();val showing=ruleIds.toSet();val nm=NotificationManagerCompat.from(c);val at=Instant.now()
+            var series:RuleSeries?=null
+            rules.forEach { r ->
+                val m=spec(r.metric);val flag="rule_"+r.id+"_"+key;val id=ruleId(key,r)
+                val was=p.getBoolean(flag,false)
+                if(m.kind==K_EVENT) {
+                    val codes=EventCodes[r.metric] ?: emptySet();val h=r.threshold.toInt().coerceIn(1,6)
+                    val now=d.code in codes || d.hours.take(h).any { it.code in codes }
+                    if(now!=was) ed.putBoolean(flag,now)
+                    // A new event is announced; one still shown is redrawn silently with its end by the forecast; one that is over goes away.
+                    if(now && (!was || id in showing)) { postEvent(c,l,r,m,h,id,eventEnd(d,codes,h),d.zone,was);ruleIds+=id }
+                    else if(!now) { nm.cancel(id);ruleIds-=id }
+                    return@forEach
+                }
+                val v=metricValue(d,ex,air,r.metric,scale);if(!v.isFinite()) return@forEach
+                // Hysteresis: a rule re-arms only after the value moves back by 10 % of the threshold (at least the metric's own minimum band).
+                val band=maxOf(abs(r.threshold)*0.1,m.band)
+                val now=if(r.above) (if(was) v>r.threshold-band else v>=r.threshold) else (if(was) v<r.threshold+band else v<=r.threshold)
+                if(now!=was) ed.putBoolean(flag,now)
+                if(now && (!was || id in showing)) {
+                    // The rule holds until the first hour of the forecast that no longer fulfils it.
+                    val all=series ?: loadRuleSeries(l,LocationSourceStore(c).read(l).weatherModel,rules.filter { !isEvent(it.metric) }.map { it.metric }.toSet(),scale.apiVariable).also { series=it }
+                    val end=all.end(r.metric,at) { x -> if(r.above) x>r.threshold-band else x<r.threshold+band }
+                    postRule(c,l,r,m,v,u,gas,id,end,d.zone,was);ruleIds+=id
+                }
+                else if(!now) { nm.cancel(id);ruleIds-=id }
+            }
+            ed.apply()
+        }
         val alertsHere=when(s.alertScope) {"all"->true;"custom"->key in s.alertLocations;else->active}
         if(!(s.alerts && alertsHere && s.alertsOngoing)) cancelAlertSummary(c,key)
         if(s.alerts && alertsHere) {
@@ -462,56 +497,46 @@ internal object Notifier {
                 val announce=shouldAnnounce(refs,legacy,updates,a.level.rank,known)
                 remember()
                 if(!announce) return@forEach
-                // With the persistent notification a warning valid now is announced by the notification of its kind.
+                // With the persistent notification a warning valid now is announced by its persistent notification.
                 if(s.alertsOngoing) { loud+=alertKind(a);return@forEach }
                 fresh+=a
             }
             val valid=d.alerts.filter { it.activeAt(now) && Levels.indexOf(it.level.key)>=min }.sortedWith(compareByDescending<UnifiedAlert> { it.level.rank }.then(alertOrder(now)))
             // The persistent notifications show the warnings valid now and the coming ones, from the strongest.
             val shown=d.alerts.filter { it.end.isAfter(now) && Levels.indexOf(it.level.key)>=min }.sortedWith(compareBy<UnifiedAlert> { alertSortKey(it) })
-            if(s.alertsOngoing) { if(shown.isEmpty()) cancelAlertSummary(c,key) else postOngoingAlerts(c,l,d,shown,loud) }
+            if(s.alertsOngoing) {
+                if(shown.isEmpty()) cancelAlertSummary(c,key) else postOngoingAlerts(c,l,d,shown,loud,ruleIds.size)
+                alertLines=shown.map { alertKind(it) }.distinct().size
+            }
             else if(fresh.isNotEmpty()) {
-                // A place with one notification has the place in its line; with more of them the lines are grouped
-                // under the header of the place and the ones already shown are redrawn silently in the short form.
+                // A place with one notification has the place in its line; with more of them (warnings and rules) the lines are
+                // grouped under the header of the place and the ones already shown are redrawn silently in the short form.
                 val shownIds=groupIds(c,key)
                 val earlier=d.alerts.filter { it !in fresh && announceId(key,it) in shownIds }
-                val all=earlier+fresh;val alone=all.size==1
+                val all=earlier+fresh;val alone=all.size+ruleIds.size==1
                 earlier.forEach { postAlert(c,l,d,it,announceId(key,it),alone,silent=true) }
                 fresh.forEach { postAlert(c,l,d,it,announceId(key,it),alone) }
                 if(alone) NotificationManagerCompat.from(c).cancel(alertSummaryId(key))
                 else postAlertSummary(c,l,d,valid.ifEmpty { all },false)
+                alertLines=all.size
             }
-            else if(!s.alertsOngoing) {
-                // One of two notifications was swiped away or has ended: the last one names its place again.
+            else {
+                // Nothing new: the lines change their form when the group grows to two (a rule came) or shrinks to one
+                // (a notification was swiped away or has ended), so that a single line always names its place.
                 val shownIds=groupIds(c,key)
                 val left=d.alerts.filter { announceId(key,it) in shownIds }
-                if(left.size==1 && alertSummaryId(key) in shownIds) { postAlert(c,l,d,left.first(),announceId(key,left.first()),true,silent=true);NotificationManagerCompat.from(c).cancel(alertSummaryId(key)) }
+                val alone=left.size+ruleIds.size==1
+                if(left.isNotEmpty() && alone==(alertSummaryId(key) in shownIds)) {
+                    left.forEach { postAlert(c,l,d,it,announceId(key,it),alone,silent=true) }
+                    if(alone) NotificationManagerCompat.from(c).cancel(alertSummaryId(key))
+                    else postAlertSummary(c,l,d,valid.ifEmpty { left },false)
+                }
+                alertLines=left.size
             }
             if(changed) p.edit().putStringSet("sentAlerts",sent.toList().takeLast(500).toSet()).apply()
         }
-        val rules=s.rules.filter { locMatch(it.loc,key,active) }
-        if(rules.isNotEmpty()) {
-            val air=if(rules.any { spec(it.metric).group==G_AIR || spec(it.metric).group==G_POLLEN }) loadAirNow(l) else emptyMap()
-            val ed=p.edit()
-            rules.forEach { r ->
-                val m=spec(r.metric);val flag="rule_"+r.id+"_"+key
-                val was=p.getBoolean(flag,false)
-                if(m.kind==K_EVENT) {
-                    val codes=EventCodes[r.metric] ?: emptySet();val h=r.threshold.toInt().coerceIn(1,6)
-                    val now=d.code in codes || d.hours.take(h).any { it.code in codes }
-                    if(now!=was) ed.putBoolean(flag,now)
-                    if(now && !was) postEvent(c,l,r,m,h)
-                    return@forEach
-                }
-                val v=metricValue(d,ex,air,r.metric,scale);if(!v.isFinite()) return@forEach
-                // Hysteresis: a rule re-arms only after the value moves back by 10 % of the threshold (at least the metric's own minimum band).
-                val band=maxOf(abs(r.threshold)*0.1,m.band)
-                val now=if(r.above) (if(was) v>r.threshold-band else v>=r.threshold) else (if(was) v<r.threshold+band else v<=r.threshold)
-                if(now!=was) ed.putBoolean(flag,now)
-                if(now && !was) postRule(c,l,r,m,v,u,gas)
-            }
-            ed.apply()
-        }
+        // A place without warning notifications: two or more rule notifications are grouped under the header of the place.
+        if(alertLines==0) { if(ruleIds.size>=2) postRuleSummary(c,l,ruleIds.size) else NotificationManagerCompat.from(c).cancel(alertSummaryId(key)) }
     }
 
     private fun postCurrent(c:Context,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,gas:AirGasUnit,params:List<String>,statusParam:String?) {
@@ -549,13 +574,13 @@ internal object Notifier {
             group=alertGroup(key),sortKey=alertSortKey(a),timeout=Duration.between(Instant.now(),a.end).toMillis().coerceAtLeast(1L),silent=silent,subText=l.name)
     }
     /**
-     * Persistent notifications of a place: the header (summary of the group) and under it one notification for each kind
-     * of warning, with the icon in the colour of its highest level. Only a kind with a new warning makes a sound; the
-     * announcement of a warning that has started gives way to the notification of its kind.
+     * Persistent notifications of a place: the header (summary of the group) and under it one notification for each
+     * warning, as the cards of the Alerts screen. Only a new warning makes a sound; the announcement of a warning gives
+     * way to its persistent notification. [others] is the number of rule notifications in the group of the place.
      */
-    private fun postOngoingAlerts(c:Context,l:Location,d:OverviewData,valid:List<UnifiedAlert>,loud:Set<String>) {
+    private fun postOngoingAlerts(c:Context,l:Location,d:OverviewData,valid:List<UnifiedAlert>,loud:Set<String>,others:Int) {
         val key=BackgroundRefresh.locationKey(l);val zone=d.zone;val nm=NotificationManagerCompat.from(c)
-        val ids=HashSet<Int>();val kinds=valid.groupBy { alertKind(it) };val alone=kinds.size==1
+        val ids=HashSet<Int>();val kinds=valid.groupBy { alertKind(it) };val alone=kinds.size+others==1
         kinds.forEach { (kind,list) ->
             val top=list.first();val id=kindId(key,kind);ids+=id
             val color=alertColor(top.level.key);val icon=alertHazardBitmap(alertIconKind(top),color,72)
@@ -576,7 +601,7 @@ internal object Notifier {
             list.forEach { nm.cancel(announceId(key,it)) }
         }
         runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
-            .filter { it.notification.group==alertGroup(key) && it.id>=80000 && it.id !in ids }.forEach { nm.cancel(it.id) }
+            .filter { it.notification.group==alertGroup(key) && it.id in 80000 until RuleIdBase && it.id !in ids }.forEach { nm.cancel(it.id) }
         if(alone) nm.cancel(alertSummaryId(key)) else postAlertSummary(c,l,d,valid,true)
     }
     /**
@@ -595,14 +620,35 @@ internal object Notifier {
         show(c,ChAlerts,alertSummaryId(key),title,lines.first(),alertView(c,icon,title,null),alertView(c,icon,title,lines.joinToString("\n")),ongoing=ongoing,target="alerts",location=key,
             detail=lines.joinToString("\n"),color=color,alert=alertRef(top),group=alertGroup(key),summary=true,timeout=Duration.between(Instant.now(),end).toMillis().coerceAtLeast(1L),silent=true,subText=l.name)
     }
-    private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit) {
+    // Rule notifications belong to the group of their place and stand below its warnings.
+    private const val RuleIdBase=200000
+    private fun ruleId(key:String,r:NotifyRule)=RuleIdBase+((r.id+"|"+key).hashCode() and 0xFFFF)
+    private fun ruleLeft(until:Instant?):Long = until?.let { Duration.between(Instant.now(),it).toMillis() }?.takeIf { it>0L } ?: 0L
+    private fun ruleDetail(text:String,until:Instant?,zone:java.time.ZoneId):String =
+        if(until!=null && ruleLeft(until)>0L) text+"\n"+uiText(R.string.nt_alert_until,until.atZone(zone).format(DayDm)) else text
+    /** The end of a forecast phenomenon: the hour after the last hour of its run; null when the forecast does not show it. */
+    private fun eventEnd(d:OverviewData,codes:Set<Int>,h:Int):Instant? {
+        val hours=d.series;var j=-1
+        if(d.code !in codes) { j=hours.take(h).indexOfFirst { it.code in codes };if(j<0) return null }
+        while(j+1<hours.size && hours[j+1].code in codes) j++
+        if(j<0) return hours.firstOrNull()?.time?.atZone(d.zone)?.toInstant()
+        return hours[j].time.plusHours(1).atZone(d.zone).toInstant()
+    }
+    /** The header of a place that has only rule notifications; two or more of them are grouped under it. */
+    private fun postRuleSummary(c:Context,l:Location,count:Int) {
+        val key=BackgroundRefresh.locationKey(l)
+        show(c,ChRules,alertSummaryId(key),l.name,uiText(R.string.nt_rules_count,count),null,null,location=key,group=alertGroup(key),summary=true,silent=true,subText=l.name)
+    }
+    private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean) {
         val title=ruleLabel(r,u,gas);val now=uiText(R.string.nt_rule_text,m.label(),valueText(m,v,u,gas))
         val target=if(m.group==G_AIR || m.group==G_POLLEN) "more/air" else "forecast?chart="+chartFor(r.metric)
-        show(c,ChRules,3000+((r.id+BackgroundRefresh.locationKey(l)).hashCode() and 0xFFF),title,l.name,null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=l.name+" · "+now)
+        show(c,ChRules,id,title,l.name,null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=ruleDetail(l.name+" · "+now,until,zone),
+            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
     }
-    private fun postEvent(c:Context,l:Location,r:NotifyRule,m:RuleMetric,h:Int) {
+    private fun postEvent(c:Context,l:Location,r:NotifyRule,m:RuleMetric,h:Int,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean) {
         val title=m.label()+" · "+uiText(R.string.nt_within_hours,h)
-        show(c,ChRules,3000+((r.id+BackgroundRefresh.locationKey(l)).hashCode() and 0xFFF),title,l.name,null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=l.name+" · "+uiText(R.string.nt_event_detail))
+        show(c,ChRules,id,title,l.name,null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=ruleDetail(l.name+" · "+uiText(R.string.nt_event_detail),until,zone),
+            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
     }
     fun postSummary(c:Context,l:Location,d:OverviewData,kind:String) {
         val day=d.days.getOrNull(if(kind=="daily") 0 else 1) ?: return
