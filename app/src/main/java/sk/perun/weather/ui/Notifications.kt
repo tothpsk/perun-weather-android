@@ -371,7 +371,16 @@ internal object Notifier {
     // One group of warning notifications for each place; its summary is the persistent notification when that is on.
     private fun alertGroup(key:String)="perun_alerts:"+key
     private fun alertSummaryId(key:String)=70000+(key.hashCode() and 0xFFF)
-    fun cancelAlertSummary(c:Context,key:String) { NotificationManagerCompat.from(c).cancel(alertSummaryId(key)) }
+    private fun announceId(key:String,a:UnifiedAlert)=2000+((key+"|"+alertRef(a)).hashCode() and 0xFFFF)
+    // One persistent notification for each kind of warning of a place: the same set of hazards, official or local.
+    private fun alertKind(a:UnifiedAlert)=(if(a.local) "L:" else "O:")+a.hazards.map { it.name }.sorted().joinToString(",")
+    private fun kindId(key:String,kind:String)=80000+((key+"|"+kind).hashCode() and 0xFFFF)
+    /** Removes the persistent notifications of a place: the header and the notifications of the kinds. */
+    fun cancelAlertSummary(c:Context,key:String) {
+        val nm=NotificationManagerCompat.from(c);nm.cancel(alertSummaryId(key))
+        runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
+            .filter { it.notification.group==alertGroup(key) && it.id>=80000 }.forEach { nm.cancel(it.id) }
+    }
     fun cancelStatus(c:Context) { NotificationManagerCompat.from(c).cancel(IdStatus) }
 
     private fun units(c:Context):WeatherUnits = readForecastPreferences(c.getSharedPreferences("perun_forecast",Context.MODE_PRIVATE)).units
@@ -437,7 +446,7 @@ internal object Notifier {
             val sent=(p.getStringSet("sentAlerts",null) ?: emptySet()).toMutableSet()
             val min=Levels.indexOf(s.alertLevel);var changed=false
             // Entries are "place|reference#rank"; entries of earlier versions are "place|identifier" without a rank.
-            var posted=false
+            var posted=false;val now=Instant.now();val loud=HashSet<String>()
             val known=sent.associate { e -> if('#' in e) e.substringBeforeLast('#') to (e.substringAfterLast('#').toIntOrNull() ?: 99) else e to 99 }.toMutableMap()
             d.alerts.forEach { a ->
                 if(Levels.indexOf(a.level.key)<min) return@forEach
@@ -449,11 +458,12 @@ internal object Notifier {
                 val announce=shouldAnnounce(refs,legacy,updates,a.level.rank,known)
                 remember()
                 if(!announce) return@forEach
-                postAlert(c,l,d,a,2000+((key+"|"+alertRef(a)).hashCode() and 0xFFFF));posted=true
+                // With the persistent notification a warning valid now is announced by the notification of its kind.
+                if(s.alertsOngoing && a.activeAt(now)) { loud+=alertKind(a);return@forEach }
+                postAlert(c,l,d,a,announceId(key,a));posted=true
             }
-            val now=Instant.now()
             val valid=d.alerts.filter { it.activeAt(now) && Levels.indexOf(it.level.key)>=min }.sortedWith(compareByDescending<UnifiedAlert> { it.level.rank }.then(alertOrder(now)))
-            if(s.alertsOngoing) { if(valid.isEmpty()) cancelAlertSummary(c,key) else postAlertSummary(c,l,d,valid,true) }
+            if(s.alertsOngoing) { if(valid.isEmpty()) cancelAlertSummary(c,key) else postOngoingAlerts(c,l,d,valid,loud) }
             else if(posted) postAlertSummary(c,l,d,valid.ifEmpty { d.alerts.filter { it.end.isAfter(now) && Levels.indexOf(it.level.key)>=min } },false)
             if(changed) p.edit().putStringSet("sentAlerts",sent.toList().takeLast(500).toSet()).apply()
         }
@@ -512,6 +522,35 @@ internal object Notifier {
         val key=BackgroundRefresh.locationKey(l)
         show(c,ChAlerts,id,title,level+" · "+period,alertView(c,icon,title,null),alertView(c,icon,title,detail),target="alerts",location=key,detail=detail,color=color,alert=alertRef(a),
             group=alertGroup(key),sortKey=(9-a.level.rank).toString()+a.start.epochSecond,timeout=Duration.between(Instant.now(),a.end).toMillis().coerceAtLeast(1L))
+    }
+    /**
+     * Persistent notifications of a place: the header (summary of the group) and under it one notification for each kind
+     * of warning, with the icon in the colour of its highest level. Only a kind with a new warning makes a sound; the
+     * announcement of a warning that has started gives way to the notification of its kind.
+     */
+    private fun postOngoingAlerts(c:Context,l:Location,d:OverviewData,valid:List<UnifiedAlert>,loud:Set<String>) {
+        val key=BackgroundRefresh.locationKey(l);val zone=d.zone;val nm=NotificationManagerCompat.from(c)
+        val ids=HashSet<Int>()
+        valid.groupBy { alertKind(it) }.forEach { (kind,list) ->
+            val top=list.first();val id=kindId(key,kind);ids+=id
+            val color=alertColor(top.level.key);val icon=alertHazardBitmap(alertIconKind(top),color,72)
+            val name=if(top.local) alertText(top)?.event?.takeIf { it.isNotBlank() } ?: alertName(top) else alertName(top)
+            val title=name+" · "+levelName(top.level.key)+(if(top.local) uiText(R.string.ui_odhad_5dde2d79) else "")
+            val parts=list.map { a ->
+                val text=alertText(a)
+                val period=(if(list.size>1) levelName(a.level.key)+" · " else "")+uiText(R.string.nt_alert_period,a.start.atZone(zone).format(DayDm),a.end.atZone(zone).format(DayDm))
+                val about=listOfNotNull(text?.description,text?.headline,text?.event.takeIf { !a.local }).firstOrNull { informative(it,name) }?.trim().orEmpty()
+                listOf(period,about).filter { it.isNotBlank() }.joinToString("\n")
+            }
+            val detail=parts.joinToString("\n\n")
+            show(c,ChAlerts,id,title,parts.first().substringBefore('\n'),alertView(c,icon,title,parts.first().substringBefore('\n')),alertView(c,icon,title,detail),ongoing=true,target="alerts",location=key,
+                detail=detail,color=color,alert=alertRef(top),group=alertGroup(key),sortKey=(9-top.level.rank).toString()+top.start.epochSecond,
+                timeout=Duration.between(Instant.now(),list.maxOf { it.end }).toMillis().coerceAtLeast(1L),silent=kind !in loud)
+            list.forEach { nm.cancel(announceId(key,it)) }
+        }
+        runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
+            .filter { it.notification.group==alertGroup(key) && it.id>=80000 && it.id !in ids }.forEach { nm.cancel(it.id) }
+        postAlertSummary(c,l,d,valid,true)
     }
     /**
      * The summary of the warnings of a place, which groups their notifications. Persistent: it stays while a warning is

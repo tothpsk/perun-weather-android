@@ -197,8 +197,9 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     val ok=d.reports.all { it.error==null && !it.incomplete }
     val rows=remember(d) { alertRows(d.alerts,d.now) }
     var selected by remember(d) { mutableStateOf<UnifiedAlert?>(null) }
-    val detailView=remember { BringIntoViewRequester() }
-    LaunchedEffect(selected) { if (selected!=null) { delay(60); detailView.bringIntoView() } }
+    // The chosen warning opens in its place in the overview; a tap on the chart scrolls to it.
+    val views=remember(d) { d.alerts.associateWith { BringIntoViewRequester() } }
+    LaunchedEffect(selected) { selected?.let { delay(60); views[it]?.bringIntoView() } }
     // A notification names its warning: open its detail; a warning that is gone leaves the screen as it is.
     LaunchedEffect(d,focus) { if (focus!=null) { d.alerts.firstOrNull { focus in alertRefs(it) }?.let { selected=it }; onFocusUsed() } }
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
@@ -217,17 +218,15 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                 }
                 AlertGantt(rows,d.zone,d.now,selected) { a -> selected=if (selected==a) null else a }
             }
-            // The detail stands apart, under the chart.
-            selected?.let { shown ->
-                val row=rows.firstOrNull { shown in it.alerts }
-                Box(Modifier.bringIntoViewRequester(detailView)) { AlertDetail(shown,row?.overlapping(shown).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null } }
-            }
             Text(uiText(R.string.alert_list_title),modifier=Modifier.padding(top=4.dp),color=ForecastMuted,fontSize=13.sp,fontWeight=FontWeight.Bold)
             var group: Boolean?=null
             val grouped=d.alerts.any { it.local } && d.alerts.any { !it.local }
             d.alerts.forEach { a ->
                 if (grouped && group!=a.local) { group=a.local; Text(if (a.local) LocalIssuer else uiText(R.string.alert_group_official),color=ForecastMuted,fontSize=12.sp) }
-                AlertCard(a,d.zone,selected==a) { selected=if (selected==a) null else a }
+                Box(Modifier.bringIntoViewRequester(views.getValue(a))) {
+                    if (selected==a) AlertDetail(a,rows.firstOrNull { a in it.alerts }?.overlapping(a).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null }
+                    else AlertCard(a,d.zone,false) { selected=a }
+                }
             }
         }
     }
@@ -409,7 +408,7 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
     val text=choices.getOrNull(language) ?: textOf(a)
     // The detail stands outside the panels, so it sets the light text colour itself.
     CompositionLocalProvider(LocalContentColor provides MainText) {
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(12.dp)).padding(12.dp),
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(15.dp)).padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             a.hazards.ifEmpty { listOf(AlertHazard.Generic) }.take(MaxIcons).forEach { AlertGlyph(it,inkOf(a),22.dp) }
