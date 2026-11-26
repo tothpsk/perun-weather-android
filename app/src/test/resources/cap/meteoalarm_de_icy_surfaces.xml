@@ -1,0 +1,789 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<!-- This is a Common Alerting Protocol (CAP) message issued by Germany's National Meteorological Service, Deutscher Wetterdienst (DWD). Visit https://www.dwd.de -->
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>2.49.0.0.276.0.DWD.PVW.1795606260000.83719d80-d310-471c-9dbd-703b95afa60d.MUL</identifier>
+  <sender>opendata@dwd.de</sender>
+  <sent>2026-11-25T12:31:00+01:00</sent>
+  <status>Actual</status>
+  <msgType>Alert</msgType>
+  <source>PVW</source>
+  <scope>Public</scope>
+  <code>id:2.49.0.0.276.0.DWD.PVW.1795606260000.83719d80-d310-471c-9dbd-703b95afa60d</code>
+  <code>MCP:v2.0</code>
+  <info>
+    <language>de-DE</language>
+    <category>Met</category>
+    <event>GLÄTTE</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>Amtliche WARNUNG vor GLÄTTE</headline>
+    <description>Es besteht vereinzelt Glättegefahr.</description>
+    <instruction>Hinweis auf: Rutschgefahr. 
+Handlungsempfehlungen: 
+Verhalten im Straßenverkehr anpassen</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>Rutschgefahr</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>en</language>
+    <category>Met</category>
+    <event>icy surfaces</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>Official WARNING of ICY SURFACES</headline>
+    <description>There is a slight risk of icy surfaces (level 1 of 4).</description>
+    <instruction>Hazard(s) to expect: slippery ground. 
+Recommendations for what to do: 
+Adapt your behaviour in road traffic.</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>slippery ground</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>fr</language>
+    <category>Met</category>
+    <event>surfaces glissantes</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>ALERTE officielle d'INTEMPÉRIES pour SURFACES GLISSANTES</headline>
+    <description>Il y a un risque isolé de surfaces glissantes (Niveau 1 sur 4)".</description>
+    <instruction>Attention : chaussée glissante. 
+Recommandations d'action : 
+Adaptez votre conduite aux conditions de circulation</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>chaussée glissante</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>es</language>
+    <category>Met</category>
+    <event>Superficies resbaladizas</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>AVISO oficial por SUPERFICIES RESBALADIZAS</headline>
+    <description>Existe el riesgo aislado de que se produzcan superficies resbaladizas (Nivel 1 de 4).</description>
+    <instruction>Indicio de: riesgo de resbalamiento. 
+Recomendaciones de acción: 
+adaptar la conducción</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>riesgo de resbalamiento</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>ar</language>
+    <category>Met</category>
+    <event>إنزلاق طفيف</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>تحذير رسمي من خطر الإنزلاق</headline>
+    <description>هناك مخاطر عرضية من الجليد (الدرجة 1 من 4)</description>
+    <instruction>الخطر ( المخاطر ) المتوقعة: أرض زلقة. 
+التوصيات التي يجب اتباعها: 
+تكيف سلوكيًا مع حركة المرور.</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>أرض زلقة</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>ru</language>
+    <category>Met</category>
+    <event>гололедица</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>Официальное метеорологическое предупреждение (уровень 1): Гололедица</headline>
+    <description>Существует опасность: Незначительная rололедица (1 степень из 4).</description>
+    <instruction>Ожидаемая опасность: опасности скольжения. 
+Поведенческие рекомендации: 
+адаптироваться к условиям уличного движения</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>опасности скольжения</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>tr</language>
+    <category>Met</category>
+    <event>hafif buzlu yüzeyler</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>HAFIF BUZLU YÜZEYLERE karşı resmi UYARI</headline>
+    <description>Şunların riski vardır: Hafif buzlu yüzeylere karşı (Seviye 1 / 4).</description>
+    <instruction>Beklenen tehlike(ler): kaygan zemin. 
+Ne yapılması gerektiğine dair tavsiyeler: 
+hareket tarzınızı karayolu trafiğine uyarlayın.</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>kaygan zemin</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+  <info>
+    <language>pl</language>
+    <category>Met</category>
+    <event>oblodzenie</event>
+    <responseType>Prepare</responseType>
+    <urgency>Immediate</urgency>
+    <severity>Minor</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>PROFILE_VERSION</valueName>
+      <value>2.1.14</value>
+    </eventCode>
+    <eventCode>
+      <valueName>LICENSE</valueName>
+      <value>© GeoBasis-DE / BKG 2021 (Daten modifiziert)</value>
+    </eventCode>
+    <eventCode>
+      <valueName>II</valueName>
+      <value>84</value>
+    </eventCode>
+    <eventCode>
+      <valueName>GROUP</valueName>
+      <value>SLIPPERINESS</value>
+    </eventCode>
+    <eventCode>
+      <valueName>AREA_COLOR</valueName>
+      <value>255 235 59</value>
+    </eventCode>
+    <onset>2026-11-25T18:00:00+01:00</onset>
+    <expires>2026-11-26T09:00:00+01:00</expires>
+    <senderName>Deutscher Wetterdienst</senderName>
+    <headline>Oficjalne OSTRZEŻENIE METEOROLOGICZNE (1. STOPNIA) przed OBLODZENIEM</headline>
+    <description>Istnieje ryzyko: nieznaczne oblodzenie (stopień 1 z 4).</description>
+    <instruction>Ostrzeżenie: śliska nawierzchnia. 
+Zalecenia, jak się zachować: 
+Dostosuj swoje zachowanie w ruchu drogowym.</instruction>
+    <web>https://dwd.de/warnungen</web>
+    <contact>Deutscher Wetterdienst</contact>
+    <parameter>
+      <valueName>occurrence</valueName>
+      <value>isolated</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>śliska nawierzchnia</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Kreis Rendsburg-Eckernförde - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE031</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901058001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Kreis Nordfriesland - Binnenland</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE106</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>901054001</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+<area>
+      <areaDesc>Stadt Neumünster</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>DE192</value>
+      </geocode>
+      <geocode>
+        <valueName>WARNCELLID</valueName>
+        <value>101004000</value>
+      </geocode>
+      <altitude>0.0</altitude>
+      <ceiling>9842.5197</ceiling>
+    </area>
+    
+</info>
+</alert>

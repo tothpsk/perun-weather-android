@@ -49,7 +49,7 @@
     <string name="ui_casovy_interval_historia_e76ab9b1" formatted="false">"Časový interval (história)"</string>
     <string name="ui_casovy_interval_medzi_vlnami_v_sekundach_eea8e9f8" formatted="false">"Časový interval medzi vlnami v sekundách."</string>
     <string name="ui_casovy_limit_2687ec9f" formatted="false">"časový limit"</string>
-    <string name="ui_casy_z_time_expires_povodny_jazyk_librewxr_sa_automaticky_0e440490" formatted="false">"Časy z time/expires. Pôvodný jazyk LibreWXR sa automaticky neprekladá."</string>
+    <string name="ui_casy_z_time_expires_povodny_jazyk_librewxr_sa_automaticky_0e440490" formatted="false">"Výstrahy sa čítajú z ich pôvodnej CAP správy. Keď nie je dostupná, časy sú z time/expires a text v pôvodnom jazyku LibreWXR."</string>
     <string name="ui_cela_dostupna_historia_24c2ee99" formatted="false">"Celá dostupná história"</string>
     <string name="ui_celkova_modelova_oblacnost_v_percentach_0_je_jasno_100_zam_fe810d8f" formatted="false">"Celková modelová oblačnosť v percentách: 0 % je jasno, 100 % zamračené."</string>
     <string name="ui_celkova_modelova_oblacnost_v_percentach_oblak_sa_naplna_zd_83740492" formatted="false">"Celková modelová oblačnosť v percentách. Oblak sa napĺňa zdola podľa percent."</string>
@@ -631,7 +631,8 @@
     <string name="alert_source_kde" formatted="false">"FOSS Public Alert Server (svet)"</string>
     <string name="alert_source_local_short" formatted="false">"Lokálne"</string>
     <string name="alert_sources_off" formatted="false">"Žiadny zdroj"</string>
-    <string name="alert_sources_note" formatted="false">"V Európe svetové zdroje opakujú výstrahy MeteoAlarmu, často po anglicky. Zdroje sa navzájom nezlučujú."</string>
+    <string name="alert_sources_note" formatted="false">"V Európe svetové zdroje opakujú výstrahy MeteoAlarmu. Tá istá výstraha z viacerých zdrojov sa zobrazí raz, so všetkými zdrojmi."</string>
+    <string name="alert_group_official" formatted="false">"Oficiálne výstrahy"</string>
     <string name="alert_sources_none" formatted="false">"Nie je zapnutý žiadny zdroj výstrah. Zapni ho cez ceruzku."</string>
     <string name="alert_cursor_none" formatted="false">"Bez výstrahy"</string>
     <string name="alert_source_libre_info" formatted="false">"Úradné meteorologické výstrahy z celého sveta. LibreWXR ich preberá z uzla Svetovej meteorologickej organizácie (WMO) a z americkej NWS."</string>

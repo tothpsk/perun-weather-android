@@ -1,66 +1,78 @@
 package sk.perun.weather.ui
 
-import sk.perun.weather.R
-
-import java.time.Instant
-import java.util.Locale
 import kotlin.math.abs
 
-private fun languageKey(s: String)=s.trim().replace('_','-').lowercase(Locale.ROOT)
-private fun languageRank(s: String,preferred: String="sk-SK"): Int {
-    val key=languageKey(s); val wanted=languageKey(preferred)
-    return when {
-        key==wanted -> 0
-        key.isNotBlank() && key.substringBefore('-')==wanted.substringBefore('-') -> 1
-        key.substringBefore('-')=="en" -> 2
-        key.isBlank() || key=="und" -> 4
-        else -> 3
+/**
+ * Areas of two warnings may be the same: an area code they share, or no common kind of code to compare
+ * (MeteoAlarm gives DWD warnings as EMMA_ID, DWD itself as WARNCELLID). An unknown area is compatible with any.
+ */
+internal fun areasCompatible(a: Set<String>, b: Set<String>): Boolean {
+    if (a.isEmpty() || b.isEmpty()) return true
+    fun kinds(s: Set<String>) = s.map { it.substringBefore('=') }.toSet()
+    val common = kinds(a) intersect kinds(b)
+    if (common.isEmpty()) return true
+    return a.any { it in b && it.substringBefore('=') in common }
+}
+
+private fun sourceNames(a: UnifiedAlert) = a.sources.map { it.source }.toSet()
+
+// Fallback for a warning without its CAP message: the same main hazard, level and area, start and end within an hour,
+// and only between different sources.
+private fun looseSame(a: UnifiedAlert, b: UnifiedAlert): Boolean =
+    a.hazards.firstOrNull() == b.hazards.firstOrNull() && a.level == b.level && areasCompatible(a.areas, b.areas) &&
+        abs(a.start.epochSecond - b.start.epochSecond) <= 3600 && abs(a.end.epochSecond - b.end.epochSecond) <= 3600
+
+// One issuer sends one warning as different messages: DWD a district for MeteoAlarm and parts of it in its own feed,
+// Italy one message for each zone. All warnings here are those of one place, so the same issuer, hazard, level,
+// start and end make one warning whatever the areas; warnings that differ in any of them stay apart.
+private fun sameWarningOfOneIssuer(a: UnifiedAlert, b: UnifiedAlert, ka: CapKey, kb: CapKey): Boolean =
+    ka.sender == kb.sender && a.start == b.start && a.end == b.end && a.level == b.level &&
+        a.hazards.firstOrNull() == b.hazards.firstOrNull()
+
+// [keys] are all the CAP keys already joined into [a].
+private fun sameAlert(a: UnifiedAlert, keys: Set<CapKey>, b: UnifiedAlert): Boolean {
+    val ka = a.key; val kb = b.key
+    if (ka != null && kb != null) return (kb in keys && areasCompatible(a.areas, b.areas)) || sameWarningOfOneIssuer(a, b, ka, kb)
+    // A feed repeats one entry: the same source, the same id and the same validity.
+    if (ka == null && kb == null && sourceNames(a) == sourceNames(b))
+        return a.sources.map { it.sourceId }.toSet() == b.sources.map { it.sourceId }.toSet() && a.start == b.start && a.end == b.end && a.level == b.level
+    if ((sourceNames(a) intersect sourceNames(b)).isNotEmpty()) return false
+    return looseSame(a, b)
+}
+
+private fun combine(a: UnifiedAlert, b: UnifiedAlert): UnifiedAlert {
+    // The warning read from its CAP message leads; the other one adds its sources and languages.
+    val (base, other) = if (a.key == null && b.key != null) b to a else a to b
+    val hazards = if (other.hazardBasis < base.hazardBasis) other.hazards to other.hazardBasis else base.hazards to base.hazardBasis
+    val level = if (other.levelBasis < base.levelBasis) other.level to other.levelBasis else base.level to base.levelBasis
+    return base.copy(
+        supersedes = base.supersedes + other.supersedes,
+        hazards = hazards.first, hazardBasis = hazards.second, level = level.first, levelBasis = level.second,
+        areas = base.areas + other.areas,
+        issuer = base.issuer.ifBlank { other.issuer }, web = base.web.ifBlank { other.web },
+        texts = base.texts + other.texts.filter { t -> base.texts.none { it.language.equals(t.language, ignoreCase = true) } },
+        sources = (base.sources + other.sources).distinctBy { it.source to it.sourceId },
+        looseMatch = base.looseMatch || other.looseMatch || (a.key == null) != (b.key == null),
+    )
+}
+
+/**
+ * One warning for every alert of every source:
+ * 1. a message named in the references of another one (Update, Cancel) is left out, and so is every Cancel;
+ * 2. messages with the same CAP key and compatible areas are one warning, and so are messages of one issuer with
+ *    the same hazard, level, start and end;
+ * 3. a warning without its CAP message joins a warning of another source by hazard, level, area and time.
+ * Warnings that only overlap in time are never joined.
+ */
+internal fun mergeUnified(all: List<UnifiedAlert>): List<UnifiedAlert> {
+    val replaced = all.flatMap { it.supersedes }.toSet()
+    val cancelled = all.filter { it.msgType == "Cancel" }.mapNotNull { it.key }.toSet()
+    val live = all.filter { a -> a.msgType != "Cancel" && a.key.let { it == null || (it !in replaced && it !in cancelled) } }
+    val out = mutableListOf<UnifiedAlert>(); val keys = mutableListOf<MutableSet<CapKey>>()
+    for (a in live.filter { it.key != null } + live.filter { it.key == null }) {
+        val i = out.indices.firstOrNull { sameAlert(out[it], keys[it], a) }
+        if (i == null) { out += a; keys += listOfNotNull(a.key).toMutableSet() }
+        else { out[i] = combine(out[i], a); a.key?.let { keys[i] += it } }
     }
-}
-private data class LanguageBucket(val id: String,val sender: String,val level: String,val start: Instant,val end: Instant,val area: String,val code: String)
-internal fun selectAlertLanguages(items: List<AlertItem>,preferred: String="sk-SK"): List<AlertItem> {
-    val groups=linkedMapOf<LanguageBucket,List<AlertItem>>(); val unknown=mutableListOf<AlertItem>()
-    for (a in items) {
-        val start=a.start; val end=a.end
-        if (a.local || a.identifier.isBlank() || a.senderId.isBlank() || a.areaKey.isBlank() || start==null || end==null || !end.isAfter(start)) { unknown+=a; continue }
-        val key=LanguageBucket(a.identifier,a.senderId,a.level,start,end,a.areaKey,a.eventCode)
-        groups[key]=groups[key].orEmpty()+a
-    }
-    return unknown+groups.values.flatMap { g ->
-        val language=languageKey(g.minBy { languageRank(it.language,preferred) }.language)
-        g.filter { languageKey(it.language)==language }
-    }
-}
-private fun textKey(s: String)=s.trim().lowercase(Locale.ROOT).replace(Regex("\\s+")," ")
-private fun sameRecord(a: AlertItem,b: AlertItem): Boolean {
-    if (a.local || b.local) return false
-    val start=a.start ?: return false; val end=a.end ?: return false
-    if (!end.isAfter(start) || start!=b.start || end!=b.end || a.level!=b.level) return false
-    if (a.identifier.isBlank() || a.identifier!=b.identifier || a.senderId.isBlank() || a.senderId!=b.senderId) return false
-    if (a.areaKey.isBlank() || a.areaKey!=b.areaKey) return false
-    return if (a.eventCode.isNotBlank() || b.eventCode.isNotBlank()) a.eventCode.isNotBlank() && a.eventCode==b.eventCode else textKey(a.event)==textKey(b.event)
-}
-private fun prefer(a: AlertItem,b: AlertItem): AlertItem {
-    val ar=languageRank(a.language); val br=languageRank(b.language)
-    if (ar!=br) return if (ar<br) a else b
-    return if (a.title.isBlank() && b.title.isNotBlank()) b else a
-}
-// The same warning republished by another aggregator (MeteoAlarm vs. FOSS Public Alert Server vs. LibreWXR):
-// identifiers and area keys differ, but level, wording and validity match.
-private fun wording(a: AlertItem)=listOf(a.event,a.title).map { textKey(it) }.filter { it.length>=4 }
-private fun looseSame(a: AlertItem,b: AlertItem): Boolean {
-    if (a.local || b.local || a.level!=b.level) return false
-    // Only across aggregators: two records from one source with different areas stay separate.
-    if (a.via.isEmpty() || b.via.isEmpty() || a.via.intersect(b.via).isNotEmpty()) return false
-    val s1=a.start ?: return false; val e1=a.end ?: return false; val s2=b.start ?: return false; val e2=b.end ?: return false
-    if (abs(s1.epochSecond-s2.epochSecond)>3600 || abs(e1.epochSecond-e2.epochSecond)>3600) return false
-    return wording(a).any { x -> wording(b).any { y -> x==y || x in y || y in x } }
-}
-internal fun mergeAlertRecords(items: List<AlertItem>): List<AlertItem> {
-    val out=mutableListOf<AlertItem>()
-    for (a in items) {
-        val i=out.indexOfFirst { sameRecord(it,a) || looseSame(it,a) }
-        if (i<0) out+=a else { val old=out[i]; out[i]=prefer(old,a).copy(via=old.via+a.via) }
-    }
-    return out.map { a ->if (a.via.size<2) a else a.copy(issuer=a.issuer.substringBefore(uiText(R.string.ui_zdroje_072dfba9))+uiText(R.string.ui_zdroje_2f1b3da1)+a.via.sorted().joinToString(", ")) }
+    return out.mapIndexed { i, a -> a.copy(joined = keys[i].toSet()) }
 }

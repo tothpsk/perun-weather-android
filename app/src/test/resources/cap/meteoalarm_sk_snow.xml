@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>2.49.0.0.703.0.SK.261125043100.6b066493_DS</identifier>
+  <sender>http://www.shmu.sk</sender>
+  <sent>2026-11-25T04:32:35-00:00</sent>
+  <status>Actual</status>
+  <msgType>Alert</msgType>
+  <scope>Public</scope>
+  <info>
+    <language>sk</language>
+    <category>Met</category>
+    <event>Výstraha pred snežením</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-25T04:31:00-00:00</effective>
+    <onset>2026-11-25T23:00:00-00:00</onset>
+    <expires>2026-11-26T23:00:00-00:00</expires>
+    <senderName>Slovenský Hydrometeorologický ústav</senderName>
+    <headline>Žiadne ďalšie informácie nie sú dostupné</headline>
+    <description>V okrese Dunajská Streda sa MIESTAMI očakáva výskyt sneženia, pri ktorom spadne v uvedenom časovom období v priebehu 12 hodín nad 10 cm nového snehu.
+Uvedená výška nového snehu predstavuje potenciálne nebezpečenstvo pre ľudské aktivity (dopravu a pohyb osôb).
+Predpokladaná výška nového snehu je v danej ročnej dobe a oblasti bežná, ale môže spôsobiť škody menšieho rozsahu.</description>
+    <instruction>ZVÝŠTE POZORNOSŤ pred snehom a/alebo ľadom na cestách a chodníkoch.
+Lokálne prerušenia aktivít v exteriéri.
+Buďte opatrní pri chôdzi, bicyklovaní alebo jazde kvôli šmykľavému povrchu.</instruction>
+    <web>http://www.shmu.sk/?page=987</web>
+    <contact>Slovenský Hydrometeorologický ústav, Jeséniova 17, 833 15 Bratislava, +421 2 59 415 111</contact>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Dunajská Streda</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>SK201</value>
+      </geocode>
+    </area>
+  </info>
+  <info>
+    <language>en-GB</language>
+    <category>Met</category>
+    <event>Moderate snow warning</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-25T04:31:00-00:00</effective>
+    <onset>2026-11-25T23:00:00-00:00</onset>
+    <expires>2026-11-26T23:00:00-00:00</expires>
+    <senderName>Slovak Hydrometeorological Institute</senderName>
+    <headline>No detailed description available</headline>
+    <description>We expect snowfall of 10 cm in district Dunajská Streda.
+This snow depth represents potential risk for human activities.</description>
+    <instruction>BE AWARE of widespread snow and/or ice on roads and pavements. Localized disruption of outdoor activities.
+Take care when walking, cycling or driving due to slippery surfaces.</instruction>
+    <web>http://www.shmu.sk/?page=987</web>
+    <contact>Slovak Hydrometeorological Institute, Jeseniova 17, 833 15 Bratislava, Slovakia, +421 2 59 415 111</contact>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Dunajská Streda</areaDesc>
+      <geocode>
+        <valueName>EMMA_ID</valueName>
+        <value>SK201</value>
+      </geocode>
+    </area>
+  </info>
+</alert>

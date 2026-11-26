@@ -89,7 +89,7 @@ internal enum class AlertHazard(private val data:String) {
 
 internal const val AlertLine=1.75f
 
-private val AwarenessTypes=mapOf(
+internal val AwarenessTypes=mapOf(
     1 to AlertHazard.Wind,2 to AlertHazard.Snow,3 to AlertHazard.Storm,4 to AlertHazard.Fog,5 to AlertHazard.Heat,
     6 to AlertHazard.Cold,7 to AlertHazard.Coastal,8 to AlertHazard.Fire,9 to AlertHazard.Avalanche,10 to AlertHazard.Rain,
     12 to AlertHazard.Flood,13 to AlertHazard.RainFlood,14 to AlertHazard.Marine,15 to AlertHazard.Drought,
@@ -137,6 +137,7 @@ private fun matches(t:String,words:List<String>,term:String):Boolean = when {
 
 /** The kind of a warning: the MeteoAlarm awareness_type when the issuer sends it, otherwise the words of its name. */
 internal fun alertHazard(text:String,awareness:String="",headline:String=""):AlertHazard {
+    hazardOfAwareness(awareness)?.let { return it }
     val t=plain(text)
     val words=t.split(Regex("""[^\p{L}\p{N}]+""")).filter { it.isNotEmpty() }
     fun has(kind:AlertHazard)=HazardWords.any { (k,terms)->k==kind && terms.any { matches(t,words,it) } }

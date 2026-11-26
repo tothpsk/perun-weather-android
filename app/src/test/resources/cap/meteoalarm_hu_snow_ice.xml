@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>2.49.0.0.348.0.HU.261125151014.213_9513_109953</identifier>
+  <sender>riaszt@met.hu</sender>
+  <sent>2026-11-25T16:10:14+01:00</sent>
+  <status>Actual</status>
+  <msgType>Alert</msgType>
+  <scope>Public</scope>
+  <info>
+    <language>hu-HU</language>
+    <category>Met</category>
+    <event>sárga ónos eső, hófúvás figyelmeztetés</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-25T16:10:14+01:00</effective>
+    <onset>2026-11-25T16:10:14+01:00</onset>
+    <expires>2026-11-25T23:59:59+01:00</expires>
+    <senderName>Hungarian Meteorologial Service</senderName>
+    <headline>sárga ónos eső, hófúvás figyelmeztetés Magyarországra</headline>
+    <description>12 óra alatt 5 cm-t meghaladó friss hó hullhat.Gyenge ónos eső. A várt csapadékmennyiség általában néhány tized (&gt; 0,1) mm.</description>
+    <instruction>A havazás kiterjedtebb területeket érinthet, de az utak általában járhatók. A nagyobb problémák inkább csak az arra érzékenyebb, jellemzően hegyvidéki területekre korlátozódnak. Legyünk elővigyázatosak, gyalogosan, biciklivel, autóval egyaránt az érintett területen. A közutakon alkalmazkodjunk a megváltozott útviszonyokhoz és hosszabb menetidőre számítsunk.A tereptárgyakra rakódó jég általában csak vékony réteget képez és enyhülés hatására gyorsan el is olvadhat. Több helyen is előfordulhatnak jeges útviszonyok, de általában járhatók az utak. Az érintett területen legyünk elővigyázatosak, gyalogosan, biciklivel, autóval egyaránt. A szokásosnál hosszabb menetidőre számítsunk. Tájékozódjunk az útviszonyokról.</instruction>
+    <web>https://www.met.hu/idojaras/veszelyjelzes/</web>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Közép-Dunántúl</areaDesc>
+      <geocode>
+        <valueName>NUTS2</valueName>
+        <value>HU21</value>
+      </geocode>
+    </area>
+  </info>
+  <info>
+    <language>en-GB</language>
+    <category>Met</category>
+    <event>yellow snow-ice warning</event>
+    <responseType>None</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <effective>2026-11-25T16:10:14+01:00</effective>
+    <onset>2026-11-25T16:10:14+01:00</onset>
+    <expires>2026-11-25T23:59:59+01:00</expires>
+    <senderName>Hungarian Meteorologial Service</senderName>
+    <headline>yellow snow-ice warning for Hungary</headline>
+    <description>The fresh amount of snow can exceed 5 cm in 12 hours.There might be light freezing rain. (Precipitation amount can be around 0,1-1 mm.)</description>
+    <instruction>More widespread snow lying on roads and pavements but road networks generally open. Care needed with only localised travel disruption. Problems mostly confined to usual prone areas. Journeys through affected areas may take longer than usual. Take extra care when walking, cycling or driving in affected areas. Check latest information about road network conditions.More widespread icy stretches on untreated roads and pavements but road networks generally open. Journeys through affected areas may take longer than usual. Check latest information about road network conditions.</instruction>
+    <web>https://www.met.hu/idojaras/veszelyjelzes/</web>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <area>
+      <areaDesc>Central Transdanubia</areaDesc>
+      <geocode>
+        <valueName>NUTS2</valueName>
+        <value>HU21</value>
+      </geocode>
+    </area>
+  </info>
+</alert>

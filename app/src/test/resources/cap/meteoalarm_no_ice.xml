@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<alert xmlns="urn:oasis:names:tc:emergency:cap:1.2">
+  <identifier>2.49.0.1.578.0.20261124070532.064</identifier>
+  <sender>meteorologi@met.no</sender>
+  <sent>2026-11-24T07:06:25+00:00</sent>
+  <status>Actual</status>
+  <msgType>Update</msgType>
+  <scope>Public</scope>
+  <code>MCP:v2.0</code>
+  <references>meteorologi@met.no,2.49.0.1.578.0.20261124064953.084,2026-11-24T07:05:02+00:00</references>
+  <incidents>0000052572</incidents>
+  <info>
+    <language>no</language>
+    <category>Met</category>
+    <category>Transport</category>
+    <category>Infra</category>
+    <event>Is</event>
+    <responseType>Monitor</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>OET:v1.0</valueName>
+      <value>OET-108</value>
+    </eventCode>
+    <eventCode>
+      <valueName>eventType</valueName>
+      <value>ice</value>
+    </eventCode>
+    <onset>2026-11-24T08:00:00+00:00</onset>
+    <expires>2026-11-25T08:00:00+00:00</expires>
+    <senderName>Meteorologisk Institutt</senderName>
+    <headline>Is, gult nivå, Deler av Troms og Vest-Finnmark, 2026-11-24T08:00:00+00:00, 2026-11-25T08:00:00+00:00</headline>
+    <description>Det er fare for is på grunn av overgang til mildvær. Lokalt kan regn fryse til is på vegbanen, på kjøretøy og på andre gjenstander. 
+Temperaturen stiger først i nord og ytre strøk.</description>
+    <instruction>Lokalt vanskelige kjøreforhold: Beregn ekstra tid til transport og kjøring. Bruk riktige dekk og kjør etter forholdene. Vurder bruk av brodder eller piggsko: Vær oppmerksom på at isen kan være vanskelig å se. Følg utviklingen: Følg med på oppdaterte farevarsler. Sjekk veimeldinger på vegvesen.no/trafikk.</instruction>
+    <web>https://www.met.no/vaer-og-klima/ekstremvaervarsler-og-andre-farevarsler/vaerfenomener-som-kan-gi-farevarsel-fra-met/is</web>
+    <contact>https://www.met.no/kontakt-oss</contact>
+    <parameter>
+      <valueName>eventEndingTime</valueName>
+      <value>2026-11-25T08:00:00+00:00</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>Lokalt vanskelige kjøreforhold: Det kan være lokalt vanskelige kjøreforhold. Transporttjenester kan også bli påvirket. Vurder bruk av brodder eller piggsko: Fare for hålkeføre.</value>
+    </parameter>
+    <parameter>
+      <valueName>eventAwarenessName</valueName>
+      <value>Is</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>riskMatrixColor</valueName>
+      <value>Yellow</value>
+    </parameter>
+    <parameter>
+      <valueName>awarenessSeriousness</valueName>
+      <value>Utfordrende situasjon</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <parameter>
+      <valueName>triggerLevel</valueName>
+      <value>1mm/3h</value>
+    </parameter>
+    <parameter>
+      <valueName>awarenessResponse</valueName>
+      <value>Følg med</value>
+    </parameter>
+    <parameter>
+      <valueName>geographicDomain</valueName>
+      <value>land</value>
+    </parameter>
+    <parameter>
+      <valueName>administrativeId</valueName>
+      <value>county:56</value>
+    </parameter>
+    <parameter>
+      <valueName>administrativeId</valueName>
+      <value>county:55</value>
+    </parameter>
+    <parameter>
+      <valueName>MunicipalityId</valueName>
+      <value>5501;5514;5518;5520;5522;5524;5526;5528;5530;5532;5534;5536;5538;5540;5542;5544;5546;5601;5614</value>
+    </parameter>
+    <area>
+      <areaDesc>Deler av Troms og Vest-Finnmark</areaDesc>
+      <polygon>69.0301,16.7245 68.9504,17.2369 68.5598,18.1382 68.9817,18.9018 69.3158,20.1436 69.4356,20.9528 69.9817,23.9928 70.4756,21.6304 70.3144,20.8769 70.3708,19.9884 70.2268,18.6638 69.8168,18.0279 69.5236,17.0719 69.3878,16.801 69.0301,16.7245 69.0301,16.7245</polygon>
+      <altitude>0</altitude>
+      <ceiling>9000</ceiling>
+    </area>
+  </info>
+  <info>
+    <language>en-GB</language>
+    <category>Met</category>
+    <category>Transport</category>
+    <category>Infra</category>
+    <event>Ice</event>
+    <responseType>Monitor</responseType>
+    <urgency>Future</urgency>
+    <severity>Moderate</severity>
+    <certainty>Likely</certainty>
+    <eventCode>
+      <valueName>OET:v1.0</valueName>
+      <value>OET-108</value>
+    </eventCode>
+    <eventCode>
+      <valueName>eventType</valueName>
+      <value>ice</value>
+    </eventCode>
+    <onset>2026-11-24T08:00:00+00:00</onset>
+    <expires>2026-11-25T08:00:00+00:00</expires>
+    <senderName>MET Norway</senderName>
+    <headline>Ice, yellow level, Parts of Troms and West-Finnmark, 2026-11-24T08:00:00+00:00, 2026-11-25T08:00:00+00:00</headline>
+    <description>There is risk of glaze ice, due to increasing temperatures. Locally rain could freeze on the ground, as well as on vehicles and other objects. The temperatures increase first in the north and outer areas.</description>
+    <instruction>Locally difficult driving conditions: Allow extra time for travel and driving. Use correct tires and drive according to the conditions. Consider using ice spikes or studded shoes: Be aware that the ice can be difficult to see. Follow the updates: Stay updated on weather warnings. Check road conditions at vegvesen.no/trafikk.</instruction>
+    <web>https://www.met.no/vaer-og-klima/ekstremvaervarsler-og-andre-farevarsler/vaerfenomener-som-kan-gi-farevarsel-fra-met/is</web>
+    <contact>https://www.met.no/en/contact-us</contact>
+    <parameter>
+      <valueName>eventEndingTime</valueName>
+      <value>2026-11-25T08:00:00+00:00</value>
+    </parameter>
+    <parameter>
+      <valueName>impacts</valueName>
+      <value>Locally difficult driving conditions: There may be difficult driving conditions due to ice. Transport services may also be affected. Consider using ice spikes or studded shoes: There is a risk of icy patches.</value>
+    </parameter>
+    <parameter>
+      <valueName>eventAwarenessName</valueName>
+      <value>Ice</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_level</valueName>
+      <value>2; yellow; Moderate</value>
+    </parameter>
+    <parameter>
+      <valueName>riskMatrixColor</valueName>
+      <value>Yellow</value>
+    </parameter>
+    <parameter>
+      <valueName>awarenessSeriousness</valueName>
+      <value>Challenging situation</value>
+    </parameter>
+    <parameter>
+      <valueName>awareness_type</valueName>
+      <value>2; snow-ice</value>
+    </parameter>
+    <parameter>
+      <valueName>triggerLevel</valueName>
+      <value>1mm/3h</value>
+    </parameter>
+    <parameter>
+      <valueName>awarenessResponse</valueName>
+      <value>Be aware</value>
+    </parameter>
+    <parameter>
+      <valueName>geographicDomain</valueName>
+      <value>land</value>
+    </parameter>
+    <parameter>
+      <valueName>administrativeId</valueName>
+      <value>county:56</value>
+    </parameter>
+    <parameter>
+      <valueName>administrativeId</valueName>
+      <value>county:55</value>
+    </parameter>
+    <parameter>
+      <valueName>MunicipalityId</valueName>
+      <value>5501;5514;5518;5520;5522;5524;5526;5528;5530;5532;5534;5536;5538;5540;5542;5544;5546;5601;5614</value>
+    </parameter>
+    <area>
+      <areaDesc>Parts of Troms and West-Finnmark</areaDesc>
+      <polygon>69.0301,16.7245 68.9504,17.2369 68.5598,18.1382 68.9817,18.9018 69.3158,20.1436 69.4356,20.9528 69.9817,23.9928 70.4756,21.6304 70.3144,20.8769 70.3708,19.9884 70.2268,18.6638 69.8168,18.0279 69.5236,17.0719 69.3878,16.801 69.0301,16.7245 69.0301,16.7245</polygon>
+      <altitude>0</altitude>
+      <ceiling>9000</ceiling>
+    </area>
+  </info>
+</alert>
