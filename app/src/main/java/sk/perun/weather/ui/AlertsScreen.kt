@@ -38,6 +38,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -214,16 +216,17 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                     AlertCounts(d.alerts)
                 }
                 AlertGantt(rows,d.zone,d.now,selected) { a -> selected=if (selected==a) null else a }
-                val shown=selected
-                if (shown!=null) {
-                    val row=rows.firstOrNull { shown in it.alerts }
-                    Box(Modifier.bringIntoViewRequester(detailView)) { AlertDetail(shown,row?.overlapping(shown).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null } }
-                } else Text(uiText(R.string.alert_detail_hint),fontSize=12.sp,color=ForecastMuted)
             }
+            // The detail stands apart, under the chart.
+            selected?.let { shown ->
+                val row=rows.firstOrNull { shown in it.alerts }
+                Box(Modifier.bringIntoViewRequester(detailView)) { AlertDetail(shown,row?.overlapping(shown).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null } }
+            }
+            Text(uiText(R.string.alert_list_title),modifier=Modifier.padding(top=4.dp),color=ForecastMuted,fontSize=13.sp,fontWeight=FontWeight.Bold)
             var group: Boolean?=null
             val grouped=d.alerts.any { it.local } && d.alerts.any { !it.local }
             d.alerts.forEach { a ->
-                if (grouped && group!=a.local) { group=a.local; Text(if (a.local) LocalIssuer else uiText(R.string.alert_group_official),modifier=Modifier.padding(top=4.dp),color=ForecastMuted,fontSize=13.sp,fontWeight=FontWeight.Bold) }
+                if (grouped && group!=a.local) { group=a.local; Text(if (a.local) LocalIssuer else uiText(R.string.alert_group_official),color=ForecastMuted,fontSize=12.sp) }
                 AlertCard(a,d.zone,selected==a) { selected=if (selected==a) null else a }
             }
         }
@@ -235,20 +238,22 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
     val more=rows.any { it.hazards.size>MaxIcons }
     return if (icons==1 && !more) GanttGutter else IconStep*icons+(if (more) 18.dp else 0.dp)+6.dp
 }
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun HazardIcons(hazards: List<AlertHazard>,color: Color,width: Dp) {
-    val tip=rememberTooltipState(); val scope=rememberCoroutineScope()
+    var open by remember { mutableStateOf(false) }
     val names=hazards.ifEmpty { listOf(AlertHazard.Generic) }.joinToString(" · ") { hazardName(it) }
-    TooltipBox(
-        positionProvider=TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip={ PlainTooltip(Modifier.border(1.dp,SelectedEdge,RoundedCornerShape(3.dp)),shape=RoundedCornerShape(3.dp),containerColor=BadgeBg,contentColor=MainText) { Text(names,fontSize=10.sp) } },
-        state=tip,
-    ) {
-        // A short tap names the kinds; the name of the warning is in the detail below the chart.
-        Row(Modifier.width(width).heightIn(min=28.dp).clickable(onClickLabel=names) { scope.launch { tip.show() } }.semantics(mergeDescendants=true) { contentDescription=names },
-            horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
+    // A short tap names the kinds, in the bubble of the info dots of the Now screen; the name of the warning is in the detail.
+    Box(Modifier.width(width).heightIn(min=28.dp).clickable(onClickLabel=names) { open=true }.semantics(mergeDescendants=true) { contentDescription=names },contentAlignment=Alignment.CenterStart) {
+        Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
             hazards.ifEmpty { listOf(AlertHazard.Generic) }.take(MaxIcons).forEach { AlertGlyph(it,color,20.dp) }
             if (hazards.size>MaxIcons) Text("+"+(hazards.size-MaxIcons),fontSize=10.sp,color=color)
+        }
+        if (open) {
+            LaunchedEffect(names) { delay(2600); open=false }
+            Popup(alignment=Alignment.BottomStart,onDismissRequest={ open=false },properties=PopupProperties(focusable=true)) {
+                Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=MainText,border=BorderStroke(1.dp,color),shadowElevation=4.dp) {
+                    Text(names,Modifier.widthIn(max=200.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
+                }
+            }
         }
     }
 }
@@ -347,7 +352,10 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
                     }
                 }
             }
-            Canvas(Modifier.fillMaxWidth().padding(start=gutterDp).height(axisHeight)) {
+            Row(Modifier.fillMaxWidth().height(axisHeight)) {
+            // The hint of the chart in the corner under the icons, as the (i) of the Forecast charts.
+            Box(Modifier.width(gutterDp).fillMaxHeight(),contentAlignment=Alignment.CenterStart) { Box(Modifier.requiredSize(36.dp).offset(x=(-6).dp)) { SettingsInfo(uiText(R.string.alert_detail_hint)) } }
+            Canvas(Modifier.weight(1f).height(axisHeight)) {
                 val labelTop=7.dp.toPx(); val ts=TextStyle(fontSize=10.sp)
                 val bounds=listOf(from)+days+listOf(to)
                 val dates=bounds.dropLast(1).map { it.atZone(z).toLocalDate() }
@@ -361,6 +369,7 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
                     val label=measurer.measure(dayLabel(dates[i],today,st),ts)
                     drawText(label,topLeft=Offset(x0+((x1-x0)-label.size.width)/2f,labelTop))
                 }
+            }
             }
         }
     }

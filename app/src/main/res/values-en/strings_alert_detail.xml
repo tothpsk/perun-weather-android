@@ -45,5 +45,6 @@
     <string name="alert_hazard_estimated">"The kind of hazard is estimated from the warning name."</string>
     <string name="alert_local_note">"An estimate of the app from the weather forecast, not an official warning."</string>
     <string name="alert_overlap">"Overlaps with: %1$s"</string>
-    <string name="alert_detail_hint">"Tap a bar in the chart to see the details."</string>
+    <string name="alert_detail_hint">"Tap a coloured bar in the chart or a warning in the overview to see the details. Tap an icon to see the kind of hazard."</string>
+    <string name="alert_list_title">"Alerts overview"</string>
 </resources>

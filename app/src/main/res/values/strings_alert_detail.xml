@@ -45,5 +45,6 @@
     <string name="alert_hazard_estimated">"Druh javu je odhadnutý z názvu výstrahy."</string>
     <string name="alert_local_note">"Odhad aplikácie z predpovede počasia, nie oficiálna výstraha."</string>
     <string name="alert_overlap">"Prekrýva sa s: %1$s"</string>
-    <string name="alert_detail_hint">"Ťuknutím na úsek v grafe zobrazíš podrobnosti."</string>
+    <string name="alert_detail_hint">"Ťuknutím na farebný úsek v grafe alebo na výstrahu v prehľade zobrazíš podrobnosti. Ťuknutím na ikonu zobrazíš druh javu."</string>
+    <string name="alert_list_title">"Prehľad výstrah"</string>
 </resources>
