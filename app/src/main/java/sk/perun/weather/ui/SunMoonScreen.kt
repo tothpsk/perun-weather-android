@@ -340,17 +340,18 @@ private val SkyTipPosition=object:PopupPositionProvider {
                     }
                     drawLine(ForecastMuted.copy(alpha=.7f),Offset(left,top),Offset(left,bottom),.7.dp.toPx())
                     for(v in listOf(-90,-45,0,45,90)) text("$v°",0f,y(v.toDouble())-5.dp.toPx())
-                    var day=Instant.ofEpochSecond(start).atZone(zone).toLocalDate();val today=Instant.ofEpochSecond(now).atZone(zone).toLocalDate()
+                    var day=Instant.ofEpochSecond(start).atZone(zone).toLocalDate()
+                    // One form of the day labels for all days (chartDayLabels).
+                    val cols=ArrayList<ChartDay>()
                     repeat(5) {
                         val a=day.atStartOfDay(zone).toEpochSecond();val b=day.plusDays(1).atStartOfDay(zone).toEpochSecond()
                         if(a<start+span && b>start) {
                             val x0=x(a).coerceIn(left,right);val x1=x(b).coerceIn(left,right);drawLine(SkyGrid.copy(alpha=.5f),Offset(x0,top),Offset(x0,bottom),.7.dp.toPx())
-                            val name=when(day) { today->uiText(R.string.ui_dnes_ce1bed34);today.plusDays(1)->uiText(R.string.ui_zajtra_c3e86eb2);else->day.format(DateTimeFormatter.ofPattern("EEE",SkyLocale)) }
-                            val full=name+" · "+day.format(DateTimeFormatter.ofPattern(appPattern("d. M."),appLocale()));val s=if(tm.measure(full,style).size.width<=x1-x0-2.dp.toPx()) full else day.format(DateTimeFormatter.ofPattern(appPattern("d. M."),appLocale()))
-                            val r=tm.measure(s,style);if(r.size.width<=x1-x0) drawText(r,topLeft=Offset((x0+x1-r.size.width)/2,bottom+5.dp.toPx()))
+                            cols+=ChartDay(day,x0,x1)
                         }
                         day=day.plusDays(1)
                     }
+                    chartDayLabels(cols,x(start+86400)-x(start),2.dp.toPx(),SkyLocale) {tm.measure(it,style).size.width.toFloat()}.forEachIndexed {i,s->if(s!=null) {val c=cols[i];val r=tm.measure(s,style);drawText(r,topLeft=Offset((c.x0+c.x1-r.size.width)/2,bottom+5.dp.toPx()))}}
                     if(showMoon) mains.filter { it.time in start..start+span }.forEach { m->
                         val p=SunMoonMath.position(Instant.ofEpochSecond(m.time),lat,lon)
                         val cx=x(m.time);val cy=y(p.moon).coerceIn(top,bottom);val r=5.dp.toPx();val tl=Offset(cx-r,cy-r);val sz=Size(2*r,2*r);val south=lat<0

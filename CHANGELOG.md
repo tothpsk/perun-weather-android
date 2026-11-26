@@ -13,7 +13,7 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 - Notifications of rules: a rule notification goes away when the rule is no longer fulfilled. Its end comes from the hourly forecast (weather, air quality and pollen) or, for weather events, from the weather codes; the expanded notification shows it.
 - Notifications of rules: removing a rule or moving it to another place removes its notification; an edited rule is evaluated again and notifies when it is fulfilled.
 - Alerts: a tap on the header of the details of a warning closes them, as the cross does.
-- Forecast and sea charts: the days are labelled in one form, the name of the day with the date when it fits for every day, otherwise the date only.
+- Forecast, sea and Sun and Moon charts: the days are labelled in one form that stays the same wherever the chart is scrolled: the short name of the day with the date when it fits a whole day, otherwise the date only.
 
 ### Fixed
 
