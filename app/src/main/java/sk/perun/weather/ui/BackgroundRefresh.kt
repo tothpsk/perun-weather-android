@@ -100,6 +100,7 @@ internal class RefreshWorker(context:Context,params:WorkerParameters):CoroutineW
         val activeKey=(saved.getOrNull(store.loadSelected()) ?: saved.firstOrNull())?.let { BackgroundRefresh.locationKey(it) }
         val marine=context.getSharedPreferences("perun_marine",Context.MODE_PRIVATE).getBoolean("enabled",false)
         var failures=0
+        Notifier.syncRuleNotifications(context)
         NetCache.forceNetwork=true
         try {
             for(l in Notifier.workerLocations(context,BackgroundRefresh.locations(context))) {

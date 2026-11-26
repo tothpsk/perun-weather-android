@@ -446,8 +446,12 @@ internal object Notifier {
         if(merged) cancelStatus(c) else if(statusHere) postStatus(c,l,d,ex,u,s.statusParam,statusValue ?: "–",statusAir,scale,gas)
         // The rule notifications of the place come first, so its group knows how many lines it has besides the warnings.
         val ruleIds=HashSet<Int>();var alertLines=0
-        ruleIds+=groupIds(c,key).filter { it>=RuleIdBase }
         val rules=s.rules.filter { locMatch(it.loc,key,active) }
+        // A rule that was removed or moved to another place takes its notification with it.
+        val ruleNow=rules.map { ruleId(key,it) }.toSet()
+        groupIds(c,key).filter { it>=RuleIdBase }.forEach { if(it in ruleNow) ruleIds+=it else NotificationManagerCompat.from(c).cancel(it) }
+        // Rule notifications are drawn after the warnings, when the group knows whether a line stands alone.
+        val pending=ArrayList<(Boolean)->Unit>()
         if(rules.isNotEmpty()) {
             val air=if(rules.any { spec(it.metric).group==G_AIR || spec(it.metric).group==G_POLLEN }) loadAirNow(l) else emptyMap()
             val ed=p.edit();val showing=ruleIds.toSet();val nm=NotificationManagerCompat.from(c);val at=Instant.now()
@@ -460,7 +464,7 @@ internal object Notifier {
                     val now=d.code in codes || d.hours.take(h).any { it.code in codes }
                     if(now!=was) ed.putBoolean(flag,now)
                     // A new event is announced; one still shown is redrawn silently with its end by the forecast; one that is over goes away.
-                    if(now && (!was || id in showing)) { postEvent(c,l,r,m,h,id,eventEnd(d,codes,h),d.zone,was);ruleIds+=id }
+                    if(now && (!was || id in showing)) { val end=eventEnd(d,codes,h);pending+={ alone -> postEvent(c,l,r,m,h,id,end,d.zone,was,alone) };ruleIds+=id }
                     else if(!now) { nm.cancel(id);ruleIds-=id }
                     return@forEach
                 }
@@ -473,7 +477,7 @@ internal object Notifier {
                     // The rule holds until the first hour of the forecast that no longer fulfils it.
                     val all=series ?: loadRuleSeries(l,LocationSourceStore(c).read(l).weatherModel,rules.filter { !isEvent(it.metric) }.map { it.metric }.toSet(),scale.apiVariable).also { series=it }
                     val end=all.end(r.metric,at) { x -> if(r.above) x>r.threshold-band else x<r.threshold+band }
-                    postRule(c,l,r,m,v,u,gas,id,end,d.zone,was);ruleIds+=id
+                    pending+={ alone -> postRule(c,l,r,m,v,u,gas,id,end,d.zone,was,alone) };ruleIds+=id
                 }
                 else if(!now) { nm.cancel(id);ruleIds-=id }
             }
@@ -535,6 +539,9 @@ internal object Notifier {
             }
             if(changed) p.edit().putStringSet("sentAlerts",sent.toList().takeLast(500).toSet()).apply()
         }
+        // A single line names its place; in a group the place is in the header.
+        val ruleAlone=alertLines+ruleIds.size==1
+        pending.forEach { it(ruleAlone) }
         // A place without warning notifications: two or more rule notifications are grouped under the header of the place.
         if(alertLines==0) { if(ruleIds.size>=2) postRuleSummary(c,l,ruleIds.size) else NotificationManagerCompat.from(c).cancel(alertSummaryId(key)) }
     }
@@ -624,6 +631,19 @@ internal object Notifier {
     private const val RuleIdBase=200000
     private fun ruleId(key:String,r:NotifyRule)=RuleIdBase+((r.id+"|"+key).hashCode() and 0xFFFF)
     private fun ruleLeft(until:Instant?):Long = until?.let { Duration.between(Instant.now(),it).toMillis() }?.takeIf { it>0L } ?: 0L
+    /**
+     * Keeps the rule notifications in step with the rules: a removed rule, a rule moved to another place and the [reset]
+     * rule (just edited) lose their notifications, and so do the rule notifications of 1.4.0, which had other numbers.
+     */
+    fun syncRuleNotifications(c:Context,reset:String?=null) {
+        val s=read(prefs(c));val store=LocationStore(c);val all=store.load()
+        val activeKey=(all.getOrNull(store.loadSelected()) ?: all.firstOrNull())?.let { BackgroundRefresh.locationKey(it) }
+        val allowed=HashSet<Int>()
+        if(s.enabled) all.forEach { l -> val key=BackgroundRefresh.locationKey(l);s.rules.filter { it.id!=reset && locMatch(it.loc,key,key==activeKey) }.forEach { allowed+=ruleId(key,it) } }
+        val nm=NotificationManagerCompat.from(c)
+        runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
+            .filter { it.notification.channelId==ChRules && ((it.id>=RuleIdBase && it.id !in allowed) || it.id<70000) }.forEach { nm.cancel(it.id) }
+    }
     private fun ruleDetail(text:String,until:Instant?,zone:java.time.ZoneId):String =
         if(until!=null && ruleLeft(until)>0L) text+"\n"+uiText(R.string.nt_alert_until,until.atZone(zone).format(DayDm)) else text
     /** The end of a forecast phenomenon: the hour after the last hour of its run; null when the forecast does not show it. */
@@ -639,15 +659,15 @@ internal object Notifier {
         val key=BackgroundRefresh.locationKey(l)
         show(c,ChRules,alertSummaryId(key),l.name,uiText(R.string.nt_rules_count,count),null,null,location=key,group=alertGroup(key),summary=true,silent=true,subText=l.name)
     }
-    private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean) {
+    private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean,alone:Boolean) {
         val title=ruleLabel(r,u,gas);val now=uiText(R.string.nt_rule_text,m.label(),valueText(m,v,u,gas))
         val target=if(m.group==G_AIR || m.group==G_POLLEN) "more/air" else "forecast?chart="+chartFor(r.metric)
-        show(c,ChRules,id,title,l.name,null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=ruleDetail(l.name+" · "+now,until,zone),
+        show(c,ChRules,id,title,if(alone) l.name else "",null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=ruleDetail(if(alone) l.name+" · "+now else now,until,zone),
             group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
     }
-    private fun postEvent(c:Context,l:Location,r:NotifyRule,m:RuleMetric,h:Int,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean) {
+    private fun postEvent(c:Context,l:Location,r:NotifyRule,m:RuleMetric,h:Int,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean,alone:Boolean) {
         val title=m.label()+" · "+uiText(R.string.nt_within_hours,h)
-        show(c,ChRules,id,title,l.name,null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=ruleDetail(l.name+" · "+uiText(R.string.nt_event_detail),until,zone),
+        show(c,ChRules,id,title,if(alone) l.name else "",null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=ruleDetail((if(alone) l.name+" · " else "")+uiText(R.string.nt_event_detail),until,zone),
             group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
     }
     fun postSummary(c:Context,l:Location,d:OverviewData,kind:String) {
@@ -898,7 +918,7 @@ private val DialogEdge=Color(0xFF4B586C)
                 Text(Notifier.ruleLabel(r,units,gas),style=MaterialTheme.typography.bodyMedium)
                 Text(locationLabel(r.loc,locations),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
-            TextButton(onClick={ Notifier.writeRules(p,s.rules.filter { it.id!=r.id });edit { } }) { Text(uiText(R.string.nt_rule_remove)) }
+            TextButton(onClick={ Notifier.writeRules(p,s.rules.filter { it.id!=r.id });Notifier.syncRuleNotifications(context);edit(true) { } }) { Text(uiText(R.string.nt_rule_remove)) }
         }
     }
     if(s.rules.isEmpty()) Note(uiText(R.string.nt_rules_empty))
@@ -918,7 +938,7 @@ private val DialogEdge=Color(0xFF4B586C)
     if(adding || dialogRule!=null) RuleDialog(dialogRule,units,gas,locations,onDismiss={ adding=false;editing=null },onSave={ rule ->
         val list=if(s.rules.any { it.id==rule.id }) s.rules.map { if(it.id==rule.id) rule else it } else s.rules+rule
         val ed=p.edit();p.all.keys.filter { it.startsWith("rule_"+rule.id) }.forEach { ed.remove(it) };ed.apply()
-        Notifier.writeRules(p,list);adding=false;editing=null;edit(true) { }
+        Notifier.writeRules(p,list);Notifier.syncRuleNotifications(context,rule.id);adding=false;editing=null;edit(true) { }
     })
 }
 
