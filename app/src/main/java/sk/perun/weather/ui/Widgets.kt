@@ -210,8 +210,8 @@ internal object WidgetRender {
         val a=widgetAlert(d.alerts,now,now.plusSeconds(hours*3600))
         if(a==null) { v.setViewVisibility(R.id.wg_alert,View.GONE);return }
         v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-        v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(a.event,a.level,54,a.awareness))
-        v.setContentDescription(R.id.wg_alert,a.event)
+        v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(a,54))
+        v.setContentDescription(R.id.wg_alert,alertName(a))
     }
     private fun snowing(d:OverviewData):Boolean = (d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)
     /**
@@ -238,14 +238,14 @@ internal object WidgetRender {
         val a=widgetNextDay().let { (from,to)->widgetAlert(d.alerts,from,to) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a?.event,a?.level,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN,a?.awareness.orEmpty())
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
-        v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+it.event } ?: ""))
+        v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+alertName(it) } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
         return v
     }
     /** The picture and whether the refresh button of the layout has its room in it. */
-    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alertEvent:String?,alertLevel:String?,updated:String,pal:Palette,pressureChange:Double=Double.NaN,alertAwareness:String=""):Pair<Bitmap,Boolean> {
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alert:UnifiedAlert?,updated:String,pal:Palette,pressureChange:Double=Double.NaN):Pair<Bitmap,Boolean> {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -273,8 +273,8 @@ internal object WidgetRender {
         fun pic(b:Bitmap,x:Float,y:Float,size:Float) { p.color=0xFFFFFFFF.toInt();cv.drawBitmap(b,null,RectF(x,y,x+size,y+size),p) }
         fun weather(x:Float,y:Float,size:Float) = pic(widgetSymbolBitmap(d.code,d.isDayFlag,size.roundToInt().coerceAtLeast(1)),x,y,size)
         fun glyph(key:String,x:Float,y:Float,size:Float) = pic(widgetParamIcon(key,pal.fg,size.roundToInt().coerceAtLeast(1),pressureChange,size/dn),x,y,size)
-        val hasAlert=alertEvent!=null && alertLevel!=null
-        fun warn(x:Float,y:Float,size:Float) { if(alertEvent!=null && alertLevel!=null) pic(widgetAlertBitmap(alertEvent,alertLevel,size.roundToInt().coerceAtLeast(1),alertAwareness),x,y,size) }
+        val hasAlert=alert!=null
+        fun warn(x:Float,y:Float,size:Float) { if(alert!=null) pic(widgetAlertBitmap(alert,size.roundToInt().coerceAtLeast(1)),x,y,size) }
         // The place at 15 sp, bold and in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
         val alertW=if(hasAlert) 24*dn else 0f
         fun placedWidth(shown:String):Float = if(shown.isNotEmpty()) width(shown,15f,true)+alertW else if(hasAlert) 18*dn else 0f

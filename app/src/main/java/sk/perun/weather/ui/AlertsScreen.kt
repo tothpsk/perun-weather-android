@@ -38,6 +38,8 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,18 +73,6 @@ private val LevelSurface=mapOf(
     "orange" to (Color(0xFF33271C) to Color(0xFFA0622A)),
     "red" to (Color(0xFF341F22) to Color(0xFFA8393D)),
 )
-private val HazardNames=mapOf(
-    AlertHazard.Wind to R.string.alert_hazard_wind,AlertHazard.Snow to R.string.alert_hazard_snow,AlertHazard.Ice to R.string.alert_hazard_ice,
-    AlertHazard.Storm to R.string.alert_hazard_storm,AlertHazard.Fog to R.string.alert_hazard_fog,AlertHazard.Heat to R.string.alert_hazard_heat,
-    AlertHazard.Cold to R.string.alert_hazard_cold,AlertHazard.Coastal to R.string.alert_hazard_coastal,AlertHazard.Fire to R.string.alert_hazard_fire,
-    AlertHazard.Avalanche to R.string.alert_hazard_avalanche,AlertHazard.Rain to R.string.alert_hazard_rain,AlertHazard.Flood to R.string.alert_hazard_flood,
-    AlertHazard.RainFlood to R.string.alert_hazard_rain_flood,AlertHazard.Marine to R.string.alert_hazard_marine,AlertHazard.Drought to R.string.alert_hazard_drought,
-    AlertHazard.Hail to R.string.alert_hazard_hail,AlertHazard.Dust to R.string.alert_hazard_dust,AlertHazard.Cyclone to R.string.alert_hazard_cyclone,
-    AlertHazard.Tornado to R.string.alert_hazard_tornado,AlertHazard.Earthquake to R.string.alert_hazard_earthquake,AlertHazard.Tsunami to R.string.alert_hazard_tsunami,
-    AlertHazard.Landslide to R.string.alert_hazard_landslide,AlertHazard.Volcano to R.string.alert_hazard_volcano,AlertHazard.Air to R.string.alert_hazard_air,
-    AlertHazard.Generic to R.string.alert_hazard_generic,
-)
-private val LocalNames=mapOf("Thunderstorm risk" to R.string.ui_riziko_burok_8fa6514a,"Strong wind gusts" to R.string.ui_silne_narazy_vetra_7b7b006f,"Heavy precipitation" to R.string.ui_silne_zrazky_2630cc03,"Extreme heat" to R.string.ui_extremne_teplo_cdcd5041,"Extreme cold" to R.string.ui_extremny_chlad_d4aeb237)
 private val SourceOrder=listOf("MeteoAlarm","LibreWXR","KDE")
 private val LocalIssuer get()=uiText(R.string.ui_lokalny_odhad_72c32ba1)
 private val SkLocale=appLocale()
@@ -92,13 +82,8 @@ private val DayDate=DateTimeFormatter.ofPattern(appPattern("d. M."),appLocale())
 private fun levelOf(a: UnifiedAlert)=a.level.key.takeIf { it in LevelColors } ?: "neutral"
 private fun colorOf(a: UnifiedAlert)=LevelColors[levelOf(a)] ?: Color(0xFF5B6577)
 private fun inkOf(a: UnifiedAlert)=if (levelOf(a)=="neutral") MainText else colorOf(a)
-private fun hazardName(h: AlertHazard)=uiText(HazardNames[h] ?: R.string.alert_hazard_generic)
-private fun textOf(a: UnifiedAlert)=pickText(a.texts,appLocale().toLanguageTag())
-// The short general name of the kinds; a warning of no known kind keeps the name the issuer gave it.
-private fun nameOf(a: UnifiedAlert): String {
-    if (a.hazards.all { it==AlertHazard.Generic }) textOf(a)?.event?.takeIf { it.isNotBlank() }?.let { return it }
-    return a.hazards.ifEmpty { listOf(AlertHazard.Generic) }.joinToString(" · ") { hazardName(it) }
-}
+private fun textOf(a: UnifiedAlert)=alertText(a)
+private fun nameOf(a: UnifiedAlert)=alertName(a)
 private fun timeRange(a: UnifiedAlert,z: ZoneId,f: DateTimeFormatter=ClockFormat)=f.format(a.start.atZone(z))+" – "+f.format(a.end.atZone(z))
 private fun span(d: Duration): String {
     val m=d.toMinutes().coerceAtLeast(1)
@@ -129,15 +114,7 @@ private fun loadHourly(l: Location,model: String): AlertHourly {
     return AlertHourly(z,List(n) { Instant.ofEpochSecond(t.getLong(it)) },series("weather_code"),series("wind_gusts_10m"),series("precipitation"),series("temperature_2m"))
 }
 // Rules and validity windows are shared with the Now screen (localAlertHits in OverviewData.kt).
-private fun localEstimates(h: AlertHourly,now: Instant): List<UnifiedAlert> = localAlertHits(h.times,h.code,h.gust,h.precip,h.temp,now).map { hit ->
-    val name=LocalNames[hit.event]?.let { uiText(it) } ?: hit.event
-    UnifiedAlert(
-        key=null,supersedes=emptySet(),msgType="Alert",hazards=listOf(alertHazard(hit.event)),hazardBasis=Basis.EventCode,
-        level=AlertLevel.entries.firstOrNull { it.key==hit.level } ?: AlertLevel.Neutral,levelBasis=Basis.EventCode,
-        start=hit.start,end=hit.end,expires=hit.end,sent=now,areas=emptySet(),issuer=LocalIssuer,web="",
-        texts=listOf(AlertText(appLocale().toLanguageTag(),name,"","","","")),sources=emptyList(),local=true,
-    )
-}
+private fun localEstimates(h: AlertHourly,now: Instant): List<UnifiedAlert> = localAlertHits(h.times,h.code,h.gust,h.precip,h.temp,now).map { localAlert(it,now) }
 private fun alertSourceTitle(name: String)=if (name=="KDE") "FOSS Public Alert Server" else name
 private class AlertsData(val alerts: List<UnifiedAlert>,val reports: List<SourceReport>,val localOk: Boolean,val zone: ZoneId,val now: Instant)
 private suspend fun loadAlerts(l: Location,source: String,model: String): AlertsData=withContext(Dispatchers.IO) { coroutineScope {
@@ -183,7 +160,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     } else withStyle(SpanStyle(color=ForecastMuted)) { append(date.format(DayDate)) }
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable internal fun AlertsScreen(location: Location) {
+@Composable internal fun AlertsScreen(location: Location,focus: String?=null,onFocusUsed: ()->Unit={}) {
     val preferences=rememberForecastPreferences(); val source=preferences.alertSource; val model=preferences.model
     var data by remember(location) { mutableStateOf<AlertsData?>(null) }
     var loading by remember(location) { mutableStateOf(true) }
@@ -196,7 +173,7 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     PullToRefreshBox(isRefreshing=loading,onRefresh={ if (!loading) { NetCache.invalidate(); loading=true; reload++ } },modifier=Modifier.fillMaxSize().background(ScreenBg)) {
         Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp),verticalArrangement=Arrangement.spacedBy(10.dp)) {
             if (failed) Text(uiText(R.string.ui_vystrahy_sa_nepodarilo_nacitat_to_neznamena_ze_ziadne_nie_a87aa611),color=WarnText)
-            if (alertSourceSet(source).isEmpty()) Text(uiText(R.string.alert_sources_none),color=MainText,fontSize=16.sp,fontWeight=FontWeight.SemiBold) else data?.let { AlertsContent(it) }
+            if (alertSourceSet(source).isEmpty()) Text(uiText(R.string.alert_sources_none),color=MainText,fontSize=16.sp,fontWeight=FontWeight.SemiBold) else data?.let { AlertsContent(it,focus,onFocusUsed) }
             AttributionFooter(meteoAlarm="meteo" in alertSourceSet(source) && hasMeteoAlarm(location.countryCode))
         }
     }
@@ -216,12 +193,15 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
     }
 }
 @OptIn(ExperimentalFoundationApi::class)
-@Composable private fun AlertsContent(d: AlertsData) {
+@Composable private fun AlertsContent(d: AlertsData,focus: String?,onFocusUsed: ()->Unit) {
     val ok=d.reports.all { it.error==null && !it.incomplete }
     val rows=remember(d) { alertRows(d.alerts,d.now) }
     var selected by remember(d) { mutableStateOf<UnifiedAlert?>(null) }
-    val detailView=remember { BringIntoViewRequester() }
-    LaunchedEffect(selected) { if (selected!=null) { delay(60); detailView.bringIntoView() } }
+    // The chosen warning opens in its place in the overview; a tap on the chart scrolls to it.
+    val views=remember(d) { d.alerts.associateWith { BringIntoViewRequester() } }
+    LaunchedEffect(selected) { selected?.let { delay(60); views[it]?.bringIntoView() } }
+    // A notification names its warning: open its detail; a warning that is gone leaves the screen as it is.
+    LaunchedEffect(d,focus) { if (focus!=null) { d.alerts.firstOrNull { focus in alertRefs(it) }?.let { selected=it }; onFocusUsed() } }
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         d.reports.forEach { r ->
             if (r.error!=null) Text(alertSourceTitle(r.name)+uiText(R.string.ui_nepodarilo_sa_nacitat_7b748049)+r.error+uiText(R.string.ui_to_neznamena_ze_ziadne_vystrahy_nie_su_ac01ebd6),color=WarnText,fontSize=13.sp)
@@ -237,17 +217,16 @@ private fun dayLabel(date: LocalDate,today: LocalDate,style: Int): AnnotatedStri
                     AlertCounts(d.alerts)
                 }
                 AlertGantt(rows,d.zone,d.now,selected) { a -> selected=if (selected==a) null else a }
-                val shown=selected
-                if (shown!=null) {
-                    val row=rows.firstOrNull { shown in it.alerts }
-                    Box(Modifier.bringIntoViewRequester(detailView)) { AlertDetail(shown,row?.overlapping(shown).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null } }
-                } else Text(uiText(R.string.alert_detail_hint),fontSize=12.sp,color=ForecastMuted)
             }
+            Text(uiText(R.string.alert_list_title),modifier=Modifier.padding(top=4.dp),color=ForecastMuted,fontSize=13.sp,fontWeight=FontWeight.Bold)
             var group: Boolean?=null
             val grouped=d.alerts.any { it.local } && d.alerts.any { !it.local }
             d.alerts.forEach { a ->
-                if (grouped && group!=a.local) { group=a.local; Text(if (a.local) LocalIssuer else uiText(R.string.alert_group_official),modifier=Modifier.padding(top=4.dp),color=ForecastMuted,fontSize=13.sp,fontWeight=FontWeight.Bold) }
-                AlertCard(a,d.zone,selected==a) { selected=if (selected==a) null else a }
+                if (grouped && group!=a.local) { group=a.local; Text(if (a.local) LocalIssuer else uiText(R.string.alert_group_official),color=ForecastMuted,fontSize=12.sp) }
+                Box(Modifier.bringIntoViewRequester(views.getValue(a))) {
+                    if (selected==a) AlertDetail(a,rows.firstOrNull { a in it.alerts }?.overlapping(a).orEmpty(),d.zone,d.now,{ selected=it }) { selected=null }
+                    else AlertCard(a,d.zone,false) { selected=a }
+                }
             }
         }
     }
@@ -258,20 +237,22 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
     val more=rows.any { it.hazards.size>MaxIcons }
     return if (icons==1 && !more) GanttGutter else IconStep*icons+(if (more) 18.dp else 0.dp)+6.dp
 }
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable private fun HazardIcons(hazards: List<AlertHazard>,color: Color,width: Dp) {
-    val tip=rememberTooltipState(); val scope=rememberCoroutineScope()
+    var open by remember { mutableStateOf(false) }
     val names=hazards.ifEmpty { listOf(AlertHazard.Generic) }.joinToString(" · ") { hazardName(it) }
-    TooltipBox(
-        positionProvider=TooltipDefaults.rememberPlainTooltipPositionProvider(),
-        tooltip={ PlainTooltip(Modifier.border(1.dp,SelectedEdge,RoundedCornerShape(3.dp)),shape=RoundedCornerShape(3.dp),containerColor=BadgeBg,contentColor=MainText) { Text(names,fontSize=10.sp) } },
-        state=tip,
-    ) {
-        // A short tap names the kinds; the name of the warning is in the detail below the chart.
-        Row(Modifier.width(width).heightIn(min=28.dp).clickable(onClickLabel=names) { scope.launch { tip.show() } }.semantics(mergeDescendants=true) { contentDescription=names },
-            horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
+    // A short tap names the kinds, in the bubble of the info dots of the Now screen; the name of the warning is in the detail.
+    Box(Modifier.width(width).heightIn(min=28.dp).clickable(onClickLabel=names) { open=true }.semantics(mergeDescendants=true) { contentDescription=names },contentAlignment=Alignment.CenterStart) {
+        Row(horizontalArrangement=Arrangement.spacedBy(2.dp),verticalAlignment=Alignment.CenterVertically) {
             hazards.ifEmpty { listOf(AlertHazard.Generic) }.take(MaxIcons).forEach { AlertGlyph(it,color,20.dp) }
             if (hazards.size>MaxIcons) Text("+"+(hazards.size-MaxIcons),fontSize=10.sp,color=color)
+        }
+        if (open) {
+            LaunchedEffect(names) { delay(2600); open=false }
+            Popup(alignment=Alignment.BottomStart,onDismissRequest={ open=false },properties=PopupProperties(focusable=true)) {
+                Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=MainText,border=BorderStroke(1.dp,color),shadowElevation=4.dp) {
+                    Text(names,Modifier.widthIn(max=200.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
+                }
+            }
         }
     }
 }
@@ -370,7 +351,10 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
                     }
                 }
             }
-            Canvas(Modifier.fillMaxWidth().padding(start=gutterDp).height(axisHeight)) {
+            Row(Modifier.fillMaxWidth().height(axisHeight)) {
+            // The hint of the chart in the corner under the icons, as the (i) of the Forecast charts.
+            Box(Modifier.width(gutterDp).fillMaxHeight(),contentAlignment=Alignment.CenterStart) { ChartHint(uiText(R.string.alert_detail_hint)) }
+            Canvas(Modifier.weight(1f).height(axisHeight)) {
                 val labelTop=7.dp.toPx(); val ts=TextStyle(fontSize=10.sp)
                 val bounds=listOf(from)+days+listOf(to)
                 val dates=bounds.dropLast(1).map { it.atZone(z).toLocalDate() }
@@ -383,6 +367,22 @@ private fun gutterOf(rows: List<AlertRow>): Dp {
                     val st=(base..2).firstOrNull { w(dates[i],it)<=x1-x0-4.dp.toPx() } ?: continue
                     val label=measurer.measure(dayLabel(dates[i],today,st),ts)
                     drawText(label,topLeft=Offset(x0+((x1-x0)-label.size.width)/2f,labelTop))
+                }
+            }
+            }
+        }
+    }
+}
+// The (i) of the charts: a short tap shows the hint in a bubble.
+@Composable private fun ChartHint(text: String) {
+    var open by remember { mutableStateOf(false) }
+    Box(Modifier.size(28.dp).offset(x=(-6).dp).clickable(role=androidx.compose.ui.semantics.Role.Button,onClickLabel=uiText(R.string.ui_strucny_popis_e8d7e5f7)) { open=true }.semantics { contentDescription=text },contentAlignment=Alignment.Center) {
+        Text("\u24D8",color=ForecastMuted,fontSize=16.sp)
+        if (open) {
+            LaunchedEffect(text) { delay(5000); open=false }
+            Popup(alignment=Alignment.BottomStart,onDismissRequest={ open=false },properties=PopupProperties(focusable=true)) {
+                Surface(shape=RoundedCornerShape(10.dp),color=Color(0xFF10131A),contentColor=MainText,border=BorderStroke(1.dp,SelectedEdge),shadowElevation=4.dp) {
+                    Text(text,Modifier.widthIn(max=240.dp).padding(horizontal=10.dp,vertical=6.dp),fontSize=13.sp)
                 }
             }
         }
@@ -406,7 +406,9 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
     val choices=remember(a) { languageChoices(a.texts,preferred) }
     var language by remember(a) { mutableIntStateOf(0) }
     val text=choices.getOrNull(language) ?: textOf(a)
-    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(12.dp)).padding(12.dp),
+    // The detail stands outside the panels, so it sets the light text colour itself.
+    CompositionLocalProvider(LocalContentColor provides MainText) {
+    Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(15.dp)).padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             a.hazards.ifEmpty { listOf(AlertHazard.Generic) }.take(MaxIcons).forEach { AlertGlyph(it,inkOf(a),22.dp) }
@@ -459,6 +461,7 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
             Text(label,Modifier.clickable(onClickLabel=label) { onSelect(o) },fontSize=13.sp,color=SelectedEdge)
         }
         if (!a.local) Text(uiText(R.string.alert_detail_updated,ClockFormat.format(a.sent.atZone(z))),fontSize=12.sp,color=ForecastMuted)
+    }
     }
 }
 @Composable private fun AlertCard(a: UnifiedAlert,z: ZoneId,selected: Boolean,onClick: ()->Unit) {

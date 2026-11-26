@@ -7,7 +7,9 @@ import java.time.Instant
 class AlertPresentationTest : ResourceStringsTestBase() {
     private val start=Instant.parse("2026-10-25T05:00:00Z")
     private val end=start.plusSeconds(3600)
-    private fun item(text: String="Moderate wind warning",language: String="en",level: String="orange",local: Boolean=false)=AlertItem(text,level,local,start,end,"Météo-France",text,"cap-1","issuer",language,"wind","area-1","",setOf("KDE"))
+    private fun alert(hazards: List<AlertHazard> =listOf(AlertHazard.Wind),level: AlertLevel=AlertLevel.Orange,local: Boolean=false,event: String="Moderate wind warning",id: String="cap-1")=
+        UnifiedAlert(CapKey("s",id),emptySet(),"Alert",hazards,Basis.AwarenessCode,level,Basis.AwarenessCode,start,end,end,start,emptySet(),"Météo-France","",
+            listOf(AlertText("en",event,"","","","")),listOf(AlertSourceRef("KDE",id,"")),local)
     @Test fun unixSecondsAndMillisecondsAgree() {
         val expected=Instant.ofEpochSecond(1778680800)
         assertEquals(expected,parseAlertTimestamp("1778680800"))
@@ -18,15 +20,17 @@ class AlertPresentationTest : ResourceStringsTestBase() {
         assertEquals(start,parseAlertTimestamp("2026-10-25T06:00:00+01:00"))
         assertNull(parseAlertTimestamp(null)); assertNull(parseAlertTimestamp("")); assertNull(parseAlertTimestamp("not a time"))
     }
-    @Test fun frenchAndEnglishWindGroupWithoutDeletingMembers() {
-        val a=item(); val b=item("Vigilance jaune vent-violent","fr").copy(identifier="cap-2",via=setOf("LibreWXR"))
+    @Test fun sameKindAndLevelGroupWithoutDeletingMembers() {
+        val a=alert(); val b=alert(event="Vigilance jaune vent-violent",id="cap-2")
         val g=groupAlertPresentation(listOf(a,b)).single()
-        assertEquals("Vietor",g.label); assertEquals(listOf(a,b),g.items)
+        assertEquals("Vietor",g.label); assertEquals(listOf(a,b),g.items); assertEquals(AlertHazard.Wind,g.hazard)
     }
-    @Test fun severitiesAndLocalEstimateStaySeparate() {
-        assertEquals(3,groupAlertPresentation(listOf(item(),item(level="red"),item(local=true))).size)
+    @Test fun levelsKindsAndLocalEstimatesStaySeparate() {
+        assertEquals(4,groupAlertPresentation(listOf(alert(),alert(level=AlertLevel.Red),alert(local=true,event="Silné nárazy vetra"),alert(hazards=listOf(AlertHazard.Rain)))).size)
+        assertEquals("Silné nárazy vetra",groupAlertPresentation(listOf(alert(local=true,event="Silné nárazy vetra"))).single().label)
     }
-    @Test fun unknownHazardsStaySeparate() {
-        assertEquals(2,groupAlertPresentation(listOf(item("Unclassified A"),item("Unclassified B"))).size)
+    @Test fun unknownHazardsKeepTheirNames() {
+        val g=groupAlertPresentation(listOf(alert(hazards=listOf(AlertHazard.Generic),event="Unclassified A")))
+        assertEquals("Unclassified A",g.single().label)
     }
 }

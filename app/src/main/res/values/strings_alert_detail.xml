@@ -45,5 +45,8 @@
     <string name="alert_hazard_estimated">"Druh javu je odhadnutý z názvu výstrahy."</string>
     <string name="alert_local_note">"Odhad aplikácie z predpovede počasia, nie oficiálna výstraha."</string>
     <string name="alert_overlap">"Prekrýva sa s: %1$s"</string>
-    <string name="alert_detail_hint">"Ťuknutím na úsek v grafe zobrazíš podrobnosti."</string>
+    <string name="alert_detail_hint">"Ťuknutím na farebný úsek v grafe alebo na výstrahu v prehľade zobrazíš podrobnosti. Ťuknutím na ikonu zobrazíš druh javu."</string>
+    <string name="alert_list_title">"Prehľad výstrah"</string>
+    <string name="nt_alerts_ongoing">"Trvalé oznámenie výstrah"</string>
+    <string name="nt_alerts_ongoing_note">"Kým má lokalita platné alebo ohlásené výstrahy, v lište zostane hlavička s názvom lokality a pod ňou jedno oznámenie pre každý druh výstrahy. Zvuk má len nová výstraha. Oznámenia zmiznú, keď ich výstrahy skončia. Obsah sa mení pri obnove na pozadí. Od Androidu 14 ich možno potiahnutím zavrieť; pri ďalšej obnove sa vrátia."</string>
 </resources>

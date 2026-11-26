@@ -25,7 +25,7 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     Overview("overview",uiText(R.string.ui_teraz_6172392c),PerunIcons.Home),Forecast("forecast",uiText(R.string.ui_predpoved_20fdfd9d),PerunIcons.Chart),Maps("maps",uiText(R.string.ui_mapy_c9e02d67),PerunIcons.Map),Alerts("alerts",uiText(R.string.ui_vystrahy_d88f15ec),PerunIcons.Alert),More("more",uiText(R.string.ui_viac_66c91b9a),PerunIcons.More)
 }
 @OptIn(ExperimentalMaterial3Api::class)
-@Composable fun PerunApp(notificationRoute:String?=null,notificationLocation:String?=null,notificationToken:Long=0L) {
+@Composable fun PerunApp(notificationRoute:String?=null,notificationLocation:String?=null,notificationToken:Long=0L,notificationAlert:String?=null) {
     val nav=rememberNavController();val entry by nav.currentBackStackEntryAsState();val route=entry?.destination?.route?.substringBefore('?');val current=if(route?.startsWith("more/")==true) Tab.More.route else route
     val context=LocalContext.current;val locations=remember {LocationState(LocationStore(context))};var sheet by remember {mutableStateOf(false)}
     var sourceEditor by remember {mutableStateOf(false)}
@@ -36,8 +36,11 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
         Box(Modifier.fillMaxSize().background(background),contentAlignment=Alignment.Center) {Button(onClick={sheet=true}) {Icon(PerunIcons.Plus,null);Text(uiText(R.string.ui_pridat_lokalitu_70dce8af))}}
         return
     }
+    // The warning of a notification, opened in the detail of the Alerts screen once it has loaded.
+    var focusAlert by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(notificationToken) {
         val requested=notificationRoute ?: return@LaunchedEffect
+        if(requested=="alerts") focusAlert=notificationAlert?.takeIf { it.isNotBlank() }
         val allowed=requested in setOf("overview","alerts","forecast","maps","more/air","more/air?mode=pollen","more/sun-moon") || requested.startsWith("forecast?chart=") || requested.startsWith("forecast?day=")
         if(!allowed) return@LaunchedEffect
         val index=locations.locations.indexOfFirst { BackgroundRefresh.locationKey(it)==notificationLocation }
@@ -88,7 +91,7 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
                         val events=OverviewNavigation(openForecast={chart->if(chart=="marine") nav.navigate("more/marine") {launchSingleTop=true} else if(chart in setOf("temperature","uv","precipitation","probability","cloud","wind","pressure","humidity","visibility")) nav.navigate("forecast?chart=$chart") {launchSingleTop=true} else if(chart=="forecast") nav.navigate(Tab.Forecast.route) {launchSingleTop=true}},openAlerts={nav.navigate(Tab.Alerts.route) {launchSingleTop=true}},openSunMoon={nav.navigate("more/sun-moon") {launchSingleTop=true}},openMarine={metric->nav.navigate("more/marine?metric=$metric") {launchSingleTop=true}},openAir={mode->nav.navigate("more/air?mode=$mode") {launchSingleTop=true}})
                         CompositionLocalProvider(LocalOverviewNavigation provides events) {Box(Modifier.fillMaxSize().horizontalSwipe(Unit) {step->val all=locations.locations;val next=all.indexOf(locations.current)+step;if(next in all.indices) locations.select(next)}) {Overview(locations.current)}}
                     } else if(tab==Tab.Maps) key(locations.current) {MapsScreen(locations.current)}
-                    else if(tab==Tab.Alerts) key(locations.current) {AlertsScreen(locations.current)}
+                    else if(tab==Tab.Alerts) key(locations.current) {AlertsScreen(locations.current,focusAlert) { focusAlert=null }}
                     else if(tab==Tab.More) MoreScreen(onAir={nav.navigate("more/air") {launchSingleTop=true}},onSettings={nav.navigate("settings") {launchSingleTop=true}},onSunMoon={nav.navigate("more/sun-moon") {launchSingleTop=true}},onMarine={nav.navigate("more/marine") {launchSingleTop=true}},location=locations.current)
                 }}
             }

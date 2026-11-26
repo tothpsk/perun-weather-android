@@ -82,7 +82,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     // Official alerts of the saved places, loaded when the list opens and shown as a mark before the remove button.
-    var alertMarks by remember { mutableStateOf<Map<String, List<AlertItem>>>(emptyMap()) }
+    var alertMarks by remember { mutableStateOf<Map<String, List<UnifiedAlert>>>(emptyMap()) }
     LaunchedEffect(state.locations) {
         loadLocationAlerts(context, state.locations) { key, items -> alertMarks = alertMarks + (key to items) }
     }
@@ -261,7 +261,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
 
 @Composable
 private fun LocationRow(
-    location: Location, selected: Boolean, canDelete: Boolean, dragging: Boolean, dragOffset: Float, alerts: List<AlertItem>?,
+    location: Location, selected: Boolean, canDelete: Boolean, dragging: Boolean, dragOffset: Float, alerts: List<UnifiedAlert>?,
     onSelect: () -> Unit, onMoveUp: () -> Unit, onMoveDown: () -> Unit, onDelete: () -> Unit,
     onHeight: (Float) -> Unit, handle: Modifier,
 ) {

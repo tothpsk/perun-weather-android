@@ -74,15 +74,5 @@ internal fun mergeUnified(all: List<UnifiedAlert>): List<UnifiedAlert> {
         if (i == null) { out += a; keys += listOfNotNull(a.key).toMutableSet() }
         else { out[i] = combine(out[i], a); a.key?.let { keys[i] += it } }
     }
-    return out
+    return out.mapIndexed { i, a -> a.copy(joined = keys[i].toSet()) }
 }
-
-private val SourceOrder = listOf("MeteoAlarm", "LibreWXR", "KDE")
-private fun sourceLabel(name: String) = if (name == "KDE") "FOSS" else name
-
-/** Official warnings of all sources as the screens show them: merged, the sources in the issuer line. */
-internal fun officialItems(alerts: List<UnifiedAlert>, preferred: String = AppLocale.locale().toLanguageTag()): List<AlertItem> =
-    mergeUnified(alerts).map { a ->
-        val names = a.sources.map { it.source }.distinct().sortedBy { SourceOrder.indexOf(it).let { i -> if (i < 0) SourceOrder.size else i } }
-        a.toAlertItem(issuer = names.joinToString(", ") { sourceLabel(it) }, origin = a.issuer, preferred = preferred)
-    }

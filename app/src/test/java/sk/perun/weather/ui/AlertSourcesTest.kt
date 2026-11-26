@@ -12,35 +12,32 @@ import java.time.Instant
 class AlertSourcesTest : ResourceStringsTestBase() {
     private fun bytes(name: String) = javaClass.getResourceAsStream("/cap/$name")!!.use { it.readBytes() }
     private fun message(name: String) = parseCap(bytes(name))!!
-    private fun item(name: String, source: String, preferred: String = "sk-SK") =
-        message(name).toUnified(AlertSourceRef(source, name, "")).single().toAlertItem(issuer = source, preferred = preferred)
+    private fun unified(name: String, source: String) = message(name).toUnified(AlertSourceRef(source, name, "")).single()
 
-    @Test fun adapterKeepsTheUnifiedKind() {
-        val a = item("meteoalarm_sk_icing.xml", "MeteoAlarm")
-        assertEquals("Výstraha pred poľadovicou", a.event)
-        assertEquals("yellow", a.level)
-        assertEquals("sk", a.language)
-        assertEquals(HazardPrefix + "Ice", a.awareness)
-        assertEquals(AlertHazard.Ice, alertHazard(a.event, a.awareness, a.title))
-        assertEquals("geo:EMMA_ID=SK100", a.areaKey)
-        assertEquals("2.49.0.0.703.0.SK.261124163600.6b05bcfd_BA", a.identifier)
-        assertEquals("http://www.shmu.sk", a.senderId)
-        assertEquals("Moderate icing warning", item("meteoalarm_sk_icing.xml", "MeteoAlarm", "en-GB").event)
+    @Test fun textAndKindOfTheUnifiedWarning() {
+        val a = unified("meteoalarm_sk_icing.xml", "MeteoAlarm")
+        assertEquals("Výstraha pred poľadovicou", pickText(a.texts, "sk-SK")!!.event)
+        assertEquals("Moderate icing warning", pickText(a.texts, "en-GB")!!.event)
+        assertEquals(AlertLevel.Yellow, a.level)
+        assertEquals(listOf(AlertHazard.Ice), a.hazards)
+        assertEquals("Poľadovica", alertName(a))
+        assertEquals(setOf("http://www.shmu.sk|2.49.0.0.703.0.SK.261124163600.6b05bcfd_BA"), alertRefs(a))
     }
 
     @Test fun iconsOfBothHungarianHazardsStartWithIce() {
-        val a = item("meteoalarm_hu_snow_ice.xml", "MeteoAlarm", "en-GB")
-        assertEquals(AlertHazard.Ice, alertHazard(a.event, a.awareness))
-        assertEquals("Poľadovica", groupAlertPresentation(listOf(a)).single().label)
+        val a = unified("meteoalarm_hu_snow_ice.xml", "MeteoAlarm")
+        assertEquals(AlertHazard.Ice, alertIconKind(a))
+        val g = groupAlertPresentation(listOf(a)).single()
+        assertEquals("Poľadovica · Sneženie", g.label)
+        assertEquals(AlertHazard.Ice, g.hazard)
     }
 
     @Test fun meteoAlarmAndKdeAreOneWarning() {
         val meteo = message("meteoalarm_sk_icing.xml").toUnified(AlertSourceRef("MeteoAlarm", "m", ""))
         val kde = message("kde_sk_icing.xml").toUnified(AlertSourceRef("KDE", "k", ""))
-        val one = officialItems(meteo + kde, "sk-SK").single()
-        assertEquals(setOf("MeteoAlarm", "KDE"), one.via)
-        assertEquals("MeteoAlarm, FOSS", one.issuer)
-        assertEquals("Slovenský Hydrometeorologický ústav", one.origin)
+        val one = mergeUnified(meteo + kde).single()
+        assertEquals(setOf("MeteoAlarm", "KDE"), one.sources.map { it.source }.toSet())
+        assertEquals("Slovenský Hydrometeorologický ústav", one.issuer)
     }
 
     @Test fun translatedAreasAreFoundByTheirCodes() {

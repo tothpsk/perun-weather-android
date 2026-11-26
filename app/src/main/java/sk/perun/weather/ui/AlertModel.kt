@@ -49,7 +49,12 @@ internal data class UnifiedAlert(
     val local: Boolean = false,
     // Joined with a warning of another source by hazard, level, area and time, because one of them had no CAP message.
     val looseMatch: Boolean = false,
+    // All CAP keys joined into this warning by mergeUnified, the key itself included.
+    val joined: Set<CapKey> = emptySet(),
 )
+
+/** Every CAP key of the warning: the ones of all the sources it was joined from. */
+internal fun UnifiedAlert.capKeys(): Set<CapKey> = joined + listOfNotNull(key)
 
 private val DwdLanguageSuffix = Regex("\\.[A-Z]{3}$")
 
@@ -188,25 +193,7 @@ internal fun textRank(language: String, preferred: String): Int {
 /** The text to show: the preferred language, the same language without region, English, then the original. */
 internal fun pickText(texts: List<AlertText>, preferred: String = "sk-SK"): AlertText? = texts.minByOrNull { textRank(it.language, preferred) }
 
-/** Marks an AlertItem.awareness that already names the kind of the hazard, so every icon uses the unified result. */
+/** Marks a stored awareness that already names the kind of the hazard (widget cache of 1.4.0 test builds). */
 internal const val HazardPrefix = "hazard:"
 internal fun hazardOfAwareness(awareness: String): AlertHazard? =
     if (awareness.startsWith(HazardPrefix)) AlertHazard.entries.firstOrNull { it.name == awareness.removePrefix(HazardPrefix) } else null
-
-/**
- * The warning in the form the screens, widgets and notifications use until they read UnifiedAlert themselves.
- * The text is the one of [preferred]; [origin] is the service that issued a warning passed on by an aggregator.
- */
-internal fun UnifiedAlert.toAlertItem(issuer: String, origin: String = "", preferred: String = AppLocale.locale().toLanguageTag()): AlertItem {
-    val text = pickText(texts, preferred)
-    val event = text?.event?.takeIf { it.isNotBlank() } ?: text?.headline.orEmpty()
-    return AlertItem(
-        event = event, level = level.key, local = local, start = start, end = end,
-        issuer = issuer, title = text?.headline.orEmpty(),
-        identifier = key?.identifier ?: sources.firstOrNull()?.sourceId.orEmpty(), senderId = key?.sender.orEmpty(),
-        language = text?.language.orEmpty(), eventCode = "",
-        areaKey = if (areas.isEmpty()) "" else "geo:" + areas.sorted().joinToString(";"),
-        originUri = web, via = sources.map { it.source }.toSet(),
-        awareness = hazards.firstOrNull()?.let { HazardPrefix + it.name }.orEmpty(), origin = origin,
-    )
-}

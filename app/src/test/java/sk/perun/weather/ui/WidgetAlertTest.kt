@@ -5,29 +5,27 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import java.time.Instant
 
-class WidgetAlertTest {
+class WidgetAlertTest : ResourceStringsTestBase() {
     private val now=Instant.parse("2026-11-24T18:00:00Z")
-    private fun a(level:String,startH:Long?,endH:Long?,local:Boolean=false,event:String=level)=
-        AlertItem(event=event,level=level,local=local,start=startH?.let { now.plusSeconds(it*3600) },end=endH?.let { now.plusSeconds(it*3600) })
+    private fun a(level:AlertLevel,startH:Long,endH:Long,local:Boolean=false,id:String=level.key)=
+        UnifiedAlert(CapKey("s",id),emptySet(),"Alert",listOf(AlertHazard.Snow),Basis.AwarenessCode,level,Basis.AwarenessCode,
+            now.plusSeconds(startH*3600),now.plusSeconds(endH*3600),now.plusSeconds(endH*3600),now,emptySet(),"","",
+            listOf(AlertText("sk","Sneh","","","","")),emptyList(),local)
 
     @Test fun onlyWarningsThatOverlapThePeriod() {
-        val tomorrow=a("yellow",14,30)
+        val tomorrow=a(AlertLevel.Yellow,14,30)
         assertNull(widgetAlert(listOf(tomorrow),now,now.plusSeconds(6*3600)))
         assertEquals(tomorrow,widgetAlert(listOf(tomorrow),now,now.plusSeconds(6*86400)))
-        assertNull(widgetAlert(listOf(a("orange",-10,-1)),now,now.plusSeconds(3600)))
+        assertNull(widgetAlert(listOf(a(AlertLevel.Orange,-10,-1)),now,now.plusSeconds(3600)))
     }
 
     @Test fun strongestThenEarliest() {
-        val later=a("orange",5,8,event="later");val sooner=a("orange",1,3,event="sooner")
-        assertEquals("sooner",widgetAlert(listOf(a("yellow",0,2),later,sooner),now,now.plusSeconds(86400))?.event)
-        assertEquals("red",widgetAlert(listOf(a("yellow",0,2),a("red",20,22)),now,now.plusSeconds(86400))?.level)
+        val later=a(AlertLevel.Orange,5,8,id="later");val sooner=a(AlertLevel.Orange,1,3,id="sooner")
+        assertEquals("sooner",widgetAlert(listOf(a(AlertLevel.Yellow,0,2),later,sooner),now,now.plusSeconds(86400))?.key?.identifier)
+        assertEquals(AlertLevel.Red,widgetAlert(listOf(a(AlertLevel.Yellow,0,2),a(AlertLevel.Red,20,22)),now,now.plusSeconds(86400))?.level)
     }
 
     @Test fun localEstimatesAndOtherLevelsStayOut() {
-        assertNull(widgetAlert(listOf(a("red",0,2,local=true),a("neutral",0,2)),now,now.plusSeconds(86400)))
-    }
-
-    @Test fun openValidity() {
-        assertEquals("yellow",widgetAlert(listOf(a("yellow",null,null)),now,now.plusSeconds(3600))?.level)
+        assertNull(widgetAlert(listOf(a(AlertLevel.Red,0,2,local=true),a(AlertLevel.Neutral,0,2)),now,now.plusSeconds(86400)))
     }
 }

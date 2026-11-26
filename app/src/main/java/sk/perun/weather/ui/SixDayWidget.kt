@@ -160,8 +160,8 @@ internal object SixDayWidgets {
         val alert=widgetDays(now,d.zone,6).let { (from,to)->widgetAlert(d.alerts,from,to) }
         if(alert==null) v.setViewVisibility(R.id.wg_alert,View.GONE) else {
             v.setViewVisibility(R.id.wg_alert,View.VISIBLE)
-            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert.event,alert.level,54,alert.awareness))
-            v.setContentDescription(R.id.wg_alert,alert.event)
+            v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert,54))
+            v.setContentDescription(R.id.wg_alert,alertName(alert))
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l)))

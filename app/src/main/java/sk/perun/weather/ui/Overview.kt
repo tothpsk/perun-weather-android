@@ -55,7 +55,6 @@ internal val AlertColors=mapOf("neutral" to Grey,"yellow" to Color(0xFFFDD835),"
 internal val AlertRank=mapOf("neutral" to 0,"yellow" to 1,"orange" to 2,"red" to 3)
 private val AlertLevels=listOf("neutral","yellow","orange","red")
 private val AlertSurface=mapOf("yellow" to (Color(0xFF302C25) to Color(0xFF806C42)),"orange" to (Color(0xFF33271C) to Color(0xFFA0622A)),"red" to (Color(0xFF341F22) to Color(0xFFA8393D)))
-private val AlertLocalNames=mapOf("Thunderstorm risk" to uiText(R.string.ui_riziko_burok_8fa6514a),"Strong wind gusts" to uiText(R.string.ui_silne_narazy_vetra_7b7b006f),"Heavy precipitation" to uiText(R.string.ui_silne_zrazky_2630cc03),"Extreme heat" to uiText(R.string.ui_extremne_teplo_cdcd5041),"Extreme cold" to uiText(R.string.ui_extremny_chlad_d4aeb237))
 private fun alertLevelName(level:String)=when(level) { "red"->uiText(R.string.ui_cervena_f1d8f5c8);"orange"->uiText(R.string.ui_oranzova_ab35bb41);"yellow"->uiText(R.string.ui_zlta_64273c3a);else->uiText(R.string.ui_informacia_b277d884) }
 private fun finite0(v:Double)=if(v.isFinite()) v else 0.0
 private fun Instant?.clock(z:ZoneId)=this?.atZone(z)?.format(DateTimeFormatter.ofPattern("HH:mm")) ?: "--"
@@ -201,7 +200,7 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
 
 @Composable private fun Hero(w:OverviewData,u:WeatherUnits,showAlerts:Boolean,onHelp:(HelpSpec)->Unit) {
     val navigation=LocalOverviewNavigation.current
-    val groups=remember(w.alerts) { groupAlertPresentation(w.alerts.sortedByDescending { AlertRank[it.level] ?: 0 }) }
+    val groups=remember(w.alerts) { groupAlertPresentation(w.alerts.sortedWith(compareByDescending<UnifiedAlert> { it.level.rank }.then(alertOrder(java.time.Instant.now())))) }
     Box(Modifier.fillMaxWidth().padding(top=6.dp,bottom=2.dp)) {
         Column(Modifier.fillMaxWidth(),verticalArrangement=Arrangement.spacedBy(2.dp)) {
             val weekday=w.time.format(DateTimeFormatter.ofPattern("EEEE",SK)).replaceFirstChar { it.titlecase(SK) }
@@ -221,15 +220,14 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
 
 @Composable private fun AlertChips(groups:List<AlertDisplayGroup>,onOpen:()->Unit,modifier:Modifier) {
     val rest=groups.drop(1)
-    val restRank=if(rest.isEmpty()) 0 else rest.maxOf { g -> g.items.maxOf { AlertRank[it.level] ?: 0 } }
+    val restRank=if(rest.isEmpty()) 0 else rest.maxOf { g -> AlertRank[g.level] ?: 0 }
     Column(modifier) {
         AlertChip(groups.first(),onOpen,rest.size,AlertColors[AlertLevels[restRank.coerceIn(0,3)]] ?: Grey)
     }
 }
 
 @Composable private fun AlertChip(g:AlertDisplayGroup,onOpen:()->Unit,more:Int,moreColor:Color) {
-    val first=g.items.first()
-    val level=g.items.maxByOrNull { AlertRank[it.level] ?: 0 }?.level ?: first.level
+    val level=g.level
     val color=AlertColors[level] ?: Grey
     val surface=AlertSurface[level]
     val shape=RoundedCornerShape(12.dp)
@@ -237,10 +235,10 @@ private fun fallbackNote(w:OverviewData?,ex:OverviewExtra?):String? {
         Modifier.fillMaxWidth().clip(shape).background(surface?.first ?: TileBackground).border(1.dp,surface?.second ?: TileBorder,shape).clickable(onClick=onOpen).padding(horizontal=10.dp,vertical=6.dp),
         verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp),
     ) {
-        AlertGlyph(alertHazard(first.event,first.awareness,g.label),color,18.dp)
+        AlertGlyph(g.hazard,color,18.dp)
         Column(Modifier.weight(1f)) {
-            Text(AlertLocalNames[g.label] ?: g.label,fontSize=13.sp,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis,lineHeight=16.sp)
-            Text(alertLevelName(level)+if(first.local) uiText(R.string.ui_odhad_5dde2d79) else "",fontSize=11.sp,color=color,maxLines=1,overflow=TextOverflow.Ellipsis)
+            Text(g.label,fontSize=13.sp,fontWeight=FontWeight.Bold,maxLines=2,overflow=TextOverflow.Ellipsis,lineHeight=16.sp)
+            Text(alertLevelName(level)+if(g.local) uiText(R.string.ui_odhad_5dde2d79) else "",fontSize=11.sp,color=color,maxLines=1,overflow=TextOverflow.Ellipsis)
         }
         if(more>0) Box(Modifier.border(1.dp,moreColor,RoundedCornerShape(8.dp)).padding(horizontal=6.dp,vertical=2.dp)) {
             Text("+$more",fontSize=12.sp,fontWeight=FontWeight.Bold,color=moreColor)
