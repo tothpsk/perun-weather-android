@@ -48,5 +48,5 @@
     <string name="alert_detail_hint">"Ťuknutím na farebný úsek v grafe alebo na výstrahu v prehľade zobrazíš podrobnosti. Ťuknutím na ikonu zobrazíš druh javu."</string>
     <string name="alert_list_title">"Prehľad výstrah"</string>
     <string name="nt_alerts_ongoing">"Trvalé oznámenie výstrah"</string>
-    <string name="nt_alerts_ongoing_note">"Kým pre lokalitu platí výstraha, v lište zostane jedno oznámenie so všetkými jej platnými výstrahami a nové výstrahy sa zoskupia pod ním. Zmizne, keď posledná výstraha skončí. Obsah sa mení pri obnove na pozadí, bez zvuku. Od Androidu 14 ho možno potiahnutím zavrieť; pri ďalšej obnove sa vráti."</string>
+    <string name="nt_alerts_ongoing_note">"Kým má lokalita platné alebo ohlásené výstrahy, v lište zostane hlavička s názvom lokality a pod ňou jedno oznámenie pre každý druh výstrahy. Zvuk má len nová výstraha. Oznámenia zmiznú, keď ich výstrahy skončia. Obsah sa mení pri obnove na pozadí. Od Androidu 14 ich možno potiahnutím zavrieť; pri ďalšej obnove sa vrátia."</string>
 </resources>

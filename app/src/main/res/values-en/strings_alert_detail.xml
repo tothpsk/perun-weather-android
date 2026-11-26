@@ -48,5 +48,5 @@
     <string name="alert_detail_hint">"Tap a coloured bar in the chart or a warning in the overview to see the details. Tap an icon to see the kind of hazard."</string>
     <string name="alert_list_title">"Alerts overview"</string>
     <string name="nt_alerts_ongoing">"Persistent alert notification"</string>
-    <string name="nt_alerts_ongoing_note">"While a warning is valid for a place, one notification with all its valid warnings stays in the shade, and new warnings are grouped under it. It goes away when the last warning ends. Its content changes silently with the background refresh. From Android 14 it can be swiped away; it returns with the next refresh."</string>
+    <string name="nt_alerts_ongoing_note">"While a place has valid or coming warnings, a header with the name of the place stays in the shade and under it one notification for each kind of warning. Only a new warning makes a sound. The notifications go away when their warnings end. Their content changes with the background refresh. From Android 14 they can be swiped away; they return with the next refresh."</string>
 </resources>
