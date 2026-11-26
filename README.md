@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.4.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.4.1 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -101,8 +101,8 @@ Sunrise and sunset, the length of the day and its change, moonrise and moonset, 
 
 - Current conditions as a permanent notification, and a chosen value in the status bar.
 - Weather alerts from a chosen severity, for the active location, all locations or a chosen set. The alerts of each place are grouped under its name, and a tap opens the details of the warning. The same warning from more sources is announced once, and an update only when its level rises.
-- Optionally, a persistent alert notification for each place while it has warnings, with one line for each kind of warning.
-- Your own rules for a parameter and a threshold, for one or several locations.
+- Optionally, a persistent alert notification for each place while it has warnings, with one line for each warning.
+- Your own rules for a parameter and a threshold, for one or several locations. A rule notification stands in the group of its place below the warnings, and it goes away when the forecast no longer fulfils the rule.
 - Summaries of today and tomorrow at a chosen hour.
 
 ### Widgets

@@ -325,14 +325,14 @@ private suspend fun longLoad(l:Location,model:String):LongData=withContext(Dispa
                     val ax=if(a%2==0) left-38.dp.toPx()*(a/2) else right+38.dp.toPx()*(a/2);drawLine(c.copy(alpha=.7f),Offset(ax,top),Offset(ax,bottom),.7.dp.toPx())
                     for(k in 0..4) {val (lo,hi)=scales.getValue(m.axis);text(weatherUnitNumber(hi-(hi-lo)*k/4,if(m.axis=="rain" || m.axis=="pressure") 1 else 0),xx,top+(bottom-top)*k/4-5.dp.toPx(),c)}
                 }
-                var date=Instant.ofEpochSecond(start).atZone(d.zone).toLocalDate();val today=Instant.ofEpochSecond(now).atZone(d.zone).toLocalDate()
+                var date=Instant.ofEpochSecond(start).atZone(d.zone).toLocalDate()
+                // One form of the day labels for all days (chartDayLabels).
+                val cols=ArrayList<ChartDay>()
                 repeat(7) {val a=date.atStartOfDay(d.zone).toEpochSecond();val b=date.plusDays(1).atStartOfDay(d.zone).toEpochSecond()
-                    if(a<start+span && b>start) {val x0=x(a).coerceIn(left,right);val x1=x(b).coerceIn(left,right);drawLine(LongEdge.copy(alpha=.5f),Offset(x0,top),Offset(x0,bottom),.7.dp.toPx())
-                        val name=when(date) {today->uiText(R.string.ui_dnes_ce1bed34);today.plusDays(1)->uiText(R.string.ui_zajtra_c3e86eb2);else->date.format(DateTimeFormatter.ofPattern("EEE",appLocale()))}
-                        val full=name+" · "+date.format(DateTimeFormatter.ofPattern(appPattern("d. M."),appLocale()));val s=if(tm.measure(full,TextStyle(fontSize=9.sp)).size.width<=x1-x0-2.dp.toPx()) full else date.format(DateTimeFormatter.ofPattern(appPattern("d. M."),appLocale()))
-                        val r=tm.measure(s,TextStyle(fontSize=9.sp,color=ForecastMuted));if(r.size.width<=x1-x0) drawText(r,topLeft=Offset((x0+x1-r.size.width)/2,bottom+5.dp.toPx()))
-                    };date=date.plusDays(1)
+                    if(a<start+span && b>start) {val x0=x(a).coerceIn(left,right);val x1=x(b).coerceIn(left,right);drawLine(LongEdge.copy(alpha=.5f),Offset(x0,top),Offset(x0,bottom),.7.dp.toPx());cols+=ChartDay(date,x0,x1)}
+                    date=date.plusDays(1)
                 }
+                chartDayLabels(cols,x(start+86400)-x(start),2.dp.toPx()) {tm.measure(it,TextStyle(fontSize=9.sp)).size.width.toFloat()}.forEachIndexed {i,s->if(s!=null) {val c=cols[i];val r=tm.measure(s,TextStyle(fontSize=9.sp,color=ForecastMuted));drawText(r,topLeft=Offset((c.x0+c.x1-r.size.width)/2,bottom+5.dp.toPx()))}}
                 if(shown.any {it.axis=="wind"}) indices.filter {Instant.ofEpochSecond(d.times[it]).atZone(d.zone).hour%12==0}.forEach {i->val dir=d.value("wind_direction_10m",i);if(dir.isFinite()) {val angle=(dir+180)*PI/180;val v=Offset(sin(angle).toFloat(),-cos(angle).toFloat());val center=Offset(x(d.times[i]),top-7.dp.toPx());val tip=center+v*5.dp.toPx();val side=Offset(-v.y,v.x)*2.dp.toPx();drawLine(longColor(LongMetric.Wind),center-v*5.dp.toPx(),tip,1.dp.toPx());drawLine(longColor(LongMetric.Wind),tip,tip-v*3.dp.toPx()+side,1.dp.toPx());drawLine(longColor(LongMetric.Wind),tip,tip-v*3.dp.toPx()-side,1.dp.toPx())}}
                 fun marker(time:Long,c:Color,s:String,badgeY:Float) {if(time in start..start+span) {val xx=x(time);val r=tm.measure(s,TextStyle(fontSize=9.sp,color=c));val pad=3.dp.toPx();val bx=(xx-r.size.width/2).coerceIn(left,(right-r.size.width).coerceAtLeast(left));drawLine(c,Offset(xx,top),Offset(xx,bottom),1.dp.toPx());drawRoundRect(Color(0xFF111A24),Offset(bx-pad,badgeY),Size(r.size.width+2*pad,r.size.height+2*pad),CornerRadius(3.dp.toPx()));drawText(r,topLeft=Offset(bx,badgeY+pad));drawLine(c,Offset(xx,badgeY+r.size.height+2*pad),Offset(xx,top),.7.dp.toPx())}}
                 marker(now,LongText,uiText(R.string.ui_teraz_e6989b57)+Instant.ofEpochSecond(now).atZone(d.zone).format(DateTimeFormatter.ofPattern("HH:mm")),0f)

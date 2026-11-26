@@ -4,6 +4,21 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-11-26
+
+### Changed
+
+- Notifications of warnings: the persistent alert notification shows one notification for each warning, as the cards of the Alerts screen, instead of one for each kind of hazard. Two warnings of snow with different levels or times are two notifications.
+- Notifications of rules: a rule notification belongs to the group of its place, below the warnings of the place. Two or more notifications of a place are grouped under the header of the place; a single notification names its place in the line.
+- Notifications of rules: a rule notification goes away when the rule is no longer fulfilled. Its end comes from the hourly forecast (weather, air quality and pollen) or, for weather events, from the weather codes; the expanded notification shows it.
+- Notifications of rules: removing a rule or moving it to another place removes its notification; an edited rule is evaluated again and notifies when it is fulfilled.
+- Alerts: a tap on the header of the details of a warning closes them, as the cross does.
+- Forecast, sea and Sun and Moon charts: the days are labelled in one form that stays the same wherever the chart is scrolled: the short name of the day with the date when it fits a whole day, otherwise the date only.
+
+### Fixed
+
+- Notifications of rules from 1.4.0 that stayed outside the groups are removed at the first background refresh.
+
 ## [1.4.0] - 2026-11-26
 
 ### Added

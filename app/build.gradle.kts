@@ -13,7 +13,7 @@ android {
         minSdk = 35
         targetSdk = 35
         versionCode = ((System.currentTimeMillis() / 1000 - 1767225600) / 60).toInt()
-        versionName = "1.4.0"
+        versionName = "1.4.1"
     }
 
     buildTypes {

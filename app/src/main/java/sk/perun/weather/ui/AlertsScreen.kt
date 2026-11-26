@@ -410,7 +410,8 @@ private fun linkText(label: String,page: String?): AnnotatedString = buildAnnota
     CompositionLocalProvider(LocalContentColor provides MainText) {
     Column(Modifier.fillMaxWidth().clip(RoundedCornerShape(15.dp)).background(LevelSurface[levelOf(a)]?.first ?: TrackColor).border(1.dp,LevelSurface[levelOf(a)]?.second ?: EdgeColor,RoundedCornerShape(15.dp)).padding(12.dp),
         verticalArrangement=Arrangement.spacedBy(10.dp)) {
-        Row(verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
+        // A tap on the header closes the detail, as the cross does.
+        Row(Modifier.fillMaxWidth().clickable(onClick=onClose),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.spacedBy(8.dp)) {
             a.hazards.ifEmpty { listOf(AlertHazard.Generic) }.take(MaxIcons).forEach { AlertGlyph(it,inkOf(a),22.dp) }
             Text(nameOf(a),Modifier.weight(1f),fontSize=17.sp,fontWeight=FontWeight.Bold)
             LevelPill(a)
