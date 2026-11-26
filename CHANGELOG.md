@@ -4,17 +4,25 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-26
+
+### Added
+
+- Alerts: a tap on a bar of the chart or on a warning in the overview opens its details in place: the short name of the hazard and the level, the validity with the time to its start or end, the name of the warning, its description, advice and area, the issuer with a link, the sources and the time of the update. A warning sent in more languages has a language switch; the language of the app comes first, then English.
+- Alerts, chart: a short tap on the icons names the hazards; the (i) under the icons explains the chart.
+- Notifications: a new option, Persistent alert notification. While a place has valid or coming warnings, a header with the name of the place stays in the shade, and under it one notification for each kind of warning. Only a new warning makes a sound, and the notifications go away when their warnings end.
+- Notifications: a tap on a warning opens the Alerts screen with the details of that warning.
+
 ### Changed
 
 - Alerts: a new installation turns on all alert sources: local estimates, MeteoAlarm, LibreWXR and the FOSS public alert server. An update keeps the sources chosen before.
-- Alerts: MeteoAlarm, LibreWXR and the FOSS public alert server read every warning from its whole CAP message. The kind of the hazard comes from the codes of the message, so an icing warning gets the ice icon in every source, and a warning of two hazards (for example freezing rain and blowing snow) starts with the first of them. The text is in the language of the app when the message has it.
-- Alerts: the same warning from MeteoAlarm, LibreWXR and the FOSS public alert server is shown once, with all its sources in the issuer line. Warnings are joined by the identifier of their CAP message, not by their text. An updated or cancelled warning removes its older version. The Alerts screen shows the official warnings in one group instead of one group for each source.
-- Alerts, chart: one row for each kind of hazard; the warnings of a row follow each other, a higher level lies on top. Warnings valid now come first, then the higher levels. A warning of more hazards shows up to three icons side by side; a short tap on the icons names the hazards.
-- Alerts: a tap on a bar opens the details under the chart: the short name of the hazard and the level, the validity with the time to its start or end, the name of the warning, its description, advice and area, the issuer with a link, the sources and the time of the update. A warning sent in more languages has a language switch; the language of the app comes first, then English. Empty texts such as "No further information available" are left out. The cards under the chart are shorter; a tap opens the details in place of the card.
-- Notifications of warnings: the icon of the hazard in the colour of the level, the short name and the level, the place in the header (or in the line, when the place has only one notification); expanded, the level, the validity and the description in the language of the app. A tap opens the Alerts screen with the details of the warning.
-- Notifications of warnings: the notifications of one place are grouped and sorted from the highest level; a notification goes away when its warning ends. A new option in the alert notifications, Persistent alert notification, keeps a header with the name of the place while it has valid or coming warnings, and under it one notification for each kind of warning: one line with the icon in the colour of the level, the short name and the level; expanded, the validity and the description. Only a new warning makes a sound, and the notifications go away when their warnings end.
-- Notifications of warnings: the same warning from more sources is announced once. An update of a warning is announced again only when its level rises.
-- Now, alert chip, the mark of a place in the list and the widgets use the same warnings as the Alerts screen, grouped by the kind of the hazard and the level.
+- Alerts: MeteoAlarm, LibreWXR and the FOSS public alert server read every warning from its whole CAP message. The kind of the hazard comes from the codes of the message, so an icing warning gets the ice icon in every source, and a warning of two hazards (for example freezing rain and blowing snow) shows both. The text is in the language of the app when the message has it, otherwise in English.
+- Alerts: the same warning from MeteoAlarm, LibreWXR and the FOSS public alert server is shown once, with all its sources. Warnings are joined by the identifier of their CAP message, not by their text. An updated or cancelled warning removes its older version. Official warnings are one group, local estimates another.
+- Alerts, chart: one row for each kind of hazard; the warnings of a row follow each other, a higher level lies on top. Warnings valid now come first, then the higher levels. A warning of more hazards shows up to three icons side by side.
+- Alerts: the list under the chart is the Alerts overview, with short cards. Empty texts such as "No further information available" are left out.
+- Notifications of warnings: one line with the icon in the colour of the level, the short name and the level; the place is in the header, or in the line when the place has only one notification. Expanded: the validity and the description in the language of the app. The notifications of one place are grouped, sorted from the highest level, and go away when their warnings end.
+- Notifications of warnings: the same warning from more sources is announced once. An update of a warning is announced again only when its level rises. Warnings already announced by 1.3 are not announced again.
+- Now, the alert chip, the mark of a place in the list of places and the widgets use the same warnings as the Alerts screen, grouped by the kind of the hazard and the level.
 - Alerts: whole CAP messages are kept on the phone until they expire, so a refresh downloads only new warnings. One refresh downloads at most 48 new messages for a place; the rest follow at the next refresh, and the list says it may be incomplete.
 
 ### Fixed
