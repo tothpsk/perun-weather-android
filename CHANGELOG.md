@@ -8,7 +8,7 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ### Changed
 
-- Forecast, expanded day: the curves of temperature and dew point use the rounded values shown above them, so they move only when the numbers change; a day with the same value all the time shows a flat line in the middle of the row instead of small waves. The scale of the rows is otherwise as before.
+- Forecast, expanded day: the curves of temperature and dew point use the rounded values shown above them, so they move only when the numbers change. When the values of a day differ by less than 4 °C (7.2 °F), the scale of the row is 4 °C wide with the curve in its middle, so small changes look small.
 
 ## [1.4.1] - 2026-11-26
 
