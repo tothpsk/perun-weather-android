@@ -401,12 +401,10 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 val v=row.v
                 fun number(h:ForecastHour)=weatherUnitNumber(convert(v,h.v(row.key),u),decimals(v,u))
                 fun col(h:ForecastHour)=if(v==FV.Rain) forecastPrecipColor(h) else tint(v,h.v(row.key),h.v("dew_point_2m"))
-                // Temperature and dew point: the curve uses the rounded values of the labels, so it moves only when the numbers do,
-                // and a day with differences under 4 °C keeps its curve in the middle of a 4 °C scale.
-                val rounded=v==FV.Temp || v==FV.Dew
-                fun plot(x:Double)=if(rounded) dayRowValue(x,decimals(v,u)) else x
-                val values=day.values(row.key).map { plot(convert(v,it,u)) }.filter(Double::isFinite)
-                val tempScale=if(rounded) dayRowScale(values,u.temperature.fromCelsius(4.0)-u.temperature.fromCelsius(0.0)) else null
+                val values=day.values(row.key).map { convert(v,it,u) }.filter(Double::isFinite)
+                // Temperature and dew point: a day with differences under 4 °C keeps its curve in the middle of a 4 °C scale,
+                // so small changes look small.
+                val tempScale=if(v==FV.Temp || v==FV.Dew) dayRowScale(values,u.temperature.fromCelsius(4.0)-u.temperature.fromCelsius(0.0)) else null
                 val low=tempScale?.first ?: if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
                 val high=tempScale?.second ?: (values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
                 // The scale starts at the bottom of the row; the precipitation row of a day with snow keeps the room for the marks under the bars.
@@ -420,9 +418,9 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                     }
                 } else if(v!=FV.Direction) {
                     var previous:ForecastHour?=null
-                    day.hours.forEach { h->val a=plot(convert(v,h.v(row.key),u));val p=previous
+                    day.hours.forEach { h->val a=convert(v,h.v(row.key),u);val p=previous
                         if(a.isFinite()) {
-                            if(p!=null && h.time-p.time==3600L) drawLine(col(h),Offset(x(p.time),y(plot(convert(v,p.v(row.key),u)))),Offset(x(h.time),y(a)),1.4.dp.toPx())
+                            if(p!=null && h.time-p.time==3600L) drawLine(col(h),Offset(x(p.time),y(convert(v,p.v(row.key),u))),Offset(x(h.time),y(a)),1.4.dp.toPx())
                             drawCircle(col(h),1.3.dp.toPx(),Offset(x(h.time),y(a)));previous=h
                         } else previous=null
                     }

@@ -1,12 +1,5 @@
 package sk.perun.weather.ui
 
-import java.math.BigDecimal
-import java.math.RoundingMode
-
-/** A value of a row of the expanded day rounded as its label is ([weatherUnitNumber] rounds half up). */
-internal fun dayRowValue(x: Double, decimals: Int): Double =
-    if (x.isFinite()) BigDecimal(x).setScale(decimals, RoundingMode.HALF_UP).toDouble() else x
-
 /**
  * The scale of a row of the expanded day: from the lowest to the highest value, at least [minSpan] wide. When the
  * values differ less, the scale is widened evenly up and down, so the curve stays in the middle of the row and
