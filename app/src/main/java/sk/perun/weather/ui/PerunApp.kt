@@ -14,6 +14,12 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import kotlinx.coroutines.launch
 import androidx.navigation.navArgument
 import androidx.navigation.compose.*
 import kotlinx.coroutines.CancellationException
@@ -30,12 +36,24 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     val context=LocalContext.current;val locations=remember {LocationState(LocationStore(context))};var sheet by remember {mutableStateOf(false)}
     var sourceEditor by remember {mutableStateOf(false)}
     val background=Color(0xFF323E4F);val text=Color(0xFFE8EAF0);val accent=Color(0xFF4FC3F7);val muted=Color(0xFFBBC4D2)
+    // After the Current location is added without the background permission, a dialog explains it.
+    var askBackground by remember {mutableStateOf(false)}
+    if(askBackground) BackgroundLocationDialog {askBackground=false}
+    val onCurrentAdded={ if(!CurrentLocation.background(context)) askBackground=true }
     // No preset place: until the first location is added, the app only offers adding one.
     if(locations.locations.isEmpty()) {
-        if(sheet) LocationsSheet(locations) {sheet=false}
+        if(sheet) LocationsSheet(locations,onCurrentAdded) {sheet=false}
         Box(Modifier.fillMaxSize().background(background),contentAlignment=Alignment.Center) {Button(onClick={sheet=true}) {Icon(PerunIcons.Plus,null);Text(uiText(R.string.ui_pridat_lokalitu_70dce8af))}}
         return
     }
+    // Opening the app moves the Current location to the precise position (at most once a minute).
+    val scope=rememberCoroutineScope();val owner=LocalLifecycleOwner.current
+    DisposableEffect(owner) {
+        val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_START && locations.hasCurrent) scope.launch { CurrentLocation.update(context,precise=true,fromBackground=false) } }
+        owner.lifecycle.addObserver(observer)
+        onDispose { owner.lifecycle.removeObserver(observer) }
+    }
+    val fixTime=rememberCurrentFixTime()
     // The warning of a notification, opened in the detail of the Alerts screen once it has loaded.
     var focusAlert by remember { mutableStateOf<String?>(null) }
     LaunchedEffect(notificationToken) {
@@ -70,10 +88,17 @@ enum class Tab(val route:String,val label:String,val icon:ImageVector) {
     }
     val sources=rememberLocationSourcePreferences(locations.current)
     CompositionLocalProvider(LocalLocationSourcePreferences provides sources) {
-        if(sheet) LocationsSheet(locations) {sheet=false}
+        if(sheet) LocationsSheet(locations,onCurrentAdded) {sheet=false}
         if(sourceEditor) key(locationSourceKey(locations.current)) {LocationSourceEditorHost(locations.current) {sourceEditor=false}}
         Scaffold(containerColor=background,topBar={
-            TopAppBar(navigationIcon={IconButton({sheet=true}) {Icon(PerunIcons.Menu,uiText(R.string.ui_lokality_144a4cba))}},title={Text(locations.current.name)},actions={IconButton(onClick={sourceEditor=true},modifier=Modifier.semantics {contentDescription=uiText(R.string.ui_upravit_zdroje_lokality_7fabf29d)}) {LocationSourcePencil()}},colors=TopAppBarDefaults.topAppBarColors(containerColor=background,titleContentColor=text,navigationIconContentColor=text,actionIconContentColor=text))
+            TopAppBar(navigationIcon={IconButton({sheet=true}) {Icon(PerunIcons.Menu,uiText(R.string.ui_lokality_144a4cba))}},title={val here=locations.current
+                if(here.current) Column {
+                    Row(verticalAlignment=Alignment.CenterVertically) {
+                        Text(here.name,Modifier.weight(1f,fill=false),maxLines=1,overflow=TextOverflow.Ellipsis)
+                        Icon(PerunIcons.Gps,uiText(R.string.loc_current),Modifier.padding(start=6.dp).size(18.dp),tint=accent)
+                    }
+                    Text(currentLocationLabel(fixTime),fontSize=12.sp,color=muted)
+                } else Text(here.name)},actions={IconButton(onClick={sourceEditor=true},modifier=Modifier.semantics {contentDescription=uiText(R.string.ui_upravit_zdroje_lokality_7fabf29d)}) {LocationSourcePencil()}},colors=TopAppBarDefaults.topAppBarColors(containerColor=background,titleContentColor=text,navigationIconContentColor=text,actionIconContentColor=text))
         },bottomBar={
             NavigationBar(containerColor=background,contentColor=text,tonalElevation=0.dp) {
                 Tab.entries.forEach {tab->NavigationBarItem(selected=current==tab.route,onClick={nav.navigate(tab.route) {popUpTo(Tab.Overview.route);launchSingleTop=true}},icon={Icon(tab.icon,tab.label)},label={Text(tab.label)},colors=NavigationBarItemDefaults.colors(selectedIconColor=accent,selectedTextColor=accent,indicatorColor=Color.Transparent,unselectedIconColor=muted,unselectedTextColor=muted))}

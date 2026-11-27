@@ -550,17 +550,17 @@ internal object Notifier {
         val cond=overviewCondition(d.code);val t=temp(u,d.temperature)
         val fg=ContextCompat.getColor(c,R.color.nt_system_text)
         val icon=weatherBitmap(d.code,d.isDayFlag,96)
-        val small=smallView(c,icon,l.name,cond+" · "+uiText(R.string.nt_feels,temp(u,d.apparent)),t)
+        val small=smallView(c,icon,notifyPlace(l),cond+" · "+uiText(R.string.nt_feels,temp(u,d.apparent)),t)
         val cells=params.map { glyphBitmap(it,fg,48) to paramValue(it,d,ex,u,gas) }
         val hours=d.hours.map { h -> HourCell(h.time.format(Hm),weatherBitmap(h.code,h.time.hour in 7..19,56),temp(u,h.temperature),if(h.probability.isFinite() && h.probability>=10) percent(h.probability) else "") }
-        val big=bigView(c,icon,l.name,cond,t,cells,hours,uiText(R.string.nt_updated,d.time.format(Hm)))
+        val big=bigView(c,icon,notifyPlace(l),cond,t,cells,hours,uiText(R.string.nt_updated,d.time.format(Hm)))
         val bar=textIcon(statusParam ?: t)
-        show(c,ChCurrent,IdCurrent,l.name+" · "+t,cond,small,big,ongoing=true,icon=bar,location=BackgroundRefresh.locationKey(l))
+        show(c,ChCurrent,IdCurrent,notifyPlace(l)+" · "+t,cond,small,big,ongoing=true,icon=bar,location=BackgroundRefresh.locationKey(l))
     }
     private fun postStatus(c:Context,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,param:String,short:String,air:Map<String,Double>,scale:AirQualityScale,gas:AirGasUnit) {
         val v=metricValue(d,ex,air,param,scale)
         val text=paramLabel(param)+": "+(if(v.isFinite()) valueText(spec(param),v,u,gas) else "–")
-        show(c,ChCurrent,IdStatus,l.name+" · "+temp(u,d.temperature),overviewCondition(d.code)+" · "+text,null,null,ongoing=true,icon=textIcon(short),location=BackgroundRefresh.locationKey(l))
+        show(c,ChCurrent,IdStatus,notifyPlace(l)+" · "+temp(u,d.temperature),overviewCondition(d.code)+" · "+text,null,null,ongoing=true,icon=textIcon(short),location=BackgroundRefresh.locationKey(l))
     }
     /** Collapsed: the icon of the kind in the colour of the level, the short name and the place. Expanded: level, validity and the description in the app language. */
     private fun groupIds(c:Context,key:String):Set<Int> =
@@ -574,11 +574,11 @@ internal object Notifier {
         val period=uiText(R.string.nt_alert_period,a.start.atZone(zone).format(DayDm),a.end.atZone(zone).format(DayDm))
         val level=levelName(a.level.key)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")
         val about=listOfNotNull(text?.description,text?.headline,text?.event.takeIf { !a.local }).firstOrNull { informative(it,name) }?.trim().orEmpty()
-        val title=name+" · "+level+(if(alone) " · "+l.name else "")
+        val title=name+" · "+level+(if(alone) " · "+notifyPlace(l) else "")
         val detail=listOf(period,about).filter { it.isNotBlank() }.joinToString("\n")
         val key=BackgroundRefresh.locationKey(l)
         show(c,ChAlerts,id,title,"",alertView(c,icon,title,null),alertView(c,icon,title,detail),target="alerts",location=key,detail=detail,color=color,alert=alertRef(a),
-            group=alertGroup(key),sortKey=alertSortKey(a),timeout=Duration.between(Instant.now(),a.end).toMillis().coerceAtLeast(1L),silent=silent,subText=l.name)
+            group=alertGroup(key),sortKey=alertSortKey(a),timeout=Duration.between(Instant.now(),a.end).toMillis().coerceAtLeast(1L),silent=silent,subText=notifyPlace(l))
     }
     /**
      * Persistent notifications of a place: the header (summary of the group) and under it one notification for each
@@ -593,7 +593,7 @@ internal object Notifier {
             val color=alertColor(top.level.key);val icon=alertHazardBitmap(alertIconKind(top),color,72)
             val name=if(top.local) alertText(top)?.event?.takeIf { it.isNotBlank() } ?: alertName(top) else alertName(top)
             // Alone, the line names the place, because Android shows no header for a single notification.
-            val title=name+" · "+levelName(top.level.key)+(if(top.local) uiText(R.string.ui_odhad_5dde2d79) else "")+(if(alone) " · "+l.name else "")
+            val title=name+" · "+levelName(top.level.key)+(if(top.local) uiText(R.string.ui_odhad_5dde2d79) else "")+(if(alone) " · "+notifyPlace(l) else "")
             val parts=list.map { a ->
                 val text=alertText(a)
                 val period=(if(list.size>1) levelName(a.level.key)+" · " else "")+uiText(R.string.nt_alert_period,a.start.atZone(zone).format(DayDm),a.end.atZone(zone).format(DayDm))
@@ -604,7 +604,7 @@ internal object Notifier {
             // Collapsed: one line, the icon, the short name and the level; expanded: the validity and the description.
             show(c,ChAlerts,id,title,"",alertView(c,icon,title,null),alertView(c,icon,title,detail),ongoing=true,target="alerts",location=key,
                 detail=detail,color=color,alert=alertRef(top),group=alertGroup(key),sortKey=alertSortKey(top),
-                timeout=Duration.between(Instant.now(),list.maxOf { it.end }).toMillis().coerceAtLeast(1L),silent=kind !in loud,subText=l.name)
+                timeout=Duration.between(Instant.now(),list.maxOf { it.end }).toMillis().coerceAtLeast(1L),silent=kind !in loud,subText=notifyPlace(l))
             list.forEach { nm.cancel(announceId(key,it)) }
         }
         runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
@@ -625,7 +625,7 @@ internal object Notifier {
         val lines=alerts.map { a -> nameOf(a)+" · "+levelName(a.level.key)+(if(a.local) uiText(R.string.ui_odhad_5dde2d79) else "")+" · "+uiText(R.string.nt_alert_period,a.start.atZone(zone).format(DayDm),a.end.atZone(zone).format(DayDm)) }
         val end=alerts.maxOf { it.end }
         show(c,ChAlerts,alertSummaryId(key),title,lines.first(),alertView(c,icon,title,null),alertView(c,icon,title,lines.joinToString("\n")),ongoing=ongoing,target="alerts",location=key,
-            detail=lines.joinToString("\n"),color=color,alert=alertRef(top),group=alertGroup(key),summary=true,timeout=Duration.between(Instant.now(),end).toMillis().coerceAtLeast(1L),silent=true,subText=l.name)
+            detail=lines.joinToString("\n"),color=color,alert=alertRef(top),group=alertGroup(key),summary=true,timeout=Duration.between(Instant.now(),end).toMillis().coerceAtLeast(1L),silent=true,subText=notifyPlace(l))
     }
     // Rule notifications belong to the group of their place and stand below its warnings.
     private const val RuleIdBase=200000
@@ -657,23 +657,23 @@ internal object Notifier {
     /** The header of a place that has only rule notifications; two or more of them are grouped under it. */
     private fun postRuleSummary(c:Context,l:Location,count:Int) {
         val key=BackgroundRefresh.locationKey(l)
-        show(c,ChRules,alertSummaryId(key),l.name,uiText(R.string.nt_rules_count,count),null,null,location=key,group=alertGroup(key),summary=true,silent=true,subText=l.name)
+        show(c,ChRules,alertSummaryId(key),notifyPlace(l),uiText(R.string.nt_rules_count,count),null,null,location=key,group=alertGroup(key),summary=true,silent=true,subText=notifyPlace(l))
     }
     private fun postRule(c:Context,l:Location,r:NotifyRule,m:RuleMetric,v:Double,u:WeatherUnits,gas:AirGasUnit,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean,alone:Boolean) {
         val title=ruleLabel(r,u,gas);val now=uiText(R.string.nt_rule_text,m.label(),valueText(m,v,u,gas))
         val target=if(m.group==G_AIR || m.group==G_POLLEN) "more/air" else "forecast?chart="+chartFor(r.metric)
-        show(c,ChRules,id,title,if(alone) l.name else "",null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=ruleDetail(if(alone) l.name+" · "+now else now,until,zone),
-            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
+        show(c,ChRules,id,title,if(alone) notifyPlace(l) else "",null,null,target=target,location=BackgroundRefresh.locationKey(l),detail=ruleDetail(if(alone) notifyPlace(l)+" · "+now else now,until,zone),
+            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=notifyPlace(l))
     }
     private fun postEvent(c:Context,l:Location,r:NotifyRule,m:RuleMetric,h:Int,id:Int,until:Instant?,zone:java.time.ZoneId,silent:Boolean,alone:Boolean) {
         val title=m.label()+" · "+uiText(R.string.nt_within_hours,h)
-        show(c,ChRules,id,title,if(alone) l.name else "",null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=ruleDetail((if(alone) l.name+" · " else "")+uiText(R.string.nt_event_detail),until,zone),
-            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=l.name)
+        show(c,ChRules,id,title,if(alone) notifyPlace(l) else "",null,null,target="forecast",location=BackgroundRefresh.locationKey(l),detail=ruleDetail((if(alone) notifyPlace(l)+" · " else "")+uiText(R.string.nt_event_detail),until,zone),
+            group=alertGroup(BackgroundRefresh.locationKey(l)),sortKey="9"+title,timeout=ruleLeft(until),silent=silent,subText=notifyPlace(l))
     }
     fun postSummary(c:Context,l:Location,d:OverviewData,kind:String) {
         val day=d.days.getOrNull(if(kind=="daily") 0 else 1) ?: return
         val u=units(c);val fg=ContextCompat.getColor(c,R.color.nt_system_text)
-        val title=uiText(if(kind=="daily") R.string.nt_summary_today_title else R.string.nt_summary_tomorrow_title,l.name)
+        val title=uiText(if(kind=="daily") R.string.nt_summary_today_title else R.string.nt_summary_tomorrow_title,notifyPlace(l))
         val cond=overviewCondition(day.code);val range=temp(u,day.tmin)+" / "+temp(u,day.tmax)
         val icon=weatherBitmap(day.code,true,96)
         val small=smallView(c,icon,title,cond+" · "+range,null)
@@ -755,7 +755,7 @@ internal fun notificationSummary(s:NotificationSettings):String {
 @Composable private fun Note(text:String) = Text(text,style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
 private fun hourLabel(h:Int)=String.format(Locale.ROOT,"%d:00",h)
 private fun locationLabel(sel:String,locations:List<Location>):String =
-    sel.split(";").map { k -> if(k=="active") uiText(R.string.nt_loc_active) else locations.firstOrNull { BackgroundRefresh.locationKey(it)==k }?.name ?: uiText(R.string.nt_loc_active) }.distinct().joinToString(", ")
+    sel.split(";").map { k -> if(k=="active") uiText(R.string.nt_loc_active) else locations.firstOrNull { BackgroundRefresh.locationKey(it)==k }?.let { pickerName(it) } ?: uiText(R.string.nt_loc_active) }.distinct().joinToString(", ")
 
 /** Compact one-line picker: label on the left, current value opens a dropdown. */
 @Composable private fun Picker(label:String,labels:List<String>,selected:Int,textColor:Color=Color.Unspecified,headers:Map<Int,String> = emptyMap(),onPick:(Int)->Unit) {
@@ -774,8 +774,8 @@ private fun locationLabel(sel:String,locations:List<Location>):String =
     }
 }
 @Composable private fun LocationPicker(label:String,locations:List<Location>,selected:String,textColor:Color=Color.Unspecified,onPick:(String)->Unit) {
-    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-    val labels=listOf(uiText(R.string.nt_loc_active))+locations.map { it.name }
+    val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+    val labels=listOf(uiText(R.string.nt_loc_active))+pickerLocations(locations).map { pickerName(it) }
     Picker(label,labels,keys.indexOf(selected).coerceAtLeast(0),textColor) { onPick(keys[it]) }
 }
 
@@ -827,7 +827,7 @@ private val DialogEdge=Color(0xFF4B586C)
                 }
                 Text(uiText(R.string.nt_location),style=MaterialTheme.typography.labelLarge,color=DialogMuted)
                 val chosen=loc.split(";").filter { it.isNotBlank() }
-                (listOf("active" to uiText(R.string.nt_loc_active))+locations.map { BackgroundRefresh.locationKey(it) to it.name }).forEach { (k,name) ->
+                (listOf("active" to uiText(R.string.nt_loc_active))+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) to pickerName(it) }).forEach { (k,name) ->
                     Row(Modifier.fillMaxWidth().heightIn(min=40.dp).clickable { val next=if(k in chosen) chosen-k else chosen+k;if(next.isNotEmpty()) loc=next.joinToString(";") },verticalAlignment=Alignment.CenterVertically) {
                         Checkbox(checked=k in chosen,onCheckedChange=null,colors=CheckboxDefaults.colors(checkedColor=DialogAccent,uncheckedColor=DialogMuted,checkmarkColor=DialogPanel))
                         Text(name,Modifier.padding(start=8.dp),color=DialogText)
@@ -898,11 +898,11 @@ private val DialogEdge=Color(0xFF4B586C)
         val scopes=listOf("active","all","custom")
         PerunChips(listOf(uiText(R.string.bg_scope_active),uiText(R.string.bg_scope_all),uiText(R.string.bg_scope_custom)),scopes.indexOf(s.alertScope).coerceAtLeast(0),{ edit(true) { putString("alertScope",scopes[it]) } })
         if(s.alertScope=="custom") Column {
-            locations.forEach { l ->
+            pickerLocations(locations).forEach { l ->
                 val key=BackgroundRefresh.locationKey(l)
                 Row(Modifier.fillMaxWidth().heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
                     Checkbox(checked=key in s.alertLocations,onCheckedChange={ on -> val next=s.alertLocations.toMutableSet();if(on) next.add(key) else next.remove(key);edit(on) { putStringSet("alertLocations",next) } })
-                    Text(l.name,Modifier.padding(start=8.dp))
+                    PickerPlace(l,Modifier.padding(start=8.dp))
                 }
             }
         }
@@ -955,3 +955,6 @@ internal fun widgetAlertBitmap(a:UnifiedAlert,size:Int):Bitmap = alertHazardBitm
         drawPath(path,color,style=androidx.compose.ui.graphics.drawscope.Stroke(2.dp.toPx(),cap=androidx.compose.ui.graphics.StrokeCap.Round,join=androidx.compose.ui.graphics.StrokeJoin.Round))
     }
 }
+
+/** The place in notifications: the Current location has the position sign after its name (Android does not allow the icon of the app in the text). */
+internal fun notifyPlace(l:Location):String = if(l.current) l.name+" \u2316" else l.name

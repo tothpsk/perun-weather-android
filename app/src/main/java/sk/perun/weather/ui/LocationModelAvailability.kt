@@ -48,7 +48,7 @@ private suspend fun probeLocationModel(l:Location,id:String,ensemble:Boolean):Mo
 }
 // Verifies models only on demand: the saved pair when the editor opens, then whichever model the user taps.
 internal class ModelAvailabilityController(private val location:Location,private val prefs:SharedPreferences,private val scope:CoroutineScope) {
-    private val cacheKey=locationSourceKey(location)+".v2"
+    private val cacheKey=positionSourceKey(location)+".v2"
     val status=mutableStateMapOf<String,ModelStatus>()
     private val jobs=HashMap<String,Job>()
     init {

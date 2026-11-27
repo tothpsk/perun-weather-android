@@ -112,6 +112,8 @@ class MeteogramWidget:PerunWidgetProvider()
 internal class WidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext;val manager=AppWidgetManager.getInstance(c)
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=inputData.getBoolean("force",false),fromBackground=true)
         val store=LocationStore(c);val all=store.load()
         val active=all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
         val sources=LocationSourceStore(c)
@@ -238,14 +240,14 @@ internal object WidgetRender {
         val a=widgetNextDay().let { (from,to)->widgetAlert(d.alerts,from,to) }
         val extraKey=w.extra.takeIf { it!="none" && it in Notifier.CurrentOptions }
         val temp=t(u,d.temperature)
-        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN)
+        val (bmp,refresh)=compactBitmap(dn,((wDp-20)*dn).roundToInt().coerceIn(40,1400),((hDp-(if(row) 16 else 20))*dn).roundToInt().coerceIn(40,900),row,cells,d,l.name,temp,extraKey,extraKey?.let { param(it,d,ex,u)+(if((it=="wind" || it=="gust") && d.direction.isFinite()) "\u2003\u2005" else "") },a,uiText(R.string.wg_updated,d.time.format(Hm)),pal,ex?.pressureChange ?: Double.NaN,gps=l.current)
         v.setImageViewBitmap(R.id.wg_compact_img,bmp)
         v.setContentDescription(R.id.wg_compact_img,l.name+" "+temp+(a?.let { ", "+alertName(it) } ?: ""))
         v.setViewVisibility(R.id.wg_refresh,if(refresh) View.VISIBLE else View.GONE)
         return v
     }
     /** The picture and whether the refresh button of the layout has its room in it. */
-    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alert:UnifiedAlert?,updated:String,pal:Palette,pressureChange:Double=Double.NaN):Pair<Bitmap,Boolean> {
+    private fun compactBitmap(dn:Float,wPx:Int,hPx:Int,row:Boolean,cells:Int,d:OverviewData,place:String,temp:String,extraKey:String?,extra:String?,alert:UnifiedAlert?,updated:String,pal:Palette,pressureChange:Double=Double.NaN,gps:Boolean=false):Pair<Bitmap,Boolean> {
         val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
         val w=wPx.toFloat();val h=hPx.toFloat()
         val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -276,11 +278,14 @@ internal object WidgetRender {
         val hasAlert=alert!=null
         fun warn(x:Float,y:Float,size:Float) { if(alert!=null) pic(widgetAlertBitmap(alert,size.roundToInt().coerceAtLeast(1)),x,y,size) }
         // The place at 15 sp, bold and in the colour of the text, with the 18 dp warning 6 dp behind it, as in the Next 6 hours widget; the warning stands alone when the place is left out.
-        val alertW=if(hasAlert) 24*dn else 0f
+        // The Current location has the 15 dp location mark of the app 4 dp after the name, before the warning.
+        val gpsW=if(gps) 19*dn else 0f
+        val alertW=(if(hasAlert) 24*dn else 0f)+gpsW
         fun placedWidth(shown:String):Float = if(shown.isNotEmpty()) width(shown,15f,true)+alertW else if(hasAlert) 18*dn else 0f
         fun placed(shown:String,x:Float,cy:Float) {
             if(shown.isNotEmpty()) text(shown,x,cy+15*dn*0.36f,15f,pal.fg,true)
-            warn(if(shown.isNotEmpty()) x+width(shown,15f,true)+6*dn else x,cy-9*dn,18*dn)
+            if(gps && shown.isNotEmpty()) drawGpsMark(cv,x+width(shown,15f,true)+4*dn,cy,15*dn,pal.fg)
+            warn(if(shown.isNotEmpty()) x+width(shown,15f,true)+6*dn+gpsW else x,cy-9*dn,18*dn)
         }
         var refresh=false
         if(row) {
@@ -377,7 +382,7 @@ internal object WidgetRender {
             v.setTextViewText(HourTemp[i],t(u,h.temperature))
         }
         v.setTextViewText(R.id.wg_foot,uiText(R.string.wg_updated,d.time.format(Hm)))
-        paint(v,pal.fg,R.id.wg_place,R.id.wg_temp,*CellValue,*HourTemp)
+        paint(v,pal.fg,R.id.wg_place,R.id.wg_temp,*CellValue,*HourTemp);v.gpsMark(l,pal.fg)
         paint(v,pal.muted,R.id.wg_cond,R.id.wg_foot,*HourTime)
         // The next six hours.
         alert(v,d,6)
@@ -390,7 +395,7 @@ internal object WidgetRender {
         v.setTextViewText(R.id.wg_place,l.name)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
-        paint(v,pal.fg,R.id.wg_place,R.id.wg_temp);paint(v,pal.muted,R.id.wg_cond)
+        paint(v,pal.fg,R.id.wg_place,R.id.wg_temp);paint(v,pal.muted,R.id.wg_cond);v.gpsMark(l,pal.fg)
         // The hours of the chart.
         alert(v,d,w.hours.toLong())
         val dn=c.resources.displayMetrics.density
@@ -447,8 +452,8 @@ private fun meteoLabel(key:String):String = when(key) {
     var bg by remember { mutableStateOf(initial.bg) }
     var text by remember { mutableStateOf(initial.text) }
     var meteo by remember { mutableStateOf(initial.meteo) }
-    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
     val options=Notifier.CurrentOptions
     val labels=options.map { Notifier.paramLabel(it) }
     val muted=Color(0xFFBBC4D2)
@@ -517,7 +522,7 @@ private fun meteoLabel(key:String):String = when(key) {
         // The Day by hours, the Air and pollen and the Sun and Moon widgets keep their own settings and have their own forms.
         val ownSettings=kind==DayHoursWidget::class.java || kind==AirWidget::class.java || kind==SkyWidget::class.java
         val locKey=when(kind) { DayHoursWidget::class.java->DayWidgets.loc(c,id);AirWidget::class.java->AirWidgets.loc(c,id);SkyWidget::class.java->SkyWidgets.loc(c,id);else->cfg.loc }
-        val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.name ?: uiText(R.string.wg_loc_active)
+        val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.let { pickerName(it) } ?: uiText(R.string.wg_loc_active)
         Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { editing=if(editing==id) null else id },verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
                 Text(PerunWidgets.kindName(kind),style=MaterialTheme.typography.titleSmall)

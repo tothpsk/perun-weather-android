@@ -131,7 +131,7 @@ internal object SixDayWidgets {
         val manager=AppWidgetManager.getInstance(c)
         val v=RemoteViews(c.packageName,R.layout.wg_days)
         v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,120))
-        v.setTextViewText(R.id.wg_place,l.name)
+        v.setTextViewText(R.id.wg_place,l.name);v.gpsMark(l,fg)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
         val snowing=(d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)
@@ -184,6 +184,8 @@ class SixDayWidget:AppWidgetProvider() {
 internal class SixDayWidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=inputData.getBoolean("force",false),fromBackground=true)
         val store=LocationStore(c);val all=store.load()
         val active=all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
         val units=readForecastPreferences(c.getSharedPreferences("perun_forecast",Context.MODE_PRIVATE)).units

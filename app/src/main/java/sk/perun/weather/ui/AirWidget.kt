@@ -103,7 +103,7 @@ internal object AirWidgets {
         // The warning of the next 24 hours, drawn behind the place where the widget shows it.
         val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
         val warningPicture=warning?.let { widgetAlertBitmap(it,(18*dn).roundToInt()) }
-        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp),warningPicture))
+        v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp),warningPicture,l.current))
         v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air)+(warning?.let { ", "+alertName(it) } ?: ""))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
@@ -119,7 +119,7 @@ internal object AirWidgets {
 }
 
 /** The whole widget as one picture, so that every size is laid out to the pixel. */
-private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQualityScale,pollenMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,shape:AirWidgetShape,warning:Bitmap?=null):Bitmap {
+private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQualityScale,pollenMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,shape:AirWidgetShape,warning:Bitmap?=null,gps:Boolean=false):Bitmap {
     val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
     val w=wPx.toFloat();val h=hPx.toFloat()
     val fg=if(darkText) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
@@ -160,11 +160,13 @@ private fun airWidgetBitmap(dn:Float,place:String,data:AirQualityData,scale:AirQ
     }
     // The place with the warning of the next 24 hours behind it, as in the Sun and Moon widget.
     fun placeText(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean,room:Float,align:Paint.Align=Paint.Align.LEFT) {
-        val a=warning;val sz=(size+3)*dn;val aw=if(a!=null) sz+4*dn else 0f
+        // The Current location has the location mark of the app right after the name, before the warning.
+        val a=warning;val sz=(size+3)*dn;val gw=if(gps) size*dn+3*dn else 0f;val aw=(if(a!=null) sz+4*dn else 0f)+gw
         val shown=if(room-aw>0f) fit(s,size,bold,room-aw) else "";val tw=if(shown.isEmpty()) 0f else width(shown,size,bold)
         val left=when(align) { Paint.Align.CENTER->x-(tw+aw)/2;Paint.Align.RIGHT->x-tw-aw;else->x }
         if(shown.isNotEmpty()) text(shown,left,y,size,color,bold)
-        if(a!=null) { val cy=y-0.36f*size*dn;val ax=if(shown.isNotEmpty()) left+tw+4*dn else left;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
+        if(gps && shown.isNotEmpty()) drawGpsMark(cv,left+tw+3*dn,y-0.36f*size*dn,size*dn,color)
+        if(a!=null) { val cy=y-0.36f*size*dn;val ax=(if(shown.isNotEmpty()) left+tw+4*dn else left)+gw;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
     }
     fun dot(x:Float,y:Float,color:Int) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,3*dn,p) }
     fun arc(cx:Float,cy:Float,r:Float,stroke:Float,fraction:Float,color:Int) {
@@ -340,6 +342,8 @@ class AirWidget:AppWidgetProvider() {
 internal class AirWidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=inputData.getBoolean("force",false),fromBackground=true)
         val store=LocationStore(c);val all=store.load()
         val active=all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
         val force=inputData.getBoolean("force",false)
@@ -363,8 +367,8 @@ class AirWidgetConfigActivity:ComponentActivity() {
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
         val locations=LocationStore(this).load()
         val initial=AirWidgets.read(this,id)
-        val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-        val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+        val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+        val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
@@ -386,8 +390,8 @@ class AirWidgetConfigActivity:ComponentActivity() {
 
 /** The settings of the Air and pollen widget; shared by the screen that opens from the home screen and by the Settings of the app. */
 @Composable internal fun AirWidgetForm(locations:List<Location>,initial:AirWidgetConfig,onSave:(AirWidgetConfig)->Unit) {
-    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
     var loc by remember { mutableStateOf(initial.loc) }
     var main by remember { mutableStateOf(initial.main) }
     var bg by remember { mutableStateOf(initial.bg) }

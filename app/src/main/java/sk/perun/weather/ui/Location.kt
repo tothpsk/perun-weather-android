@@ -1,6 +1,7 @@
 package sk.perun.weather.ui
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -22,6 +23,8 @@ internal data class Location(
     val region: String = "",
     val admin: String = "",
     val admin3: String = "",
+    // The Current location card: its position follows the device (CurrentLocation) and its key stays "gps".
+    val current: Boolean = false,
 )
 
 internal class LocationStore(context: Context) {
@@ -38,6 +41,7 @@ internal class LocationStore(context: Context) {
                     o.getString("name"), o.optString("country", ""), o.getDouble("latitude"), o.getDouble("longitude"),
                     if (o.has("elevation") && !o.isNull("elevation")) o.getDouble("elevation") else null,
                     o.optString("timezone", "auto"), o.optString("countryCode", ""), o.optString("region", ""), o.optString("admin", ""), o.optString("admin3", ""),
+                    o.optBoolean("current", false),
                 )
             }
         } catch (e: Exception) {
@@ -46,6 +50,11 @@ internal class LocationStore(context: Context) {
     }
 
     fun loadSelected(): Int = prefs.getInt("selected", 0)
+
+    // Called when the list is written, also from the background (the Current location moved).
+    fun listen(onChange: () -> Unit): SharedPreferences.OnSharedPreferenceChangeListener =
+        SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key == "locations" || key == null) onChange() }
+            .also { prefs.registerOnSharedPreferenceChangeListener(it) }
 
     fun save(list: List<Location>, selected: Int) {
         val array = JSONArray()
@@ -61,6 +70,7 @@ internal class LocationStore(context: Context) {
             o.put("region", l.region)
             o.put("admin", l.admin)
             o.put("admin3", l.admin3)
+            if (l.current) o.put("current", true)
             array.put(o)
         }
         prefs.edit().putString("locations", array.toString()).putInt("selected", selected).apply()
@@ -72,6 +82,19 @@ internal class LocationState(private val store: LocationStore) {
         private set
     var selected by mutableIntStateOf(store.loadSelected().coerceIn(0, maxOf(0, locations.lastIndex)))
         private set
+
+    // A background update of the Current location rewrites the stored list; the open app follows it.
+    // The listener is kept here because SharedPreferences holds it only weakly.
+    private val listener = store.listen {
+        val fresh = store.load()
+        if (fresh != locations) {
+            val keep = locations.getOrNull(selected)?.let { old -> fresh.indexOfFirst { BackgroundRefresh.locationKey(it) == BackgroundRefresh.locationKey(old) } } ?: -1
+            locations = fresh
+            selected = (if (keep >= 0) keep else store.loadSelected()).coerceIn(0, maxOf(0, fresh.lastIndex))
+        }
+    }
+
+    val hasCurrent: Boolean get() = locations.any { it.current }
 
     // Only valid when locations is not empty; PerunApp shows the first-run screen otherwise.
     val current: Location get() = locations[selected]
@@ -88,7 +111,7 @@ internal class LocationState(private val store: LocationStore) {
     // The position, and everything keyed by it, stays the same; the name is replaced only while it is still the coordinate label.
     fun enrich(old: Location, fresh: Location) {
         if (fresh.countryCode.isBlank()) return
-        val i = locations.indexOfFirst { abs(it.latitude - old.latitude) < 1e-9 && abs(it.longitude - old.longitude) < 1e-9 }
+        val i = locations.indexOfFirst { BackgroundRefresh.locationKey(it) == BackgroundRefresh.locationKey(old) }
         if (i < 0) return
         val current = locations[i]
         if (current.countryCode.isNotBlank()) return
@@ -104,8 +127,10 @@ internal class LocationState(private val store: LocationStore) {
     }
 
     // A place within about 100 m of a saved one just selects the saved one.
+    // The Current location card exists at most once, and a fixed place is never merged into it.
     fun add(location: Location) {
-        val same = locations.indexOfFirst { abs(it.latitude - location.latitude) < 0.001 && abs(it.longitude - location.longitude) < 0.001 }
+        val same = if (location.current) locations.indexOfFirst { it.current }
+            else locations.indexOfFirst { !it.current && abs(it.latitude - location.latitude) < 0.001 && abs(it.longitude - location.longitude) < 0.001 }
         if (same >= 0) select(same) else commit(locations + location, locations.size)
     }
 
@@ -122,7 +147,7 @@ internal class LocationState(private val store: LocationStore) {
 
     // Undo of a removal: the place returns to its position, and is selected again when it was selected.
     fun restore(index: Int, location: Location, wasSelected: Boolean) {
-        if (locations.any { abs(it.latitude - location.latitude) < 1e-9 && abs(it.longitude - location.longitude) < 1e-9 }) return
+        if (locations.any { BackgroundRefresh.locationKey(it) == BackgroundRefresh.locationKey(location) }) return
         val at = index.coerceIn(0, locations.size)
         val list = locations.toMutableList().also { it.add(at, location) }
         commit(list, if (wasSelected) at else if (selected >= at) selected + 1 else selected)
