@@ -4,6 +4,12 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Changed
+
+- Locations: each card shows the current weather of the place at the left, the symbol and the temperature of the Now screen with the model and sources of the place. The warning mark stays as before, and the drag handle moved to the right edge.
+- Locations: a card is removed by swiping it to the left, instead of the cross. For a few seconds a row offers Undo, which returns the place to its position. The last place cannot be removed; screen readers offer Remove location as an action of the card.
+- Adding a location: the button that adds a fixed place at the current position moved to the search, as Use the place where I am.
+
 ## [1.4.2] - 2026-11-27
 
 ### Changed

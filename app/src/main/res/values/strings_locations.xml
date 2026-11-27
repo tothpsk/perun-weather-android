@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="loc_use_here">Použiť miesto, kde som</string>
+    <string name="loc_removed">Lokalita %1$s bola odstránená</string>
+    <string name="loc_undo">Späť</string>
+    <string name="loc_swipe_hint">Potiahnutím karty doľava ju odstránite.</string>
+</resources>

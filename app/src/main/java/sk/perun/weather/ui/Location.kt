@@ -120,6 +120,14 @@ internal class LocationState(private val store: LocationStore) {
         commit(list, newSelected)
     }
 
+    // Undo of a removal: the place returns to its position, and is selected again when it was selected.
+    fun restore(index: Int, location: Location, wasSelected: Boolean) {
+        if (locations.any { abs(it.latitude - location.latitude) < 1e-9 && abs(it.longitude - location.longitude) < 1e-9 }) return
+        val at = index.coerceIn(0, locations.size)
+        val list = locations.toMutableList().also { it.add(at, location) }
+        commit(list, if (wasSelected) at else if (selected >= at) selected + 1 else selected)
+    }
+
     fun move(index: Int, delta: Int) {
         val target = index + delta
         if (index !in locations.indices || target !in locations.indices) return

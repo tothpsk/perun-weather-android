@@ -9,12 +9,15 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.Animatable
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -32,6 +35,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -66,6 +70,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Collections
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 
 private fun subtitle(l: Location): String =
     listOf(l.country, l.region, l.admin).filter { it.isNotBlank() }.distinct().joinToString(" · ")
@@ -81,11 +88,32 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
     var results by remember { mutableStateOf<List<Location>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
-    // Official alerts of the saved places, loaded when the list opens and shown as a mark before the remove button.
+    // Official alerts of the saved places, loaded when the list opens and shown as a mark before the drag handle.
     var alertMarks by remember { mutableStateOf<Map<String, List<UnifiedAlert>>>(emptyMap()) }
     LaunchedEffect(state.locations) {
         loadLocationAlerts(context, state.locations) { key, items -> alertMarks = alertMarks + (key to items) }
     }
+    // Current weather of the saved places, shown at the left of each card: the same request as the Now screen with the
+    // model and sources of the place, so it comes from the shared cache when the place was shown or refreshed recently.
+    var weather by remember { mutableStateOf<Map<String, OverviewData>>(emptyMap()) }
+    LaunchedEffect(state.locations) {
+        val store = LocationSourceStore(context)
+        val gate = Semaphore(2)
+        state.locations.filter { BackgroundRefresh.locationKey(it) !in weather }.forEach { place ->
+            launch {
+                val data = gate.withPermit {
+                    try { withContext(Dispatchers.IO) { val src = store.read(place); loadOverview(place, src.alertSource, src.weatherModel) } }
+                    catch (e: CancellationException) { throw e }
+                    catch (e: Exception) { null }
+                }
+                if (data != null) weather = weather + (BackgroundRefresh.locationKey(place) to data)
+            }
+        }
+    }
+    val units = rememberForecastPreferences().units
+    // The last removed place, its position and whether it was selected, while the undo row is shown.
+    var removed by remember { mutableStateOf<Triple<Location, Int, Boolean>?>(null) }
+    LaunchedEffect(removed) { if (removed != null) { delay(6000); removed = null } }
 
     // Drag state: a working copy of the order exists only while a handle is being dragged.
     var order by remember { mutableStateOf<List<Location>?>(null) }
@@ -164,13 +192,21 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                             location = location,
                             selected = location == state.current,
                             canDelete = shown.size > 1,
+                            weather = weather[BackgroundRefresh.locationKey(location)],
+                            units = units,
                             dragging = dragging,
                             dragOffset = if (dragging) dragOffset else 0f,
                             alerts = alertMarks[BackgroundRefresh.locationKey(location)],
                             onSelect = { state.select(state.locations.indexOf(location)); onDismiss() },
                             onMoveUp = { state.move(state.locations.indexOf(location), -1) },
                             onMoveDown = { state.move(state.locations.indexOf(location), 1) },
-                            onDelete = { state.remove(state.locations.indexOf(location)) },
+                            onDelete = {
+                                val at = state.locations.indexOf(location)
+                                if (at >= 0 && state.locations.size > 1) {
+                                    removed = Triple(location, at, location == state.current)
+                                    state.remove(at)
+                                }
+                            },
                             onHeight = { rowHeight = it + spacingPx },
                             handle = Modifier.pointerInput(Unit) {
                                 detectDragGestures(
@@ -216,10 +252,18 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                         )
                     }
                 }
-                OutlinedButton(onClick = onGps, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                    Icon(PerunIcons.Gps, null)
-                    Text(uiText(R.string.ui_pridat_aktualnu_polohu_gps_99585c15))
+                removed?.let { (place, at, wasSelected) ->
+                    Row(
+                        Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0xFF2A3543)).padding(start = 14.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(uiText(R.string.loc_removed, place.name), Modifier.weight(1f), fontSize = 14.sp)
+                        TextButton(onClick = { state.restore(at, place, wasSelected); removed = null }) {
+                            Text(uiText(R.string.loc_undo), color = Color(0xFF4FC3F7), fontWeight = FontWeight.SemiBold)
+                        }
+                    }
                 }
+                if (shown.size > 1) Text(uiText(R.string.loc_swipe_hint), fontSize = 12.sp, color = ForecastMuted)
                 Button(onClick = { adding = true; message = null }, modifier = Modifier.fillMaxWidth()) {
                     Icon(PerunIcons.Plus, null)
                     Text(uiText(R.string.ui_pridat_lokalitu_70dce8af))
@@ -243,6 +287,11 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                 Button(onClick = search, enabled = !busy && query.isNotBlank(), modifier = Modifier.fillMaxWidth()) {
                     Text(if (busy) uiText(R.string.ui_hladam_ee3413d5) else uiText(R.string.ui_hladat_d6982a8b))
                 }
+                // A fixed place at the current position; the place does not move afterwards.
+                OutlinedButton(onClick = onGps, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                    Icon(PerunIcons.Gps, null)
+                    Text("  " + uiText(R.string.loc_use_here))
+                }
                 message?.let { Text(it, color = ForecastMuted, fontSize = 14.sp) }
                 results.forEach { place ->
                     Column(
@@ -261,37 +310,78 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
 
 @Composable
 private fun LocationRow(
-    location: Location, selected: Boolean, canDelete: Boolean, dragging: Boolean, dragOffset: Float, alerts: List<UnifiedAlert>?,
+    location: Location, selected: Boolean, canDelete: Boolean, weather: OverviewData?, units: WeatherUnits,
+    dragging: Boolean, dragOffset: Float, alerts: List<UnifiedAlert>?,
     onSelect: () -> Unit, onMoveUp: () -> Unit, onMoveDown: () -> Unit, onDelete: () -> Unit,
     onHeight: (Float) -> Unit, handle: Modifier,
 ) {
     // Same surface as the tiles on the Overview screen.
     val shape = RoundedCornerShape(15.dp)
     val border = if (dragging || selected) Color(0xFF4FC3F7) else Color(0xFF4B586C)
-    Row(
+    val scope = rememberCoroutineScope()
+    // Swipe to the left removes the place: past 40 % of the width on release, otherwise the card returns.
+    // The last place cannot be removed; its card moves only a little and returns.
+    val swipe = remember { Animatable(0f) }
+    var width by remember { mutableFloatStateOf(0f) }
+    val removeLabel = uiText(R.string.ui_odstranit_lokalitu_7ed2d74e)
+    Box(
         Modifier.fillMaxWidth()
             .zIndex(if (dragging) 1f else 0f)
             .graphicsLayer { translationY = dragOffset }
-            .onSizeChanged { onHeight(it.height.toFloat()) }
-            .semantics {
-                customActions = listOf(
-                    CustomAccessibilityAction(uiText(R.string.ui_posunut_vyssie_f4e2d086)) { onMoveUp(); true },
-                    CustomAccessibilityAction(uiText(R.string.ui_posunut_nizsie_ee019ae9)) { onMoveDown(); true },
-                )
-            }
-            .clip(shape).background(if (dragging) Color(0xFF283241) else Color(0xFF202833))
-            .border(1.dp, border, shape)
-            .clickable(onClick = onSelect),
-        verticalAlignment = Alignment.CenterVertically,
+            .onSizeChanged { onHeight(it.height.toFloat()); width = it.width.toFloat() }
+            .clip(shape),
     ) {
-        Box(handle.size(48.dp), contentAlignment = Alignment.Center) {
-            Icon(PerunIcons.Drag, uiText(R.string.ui_presunut_lokalitu_9fe20534), tint = ForecastMuted)
+        if (swipe.value < 0f) Box(
+            Modifier.matchParentSize().background(Color(0xFFC62828)).padding(end = 22.dp),
+            contentAlignment = Alignment.CenterEnd,
+        ) { Icon(PerunIcons.Trash, null, tint = Color.White) }
+        Row(
+            Modifier.fillMaxWidth()
+                .graphicsLayer { translationX = swipe.value }
+                .semantics {
+                    customActions = listOfNotNull(
+                        CustomAccessibilityAction(uiText(R.string.ui_posunut_vyssie_f4e2d086)) { onMoveUp(); true },
+                        CustomAccessibilityAction(uiText(R.string.ui_posunut_nizsie_ee019ae9)) { onMoveDown(); true },
+                        if (canDelete) CustomAccessibilityAction(removeLabel) { onDelete(); true } else null,
+                    )
+                }
+                .pointerInput(canDelete) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = {
+                            scope.launch {
+                                if (canDelete && width > 0f && swipe.value < -width * .4f) {
+                                    swipe.animateTo(-width)
+                                    onDelete()
+                                } else swipe.animateTo(0f)
+                            }
+                        },
+                        onDragCancel = { scope.launch { swipe.animateTo(0f) } },
+                    ) { change, amount ->
+                        change.consume()
+                        val limit = if (canDelete) -width else -width * .12f
+                        scope.launch { swipe.snapTo((swipe.value + amount).coerceIn(limit, 0f)) }
+                    }
+                }
+                .clip(shape).background(if (dragging) Color(0xFF283241) else Color(0xFF202833))
+                .border(1.dp, border, shape)
+                .clickable(onClick = onSelect),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            // Current weather: the symbol and the temperature of the Now screen; empty until it is loaded.
+            Column(Modifier.width(60.dp).padding(vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (weather != null) {
+                    WeatherSymbol(weather.code, 28.dp, weather.isDayFlag)
+                    Text(overviewNumber(units.temperature.fromCelsius(weather.temperature), "°"), fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                } else Box(Modifier.size(28.dp))
+            }
+            Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
+                Text(location.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                Text(subtitle(location), fontSize = 13.sp, color = ForecastMuted)
+            }
+            if (!alerts.isNullOrEmpty()) LocationAlertMark(alerts)
+            Box(handle.size(48.dp), contentAlignment = Alignment.Center) {
+                Icon(PerunIcons.Drag, uiText(R.string.ui_presunut_lokalitu_9fe20534), tint = ForecastMuted)
+            }
         }
-        Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
-            Text(location.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-            Text(subtitle(location), fontSize = 13.sp, color = ForecastMuted)
-        }
-        if (!alerts.isNullOrEmpty()) LocationAlertMark(alerts)
-        IconButton(onClick = onDelete, enabled = canDelete) { Icon(PerunIcons.Close, uiText(R.string.ui_odstranit_lokalitu_7ed2d74e)) }
     }
 }
