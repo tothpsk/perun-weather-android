@@ -3,7 +3,6 @@ package sk.perun.weather.ui
 import sk.perun.weather.R
 
 import android.Manifest
-import android.content.pm.PackageManager
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -25,6 +24,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -59,12 +59,15 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.CustomAccessibilityAction
 import androidx.compose.ui.semantics.customActions
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
-import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -79,11 +82,12 @@ private fun subtitle(l: Location): String =
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
+internal fun LocationsSheet(state: LocationState, onCurrentAdded: () -> Unit = {}, onDismiss: () -> Unit) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val spacingPx = with(LocalDensity.current) { 10.dp.toPx() }
-    var adding by remember { mutableStateOf(false) }
+    // Without any saved place the sheet opens straight on adding one.
+    var adding by remember { mutableStateOf(state.locations.isEmpty()) }
     var query by remember { mutableStateOf("") }
     var results by remember { mutableStateOf<List<Location>>(emptyList()) }
     var busy by remember { mutableStateOf(false) }
@@ -99,18 +103,19 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
     LaunchedEffect(state.locations) {
         val store = LocationSourceStore(context)
         val gate = Semaphore(2)
-        state.locations.filter { BackgroundRefresh.locationKey(it) !in weather }.forEach { place ->
+        state.locations.filter { BackgroundRefresh.positionKey(it) !in weather }.forEach { place ->
             launch {
                 val data = gate.withPermit {
                     try { withContext(Dispatchers.IO) { val src = store.read(place); loadOverview(place, src.alertSource, src.weatherModel) } }
                     catch (e: CancellationException) { throw e }
                     catch (e: Exception) { null }
                 }
-                if (data != null) weather = weather + (BackgroundRefresh.locationKey(place) to data)
+                if (data != null) weather = weather + (BackgroundRefresh.positionKey(place) to data)
             }
         }
     }
     val units = rememberForecastPreferences().units
+    val fixTime = rememberCurrentFixTime()
     // The last removed place, its position and whether it was selected, while the undo row is shown.
     var removed by remember { mutableStateOf<Triple<Location, Int, Boolean>?>(null) }
     LaunchedEffect(removed) { if (removed != null) { delay(6000); removed = null } }
@@ -140,43 +145,43 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
         }
     }
 
-    val locate: () -> Unit = {
-        if (!busy) {
-            busy = true
-            message = uiText(R.string.ui_zistujem_polohu_1fc6be8c)
-            scope.launch {
-                try {
-                    val fix = currentFix(context)
-                    if (fix == null) {
-                        message = uiText(R.string.ui_polohu_sa_nepodarilo_zistit_94d1d68c)
-                    } else {
-                        val place = withContext(Dispatchers.IO) { reversePlace(fix.first, fix.second) }
-                            ?: Location(coordinateLabel(fix.first, fix.second), "", fix.first, fix.second)
-                        state.add(place)
-                        onDismiss()
-                    }
-                } catch (e: CancellationException) {
-                    throw e
-                } catch (e: Exception) {
-                    message = uiText(R.string.ui_polohu_sa_nepodarilo_zistit_94d1d68c)
-                } finally {
-                    busy = false
+    // "current": the Current location card that follows the device; otherwise a fixed place at the current position.
+    fun locate(current: Boolean) {
+        if (busy) return
+        busy = true
+        message = uiText(R.string.loc_locating)
+        scope.launch {
+            try {
+                val place = if (current) CurrentLocation.create(context) else CurrentLocation.fix(context, precise = true)?.let { fix ->
+                    withContext(Dispatchers.IO) { reversePlace(fix.latitude, fix.longitude) } ?: Location(coordinateLabel(fix.latitude, fix.longitude), "", fix.latitude, fix.longitude)
                 }
+                if (place == null) {
+                    message = uiText(R.string.loc_location_off)
+                } else {
+                    state.add(place)
+                    if (current) onCurrentAdded()
+                    onDismiss()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                message = uiText(R.string.ui_polohu_sa_nepodarilo_zistit_94d1d68c)
+            } finally {
+                busy = false
             }
         }
     }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-        if (granted) locate() else message = uiText(R.string.ui_povolenie_polohy_nebolo_udelene_ca808ef8)
+    // Precise and approximate location are asked together; the user may grant only the approximate one.
+    var wantCurrent by remember { mutableStateOf(false) }
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { result ->
+        if (result.values.any { it }) locate(wantCurrent) else message = uiText(R.string.loc_no_permission)
     }
-    val onGps: () -> Unit = {
-        if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            locate()
-        } else {
-            launcher.launch(Manifest.permission.ACCESS_COARSE_LOCATION)
-        }
+    fun withPermission(current: Boolean) {
+        wantCurrent = current
+        if (CurrentLocation.foreground(context)) locate(current)
+        else launcher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION))
     }
-
     ModalBottomSheet(onDismissRequest = onDismiss, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(
             Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 18.dp).padding(bottom = 24.dp),
@@ -192,8 +197,9 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                             location = location,
                             selected = location == state.current,
                             canDelete = shown.size > 1,
-                            weather = weather[BackgroundRefresh.locationKey(location)],
+                            weather = weather[BackgroundRefresh.positionKey(location)],
                             units = units,
+                            fixTime = fixTime,
                             dragging = dragging,
                             dragOffset = if (dragging) dragOffset else 0f,
                             alerts = alertMarks[BackgroundRefresh.locationKey(location)],
@@ -271,7 +277,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                 message?.let { Text(it, color = ForecastMuted, fontSize = 14.sp) }
             } else {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { adding = false; message = null }) { Icon(PerunIcons.Back, uiText(R.string.ui_spat_000d5419)) }
+                    IconButton(onClick = { if (state.locations.isEmpty()) onDismiss() else { adding = false; message = null } }) { Icon(PerunIcons.Back, uiText(R.string.ui_spat_000d5419)) }
                     Text(uiText(R.string.ui_pridat_lokalitu_0252522b), style = MaterialTheme.typography.titleLarge)
                 }
                 OutlinedTextField(
@@ -288,9 +294,18 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
                     Text(if (busy) uiText(R.string.ui_hladam_ee3413d5) else uiText(R.string.ui_hladat_d6982a8b))
                 }
                 // A fixed place at the current position; the place does not move afterwards.
-                OutlinedButton(onClick = onGps, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                OutlinedButton(onClick = { withPermission(false) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
                     Icon(PerunIcons.Gps, null)
                     Text("  " + uiText(R.string.loc_use_here))
+                }
+                Text(uiText(R.string.loc_use_here_note), fontSize = 12.sp, color = ForecastMuted)
+                // The Current location card exists at most once.
+                if (!state.hasCurrent) {
+                    OutlinedButton(onClick = { withPermission(true) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                        Icon(PerunIcons.Gps, null)
+                        Text("  " + uiText(R.string.loc_add_current))
+                    }
+                    Text(uiText(R.string.loc_add_current_note), fontSize = 12.sp, color = ForecastMuted)
                 }
                 message?.let { Text(it, color = ForecastMuted, fontSize = 14.sp) }
                 results.forEach { place ->
@@ -310,7 +325,7 @@ internal fun LocationsSheet(state: LocationState, onDismiss: () -> Unit) {
 
 @Composable
 private fun LocationRow(
-    location: Location, selected: Boolean, canDelete: Boolean, weather: OverviewData?, units: WeatherUnits,
+    location: Location, selected: Boolean, canDelete: Boolean, weather: OverviewData?, units: WeatherUnits, fixTime: Long,
     dragging: Boolean, dragOffset: Float, alerts: List<UnifiedAlert>?,
     onSelect: () -> Unit, onMoveUp: () -> Unit, onMoveDown: () -> Unit, onDelete: () -> Unit,
     onHeight: (Float) -> Unit, handle: Modifier,
@@ -375,8 +390,17 @@ private fun LocationRow(
                 } else Box(Modifier.size(28.dp))
             }
             Column(Modifier.weight(1f).padding(vertical = 10.dp)) {
-                Text(location.name, fontSize = 16.sp, fontWeight = FontWeight.Bold)
-                Text(subtitle(location), fontSize = 13.sp, color = ForecastMuted)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(location.name, Modifier.weight(1f, fill = false), fontSize = 16.sp, fontWeight = FontWeight.Bold, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    if (location.current) Icon(PerunIcons.Gps, uiText(R.string.loc_current), Modifier.padding(start = 5.dp).size(16.dp), tint = Color(0xFF4FC3F7))
+                }
+                if (location.current) Text(
+                    buildAnnotatedString {
+                        withStyle(SpanStyle(color = Color(0xFF4FC3F7))) { append(currentLocationLabel(fixTime)) }
+                        subtitle(location).takeIf { it.isNotBlank() }?.let { append(" · $it") }
+                    },
+                    fontSize = 13.sp, color = ForecastMuted, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                ) else Text(subtitle(location), fontSize = 13.sp, color = ForecastMuted)
             }
             if (!alerts.isNullOrEmpty()) LocationAlertMark(alerts)
             Box(handle.size(48.dp), contentAlignment = Alignment.Center) {
@@ -384,4 +408,21 @@ private fun LocationRow(
             }
         }
     }
+}
+
+/**
+ * Shown once the Current location is added without the permission to use the position in the background. It lives
+ * outside the sheet, which closes at the same moment (on the first run the app switches to its main screen).
+ */
+@Composable
+internal fun BackgroundLocationDialog(onClose: () -> Unit) {
+    // On Android 11 and newer this request opens the location page of the app in the system settings.
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { onClose() }
+    AlertDialog(
+        onDismissRequest = onClose,
+        title = { Text(uiText(R.string.loc_bg_title)) },
+        text = { Text(uiText(R.string.loc_bg_text)) },
+        confirmButton = { TextButton(onClick = { launcher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text(uiText(R.string.loc_bg_open)) } },
+        dismissButton = { TextButton(onClick = onClose) { Text(uiText(R.string.loc_bg_later)) } },
+    )
 }

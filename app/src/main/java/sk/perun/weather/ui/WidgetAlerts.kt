@@ -35,7 +35,7 @@ internal fun widgetNextDay(now:Instant=Instant.now()):Pair<Instant,Instant> = no
  */
 internal fun widgetPlaceAlerts(c:Context,l:Location):List<UnifiedAlert> {
     val p=c.applicationContext.getSharedPreferences("perun_widget_alerts",Context.MODE_PRIVATE)
-    val key=BackgroundRefresh.locationKey(l);val at=p.getLong(key+"_at",0L);val now=System.currentTimeMillis()/1000
+    val key=BackgroundRefresh.positionKey(l);val at=p.getLong(key+"_at",0L);val now=System.currentTimeMillis()/1000
     if(now-at<25*60) return widgetAlertsFrom(p.getString(key,null))
     return try {
         val fresh=widgetAlertsJson(fetchOfficialAlerts(l,LocationSourceStore(c).read(l).alertSource))

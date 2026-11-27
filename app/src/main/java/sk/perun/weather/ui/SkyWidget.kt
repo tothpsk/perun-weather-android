@@ -410,6 +410,8 @@ class SkyWidget:AppWidgetProvider() {
 internal class SkyWidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=false,fromBackground=true)
         val store=LocationStore(c);val all=store.load()
         val active=all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
         for(id in SkyWidgets.ids(c)) try { SkyWidgets.render(c,id,all,active) } catch(e:CancellationException) { throw e } catch(e:Exception) { }

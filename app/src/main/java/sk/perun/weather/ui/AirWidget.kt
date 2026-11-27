@@ -340,6 +340,8 @@ class AirWidget:AppWidgetProvider() {
 internal class AirWidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=inputData.getBoolean("force",false),fromBackground=true)
         val store=LocationStore(c);val all=store.load()
         val active=all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
         val force=inputData.getBoolean("force",false)

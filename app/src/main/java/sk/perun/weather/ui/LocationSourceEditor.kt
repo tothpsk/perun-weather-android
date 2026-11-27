@@ -79,6 +79,7 @@ private fun alertSourceShort(id:String)=when(id) {"local"->uiText(R.string.alert
         Column(Modifier.heightIn(max=480.dp).verticalScroll(rememberScrollState())) {
             when(section) {
                 null->{
+                    if(location.current) CurrentLocationStatus()
                     SourceHubRow(uiText(R.string.ui_predpovedny_model_666f632c),weatherLabel(),weatherStatus==ModelStatus.Checking) {section=SourceSection.Weather}
                     HorizontalDivider(color=EditorEdge.copy(alpha=.6f))
                     SourceHubRow(uiText(R.string.ui_ensemble_model_b09a8627),ensembleLabel(),ensembleStatus==ModelStatus.Checking) {section=SourceSection.Ensemble}
@@ -126,5 +127,31 @@ private fun alertSourceShort(id:String)=when(id) {"local"->uiText(R.string.alert
         RadioButton(selected=selected,onClick=null,colors=RadioButtonDefaults.colors(selectedColor=EditorAccent,unselectedColor=EditorMuted))
         Text(label,Modifier.weight(1f).padding(start=8.dp),color=EditorText)
         if(busy) CircularProgressIndicator(Modifier.size(16.dp),strokeWidth=2.dp,color=EditorAccent)
+    }
+}
+
+/** For the Current location: whether it may use the position in the background and whether it is precise, with the ways to change it. */
+@Composable private fun CurrentLocationStatus() {
+    val context=LocalContext.current
+    val owner=androidx.compose.ui.platform.LocalLifecycleOwner.current
+    var tick by remember {mutableIntStateOf(0)}
+    DisposableEffect(owner) {
+        val observer=androidx.lifecycle.LifecycleEventObserver {_,event->if(event==androidx.lifecycle.Lifecycle.Event.ON_RESUME) tick++}
+        owner.lifecycle.addObserver(observer)
+        onDispose {owner.lifecycle.removeObserver(observer)}
+    }
+    val background=remember(tick) {CurrentLocation.background(context)}
+    val precise=remember(tick) {CurrentLocation.precise(context)}
+    val ask=androidx.activity.compose.rememberLauncherForActivityResult(androidx.activity.result.contract.ActivityResultContracts.RequestPermission()) {tick++}
+    Column(Modifier.fillMaxWidth().padding(bottom=8.dp),verticalArrangement=Arrangement.spacedBy(4.dp)) {
+        Row(verticalAlignment=Alignment.CenterVertically) {
+            Text(uiText(if(background) R.string.loc_bg_on else R.string.loc_bg_off),Modifier.weight(1f),fontSize=13.sp,color=if(background) EditorText else Color(0xFFFFB74D))
+            if(!background) TextButton(onClick={ask.launch(android.Manifest.permission.ACCESS_BACKGROUND_LOCATION)}) {Text(uiText(R.string.loc_bg_allow),color=EditorAccent)}
+        }
+        if(!precise) Row(verticalAlignment=Alignment.CenterVertically) {
+            Text(uiText(R.string.loc_approximate),Modifier.weight(1f),fontSize=13.sp,color=EditorMuted)
+            TextButton(onClick={context.startActivity(android.content.Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS,android.net.Uri.fromParts("package",context.packageName,null)).addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK))}) {Text(uiText(R.string.loc_permissions),color=EditorAccent)}
+        }
+        HorizontalDivider(color=EditorEdge.copy(alpha=.6f))
     }
 }

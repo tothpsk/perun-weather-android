@@ -19,6 +19,12 @@ internal fun alertSourceSet(value:String):Set<String> = if(value.startsWith("v2:
 internal fun alertSourceValue(ids:Set<String>):String="v2:"+AlertSourceIds.filter {it in ids}.joinToString(",")
 internal fun normalizeAlertSource(raw:String?):String=alertSourceValue(alertSourceSet(raw ?: AlertSourceDefaults.value))
 internal fun locationSourceKey(location:Location):String {
+    // The sources of the Current location stay the same when it moves.
+    if(location.current) return "location.gps"
+    return positionSourceKey(location)
+}
+// Key of the position itself, also for the Current location (model availability depends on the place).
+internal fun positionSourceKey(location:Location):String {
     require(location.latitude.isFinite() && location.longitude.isFinite())
     require(location.latitude in -90.0..90.0 && location.longitude in -180.0..180.0)
     val lat=if(location.latitude==0.0) 0.0 else location.latitude

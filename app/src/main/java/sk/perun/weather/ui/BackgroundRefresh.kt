@@ -50,7 +50,10 @@ internal object BackgroundRefresh {
         p.getInt("intervalMinutes",0),p.getString("scope","active") ?: "active",p.getBoolean("wifiOnly",false),p.getInt("batteryFloor",20),
         p.getBoolean("allowWhileCharging",true),p.getBoolean("pauseInPowerSaver",true),p.getLong("lastSuccess",0L),p.getLong("lastAttempt",0L),p.getString("lastSkipReason","") ?: "",
     )
-    fun locationKey(l:Location):String = String.format(Locale.US,"%.4f,%.4f",l.latitude,l.longitude)
+    // The Current location keeps one key wherever it is, so its rules, widgets and notifications follow it.
+    /** Key of the position itself, for caches that must not outlive a move of the Current location. */
+    fun positionKey(l:Location):String = String.format(Locale.US,"%.4f,%.4f",l.latitude,l.longitude)
+    fun locationKey(l:Location):String = if(l.current) CurrentLocation.Key else String.format(Locale.US,"%.4f,%.4f",l.latitude,l.longitude)
     /** Re-creates the periodic work from the stored settings; "never" cancels it. */
     fun schedule(context:Context) {
         val s=read(prefs(context));val wm=WorkManager.getInstance(context.applicationContext)
@@ -95,6 +98,8 @@ internal class RefreshWorker(context:Context,params:WorkerParameters):CoroutineW
         val context=applicationContext;val p=BackgroundRefresh.prefs(context)
         val now=System.currentTimeMillis()
         if(!inputData.getBoolean("manual",false)) BackgroundRefresh.skipReason(context)?.let { p.edit().putLong("lastAttempt",now).putString("lastSkipReason",it).apply();return Result.success() }
+        // Background refresh: the Current location moves with the power-saving position (network and Wi-Fi).
+        CurrentLocation.update(context,precise=false,fromBackground=true)
         val sources=LocationSourceStore(context)
         val store=LocationStore(context);val saved=store.load()
         val activeKey=(saved.getOrNull(store.loadSelected()) ?: saved.firstOrNull())?.let { BackgroundRefresh.locationKey(it) }

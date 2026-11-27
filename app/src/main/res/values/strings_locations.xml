@@ -4,4 +4,21 @@
     <string name="loc_removed">Lokalita %1$s bola odstránená</string>
     <string name="loc_undo">Späť</string>
     <string name="loc_swipe_hint">Potiahnutím karty doľava ju odstránite.</string>
+    <string name="loc_current">Aktuálna poloha</string>
+    <string name="loc_current_at">Aktuálna poloha · %1$s</string>
+    <string name="loc_add_current">Pridať aktuálnu polohu</string>
+    <string name="loc_add_current_note">Lokalita, ktorá sleduje vašu polohu a obnovuje sa aj na pozadí.</string>
+    <string name="loc_use_here_note">Pridá pevnú lokalitu na mieste, kde sa práve nachádzate.</string>
+    <string name="loc_locating">Zisťujem polohu…</string>
+    <string name="loc_location_off">Polohu sa nepodarilo zistiť. Skontrolujte, či je poloha v telefóne zapnutá.</string>
+    <string name="loc_bg_title">Poloha na pozadí</string>
+    <string name="loc_bg_text">Aby sa Aktuálna poloha obnovovala aj vtedy, keď aplikácia nie je otvorená (widgety, notifikácie, obnova na pozadí), povoľte v nastaveniach polohy možnosť Povoliť vždy. Ukladá sa len posledná poloha, bez histórie.</string>
+    <string name="loc_bg_open">Otvoriť nastavenia</string>
+    <string name="loc_bg_later">Teraz nie</string>
+    <string name="loc_bg_on">Poloha na pozadí je povolená.</string>
+    <string name="loc_bg_off">Poloha na pozadí nie je povolená: Aktuálna poloha sa obnoví len pri otvorenej aplikácii.</string>
+    <string name="loc_bg_allow">Povoliť</string>
+    <string name="loc_approximate">Aplikácia má len približnú polohu (asi 2 km). Názov miesta alebo krajina pri hranici nemusia sedieť.</string>
+    <string name="loc_permissions">Povolenia</string>
+    <string name="loc_no_permission">Povolenie polohy nebolo udelené.</string>
 </resources>

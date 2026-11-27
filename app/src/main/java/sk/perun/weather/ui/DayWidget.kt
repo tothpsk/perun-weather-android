@@ -131,7 +131,7 @@ internal object DayWidgets {
         val store=LocationStore(c);val all=store.load();val want=loc(c,id)
         return (if(want=="active") null else all.firstOrNull { BackgroundRefresh.locationKey(it)==want }) ?: all.getOrNull(store.loadSelected()) ?: all.firstOrNull()
     }
-    private fun stamp(c:Context,l:Location):String = BackgroundRefresh.locationKey(l)+"|"+LocationSourceStore(c).read(l).weatherModel
+    private fun stamp(c:Context,l:Location):String = BackgroundRefresh.positionKey(l)+"|"+LocationSourceStore(c).read(l).weatherModel
     fun stale(c:Context,id:Int,l:Location):Boolean {
         val p=prefs(c)
         return p.getString("key_$id","")!=stamp(c,l) || !file(c,id).exists() || System.currentTimeMillis()/1000-p.getLong("at_$id",0L)>3000
@@ -417,6 +417,8 @@ class DayHoursWidget:AppWidgetProvider() {
 internal class DayWidgetWorker(context:Context,params:WorkerParameters):CoroutineWorker(context,params) {
     override suspend fun doWork():Result {
         val c=applicationContext;val force=inputData.getBoolean("force",false)
+        // A widget refresh moves the Current location first: precise after the refresh button, otherwise power-saving.
+        CurrentLocation.update(c,precise=force,fromBackground=true)
         if(force) NetCache.forceNetwork=true
         try {
             for(id in DayWidgets.ids(c)) {
