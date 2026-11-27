@@ -32,6 +32,8 @@ object PerunIcons {
     val Up = outline("PerunUp", "M6 15l6-6 6 6")
     val Down = outline("PerunDown", "M6 9l6 6 6-6")
     val Back = outline("PerunBack", "M 16.56,2.88 l -9.12,9.12 l 9.12,9.12")
+    // Removing a location: a bin, shown under a card swiped away.
+    val Trash = outline("PerunTrash", "M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3")
     // Six-dot drag handle from the mockup: zero-length strokes with round caps render as dots.
     val Drag = outline("PerunDrag", "M9 7h.01M15 7h.01M9 12h.01M15 12h.01M9 17h.01M15 17h.01")
     // Detailed forecast: chart axes with an hourly curve (added after the mockup).

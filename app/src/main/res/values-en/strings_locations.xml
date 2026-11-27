@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="loc_use_here">Use the place where I am</string>
+    <string name="loc_removed">Location %1$s was removed</string>
+    <string name="loc_undo">Undo</string>
+    <string name="loc_swipe_hint">Swipe a card to the left to remove it.</string>
+</resources>
