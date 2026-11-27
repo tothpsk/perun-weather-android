@@ -72,6 +72,15 @@ import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.height
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.text.style.TextAlign
 import java.util.Collections
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Semaphore
@@ -294,18 +303,20 @@ internal fun LocationsSheet(state: LocationState, onCurrentAdded: () -> Unit = {
                     Text(if (busy) uiText(R.string.ui_hladam_ee3413d5) else uiText(R.string.ui_hladat_d6982a8b))
                 }
                 // A fixed place at the current position; the place does not move afterwards.
-                OutlinedButton(onClick = { withPermission(false) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
-                    Icon(PerunIcons.Gps, null)
-                    Text("  " + uiText(R.string.loc_use_here))
+                // A fixed place at the current position, and the Current location card (at most once); the (i) explains the difference.
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { withPermission(false) }, enabled = !busy, modifier = Modifier.weight(1f)) {
+                        Icon(PerunIcons.Gps, null)
+                        Text("  " + uiText(R.string.loc_use_here))
+                    }
+                    LocationAddInfo()
                 }
-                Text(uiText(R.string.loc_use_here_note), fontSize = 12.sp, color = ForecastMuted)
-                // The Current location card exists at most once.
-                if (!state.hasCurrent) {
-                    OutlinedButton(onClick = { withPermission(true) }, enabled = !busy, modifier = Modifier.fillMaxWidth()) {
+                if (!state.hasCurrent) Row(verticalAlignment = Alignment.CenterVertically) {
+                    OutlinedButton(onClick = { withPermission(true) }, enabled = !busy, modifier = Modifier.weight(1f)) {
                         Icon(PerunIcons.Gps, null)
                         Text("  " + uiText(R.string.loc_add_current))
                     }
-                    Text(uiText(R.string.loc_add_current_note), fontSize = 12.sp, color = ForecastMuted)
+                    LocationAddInfo()
                 }
                 message?.let { Text(it, color = ForecastMuted, fontSize = 14.sp) }
                 results.forEach { place ->
@@ -425,4 +436,84 @@ internal fun BackgroundLocationDialog(onClose: () -> Unit) {
         confirmButton = { TextButton(onClick = { launcher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION) }) { Text(uiText(R.string.loc_bg_open)) } },
         dismissButton = { TextButton(onClick = onClose) { Text(uiText(R.string.loc_bg_later)) } },
     )
+}
+
+/** The (i) next to the two buttons: a picture of a fixed place and of the Current location on a trip, with two short texts. */
+@Composable
+private fun LocationAddInfo() {
+    var open by remember { mutableStateOf(false) }
+    val muted = ForecastMuted
+    IconButton(onClick = { open = true }, modifier = Modifier.size(40.dp).semantics { contentDescription = uiText(R.string.loc_info_title) }) {
+        Canvas(Modifier.size(18.dp)) {
+            drawCircle(muted, radius = size.minDimension / 2 - .65.dp.toPx(), style = Stroke(1.3.dp.toPx()))
+            drawLine(muted, Offset(size.width / 2, size.height * .42f), Offset(size.width / 2, size.height * .74f), 1.6.dp.toPx(), StrokeCap.Round)
+            drawCircle(muted, 1.1.dp.toPx(), Offset(size.width / 2, size.height * .28f))
+        }
+    }
+    if (open) AlertDialog(
+        onDismissRequest = { open = false },
+        containerColor = Color(0xFF202833), titleContentColor = Color(0xFFE8EAF0), textContentColor = Color(0xFFE8EAF0),
+        title = { Text(uiText(R.string.loc_info_title)) },
+        text = {
+            Column(Modifier.verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    TripPicture(follow = false, label = uiText(R.string.loc_info_fixed_short), modifier = Modifier.weight(1f))
+                    TripPicture(follow = true, label = uiText(R.string.loc_info_follow_short), modifier = Modifier.weight(1f))
+                }
+                Text(uiText(R.string.loc_use_here), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(uiText(R.string.loc_info_fixed), fontSize = 13.sp, color = Color(0xFFBBC4D2))
+                Text(uiText(R.string.loc_add_current), fontWeight = FontWeight.Bold, fontSize = 14.sp)
+                Text(uiText(R.string.loc_info_follow), fontSize = 13.sp, color = Color(0xFFBBC4D2))
+            }
+        },
+        confirmButton = { TextButton(onClick = { open = false }) { Text("OK", color = Color(0xFF4FC3F7)) } },
+    )
+}
+
+/** A trip on a small map: a fixed place stays at the start, the Current location goes along with you (fainter marks behind it). */
+@Composable
+private fun TripPicture(follow: Boolean, label: String, modifier: Modifier) {
+    val accent = Color(0xFF4FC3F7)
+    Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Canvas(Modifier.fillMaxWidth().height(96.dp).clip(RoundedCornerShape(12.dp)).background(Color(0xFF283241))) {
+            val w = size.width; val h = size.height
+            // Light grid of the map.
+            for (i in 1..3) {
+                drawLine(Color(0xFF34404F), Offset(w * i / 4, 0f), Offset(w * i / 4, h), 1.dp.toPx())
+                drawLine(Color(0xFF34404F), Offset(0f, h * i / 4), Offset(w, h * i / 4), 1.dp.toPx())
+            }
+            fun at(t: Float): Offset {
+                // A gentle S-shaped road from the bottom left to the top right.
+                val u = 1 - t
+                val p0 = Offset(w * .14f, h * .80f); val p1 = Offset(w * .55f, h * .95f); val p2 = Offset(w * .40f, h * .15f); val p3 = Offset(w * .86f, h * .22f)
+                return p0 * (u * u * u) + p1 * (3 * u * u * t) + p2 * (3 * u * t * t) + p3 * (t * t * t)
+            }
+            val road = Path().apply { moveTo(at(0f).x, at(0f).y); for (i in 1..40) { val o = at(i / 40f); lineTo(o.x, o.y) } }
+            drawPath(road, Color(0xFF8FA1B5), style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, pathEffect = PathEffect.dashPathEffect(floatArrayOf(6.dp.toPx(), 5.dp.toPx()))))
+            fun mark(o: Offset, alpha: Float) {
+                val c = accent.copy(alpha = alpha); val r = 6.dp.toPx(); val s = 1.8.dp.toPx()
+                drawCircle(c, r, o, style = Stroke(s)); drawCircle(c, 1.6.dp.toPx(), o)
+                drawLine(c, Offset(o.x, o.y - r - 4.dp.toPx()), Offset(o.x, o.y - r - 1.dp.toPx()), s, StrokeCap.Round)
+                drawLine(c, Offset(o.x, o.y + r + 1.dp.toPx()), Offset(o.x, o.y + r + 4.dp.toPx()), s, StrokeCap.Round)
+                drawLine(c, Offset(o.x - r - 4.dp.toPx(), o.y), Offset(o.x - r - 1.dp.toPx(), o.y), s, StrokeCap.Round)
+                drawLine(c, Offset(o.x + r + 1.dp.toPx(), o.y), Offset(o.x + r + 4.dp.toPx(), o.y), s, StrokeCap.Round)
+            }
+            if (follow) {
+                mark(at(.2f), .25f); mark(at(.55f), .5f); mark(at(1f), 1f)
+            } else {
+                // A pin at the start of the road; you (a small dot) are already further on.
+                val o = at(0f); val r = 7.dp.toPx()
+                val pin = Path().apply {
+                    moveTo(o.x, o.y)
+                    cubicTo(o.x - r * 1.4f, o.y - r * 1.6f, o.x - r, o.y - r * 2.9f, o.x, o.y - r * 2.9f)
+                    cubicTo(o.x + r, o.y - r * 2.9f, o.x + r * 1.4f, o.y - r * 1.6f, o.x, o.y)
+                    close()
+                }
+                drawPath(pin, Color(0xFFE57373))
+                drawCircle(Color(0xFF283241), r * .38f, Offset(o.x, o.y - r * 1.95f))
+                drawCircle(Color(0xFFBBC4D2), 3.dp.toPx(), at(1f))
+            }
+        }
+        Text(label, fontSize = 12.sp, color = Color(0xFFBBC4D2), textAlign = TextAlign.Center)
+    }
 }

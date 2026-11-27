@@ -164,11 +164,11 @@ private fun clock(ms:Long):String = Instant.ofEpochMilli(ms).atZone(ZoneId.syste
     Text(uiText(R.string.bg_locations),style=MaterialTheme.typography.labelLarge,color=muted)
     PerunChips(listOf(uiText(R.string.bg_scope_active),uiText(R.string.bg_scope_all),uiText(R.string.bg_scope_custom)),listOf("active","all","custom").indexOf(s.scope).coerceAtLeast(0),{ edit { putString("scope",listOf("active","all","custom")[it]) } })
     if(s.scope=="custom") Column {
-        all.forEach { l ->
+        pickerLocations(all).forEach { l ->
             val key=BackgroundRefresh.locationKey(l)
             Row(Modifier.fillMaxWidth().heightIn(min=44.dp),verticalAlignment=Alignment.CenterVertically) {
                 Checkbox(checked=key in custom,onCheckedChange={ on -> val next=custom.toMutableSet();if(on) next.add(key) else next.remove(key);edit { putStringSet("customLocations",next) } })
-                Text(l.name,Modifier.padding(start=8.dp))
+                PickerPlace(l,Modifier.padding(start=8.dp))
             }
         }
     }

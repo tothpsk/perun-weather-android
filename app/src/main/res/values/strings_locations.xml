@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="loc_use_here">Použiť miesto, kde som</string>
+    <string name="loc_use_here">Uložiť miesto, kde som</string>
     <string name="loc_removed">Lokalita %1$s bola odstránená</string>
     <string name="loc_undo">Späť</string>
     <string name="loc_swipe_hint">Potiahnutím karty doľava ju odstránite.</string>
     <string name="loc_current">Aktuálna poloha</string>
     <string name="loc_current_at">Aktuálna poloha · %1$s</string>
-    <string name="loc_add_current">Pridať aktuálnu polohu</string>
-    <string name="loc_add_current_note">Lokalita, ktorá sleduje vašu polohu a obnovuje sa aj na pozadí.</string>
-    <string name="loc_use_here_note">Pridá pevnú lokalitu na mieste, kde sa práve nachádzate.</string>
+    <string name="loc_add_current">Sledovať moju polohu</string>
     <string name="loc_locating">Zisťujem polohu…</string>
     <string name="loc_location_off">Polohu sa nepodarilo zistiť. Skontrolujte, či je poloha v telefóne zapnutá.</string>
     <string name="loc_bg_title">Poloha na pozadí</string>
@@ -21,4 +19,10 @@
     <string name="loc_approximate">Aplikácia má len približnú polohu (asi 2 km). Názov miesta alebo krajina pri hranici nemusia sedieť.</string>
     <string name="loc_permissions">Povolenia</string>
     <string name="loc_no_permission">Povolenie polohy nebolo udelené.</string>
+    <string name="loc_current_named">Aktuálna poloha (%1$s)</string>
+    <string name="loc_info_title">Pevné miesto alebo sledovaná poloha</string>
+    <string name="loc_info_fixed_short">Pevné miesto</string>
+    <string name="loc_info_follow_short">Sledovaná poloha</string>
+    <string name="loc_info_fixed">Uloží miesto, kde práve ste, ako bežnú lokalitu. Keď odídete, počasie sa ďalej ukazuje pre toto miesto.</string>
+    <string name="loc_info_follow">Lokalita sa presúva s vami: počasie, widgety a notifikácie sú tam, kde práve ste, aj keď je aplikácia zatvorená, ak to povolíte. Sledovaná lokalita môže byť len jedna.</string>
 </resources>

@@ -46,4 +46,13 @@ class CurrentLocationTest {
         assertTrue(currentMove(card.copy(countryCode = ""), 48.123, 17.110, 48.123, 17.110).rename)
         assertTrue(currentMove(card, null, null, 48.123, 17.110).rename)
     }
+
+    @Test fun theCurrentLocationComesFirstInPickersAndIsMarkedInNotifications() {
+        val a = Location("Wien", "Austria", 48.2, 16.37)
+        val b = Location("Bratislava", "Slovakia", 48.15, 17.11)
+        val gps = card.copy(name = "Bratislava")
+        assertEquals(listOf(gps, a, b), pickerLocations(listOf(a, b, gps)))
+        assertEquals("Bratislava \u2316", notifyPlace(gps))
+        assertEquals("Bratislava", notifyPlace(b))
+    }
 }

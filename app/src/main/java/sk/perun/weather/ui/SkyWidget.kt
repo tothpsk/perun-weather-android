@@ -142,7 +142,7 @@ internal object SkyWidgets {
         // The warning of the next 24 hours, drawn behind the place where the widget shows it.
         val warning=widgetNextDay().let { (from,to)->widgetAlert(widgetPlaceAlerts(c,l),from,to) }
         val warningPicture=warning?.let { widgetAlertBitmap(it,(18*dn).roundToInt()) }
-        v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture))
+        v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture,l.current))
         v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+alertName(it) } ?: ""))
         v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
@@ -161,7 +161,7 @@ internal object SkyWidgets {
  * The whole widget as one picture, in the manner of the Air quality and pollen widget: a picture of the chosen body
  * (the day arc of the Sun, or the Moon in its phase) and its values, each with the symbol it has on the Sun and Moon screen.
  */
-private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Double,moonMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,cols:Int,rows:Int,warning:Bitmap?=null):Bitmap {
+private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Double,moonMain:Boolean,darkText:Boolean,wPx:Int,hPx:Int,cols:Int,rows:Int,warning:Bitmap?=null,gps:Boolean=false):Bitmap {
     val bmp=Bitmap.createBitmap(wPx,hPx,Bitmap.Config.ARGB_8888);val cv=Canvas(bmp)
     val w=wPx.toFloat();val h=hPx.toFloat()
     val fg=if(darkText) 0xFF14161A.toInt() else 0xFFFFFFFF.toInt()
@@ -228,11 +228,13 @@ private fun skyWidgetBitmap(dn:Float,place:String,zone:ZoneId,lat:Double,lon:Dou
     // The place with the warning of the next 24 hours behind it, as in the other widgets: the symbol a little taller than the letters,
     // 4 dp after the name and in the middle of its letters. Without a warning the text alone.
     fun placeText(s:String,x:Float,y:Float,size:Float,color:Int,bold:Boolean,room:Float,align:Paint.Align=Paint.Align.LEFT) {
-        val a=warning;val sz=(size+3)*dn;val aw=if(a!=null) sz+4*dn else 0f
+        // The Current location has the location mark of the app right after the name, before the warning.
+        val a=warning;val sz=(size+3)*dn;val gw=if(gps) size*dn+3*dn else 0f;val aw=(if(a!=null) sz+4*dn else 0f)+gw
         val shown=fit(s,size,bold,room-aw);val tw=width(shown,size,bold)
         val left=when(align) { Paint.Align.CENTER->x-(tw+aw)/2;Paint.Align.RIGHT->x-tw-aw;else->x }
         if(shown.isNotEmpty()) text(shown,left,y,size,color,bold)
-        if(a!=null) { val cy=y-0.36f*size*dn;val ax=if(shown.isNotEmpty()) left+tw+4*dn else left;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
+        if(gps && shown.isNotEmpty()) drawGpsMark(cv,left+tw+3*dn,y-0.36f*size*dn,size*dn,color)
+        if(a!=null) { val cy=y-0.36f*size*dn;val ax=(if(shown.isNotEmpty()) left+tw+4*dn else left)+gw;p.style=Paint.Style.FILL;p.color=0xFFFFFFFF.toInt();cv.drawBitmap(a,null,RectF(ax,cy-sz/2,ax+sz,cy+sz/2),p) }
     }
     fun stroke(color:Int,px:Float) { p.style=Paint.Style.STROKE;p.strokeWidth=px;p.strokeCap=Paint.Cap.ROUND;p.color=color }
     fun dot(x:Float,y:Float,color:Int,r:Float=3*dn) { p.style=Paint.Style.FILL;p.color=color;cv.drawCircle(x,y,r,p) }
@@ -427,8 +429,8 @@ class SkyWidgetConfigActivity:ComponentActivity() {
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
         val locations=LocationStore(this).load()
         val initial=SkyWidgets.read(this,id)
-        val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-        val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+        val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+        val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
         setContent {
             PerunTheme {
                 Surface(Modifier.fillMaxSize(),color=Color(0xFF151A22),contentColor=Color(0xFFE8EAF0)) {
@@ -450,8 +452,8 @@ class SkyWidgetConfigActivity:ComponentActivity() {
 
 /** The settings of the Sun and Moon widget; shared by the screen that opens from the home screen and by the Settings of the app. */
 @Composable internal fun SkyWidgetForm(locations:List<Location>,initial:SkyWidgetConfig,onSave:(SkyWidgetConfig)->Unit) {
-    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
     var loc by remember { mutableStateOf(initial.loc) }
     var main by remember { mutableStateOf(initial.main) }
     var bg by remember { mutableStateOf(initial.bg) }

@@ -131,7 +131,7 @@ internal object SixDayWidgets {
         val manager=AppWidgetManager.getInstance(c)
         val v=RemoteViews(c.packageName,R.layout.wg_days)
         v.setImageViewBitmap(R.id.wg_icon,widgetSymbolBitmap(d.code,d.isDayFlag,120))
-        v.setTextViewText(R.id.wg_place,l.name)
+        v.setTextViewText(R.id.wg_place,l.name);v.gpsMark(l,fg)
         v.setTextViewText(R.id.wg_cond,overviewCondition(d.code))
         v.setTextViewText(R.id.wg_temp,t(u,d.temperature))
         val snowing=(d.snowfall.isFinite() && d.snowfall>0.0) || d.code in setOf(71,73,75,77,85,86)

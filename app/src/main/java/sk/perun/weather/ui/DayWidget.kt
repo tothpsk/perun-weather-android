@@ -210,7 +210,7 @@ internal object DayWidgets {
         v.setOnClickPendingIntent(R.id.wg_day_next,send(c,id,ActionNext))
         val l=place(c,id)
         if(l!=null) {
-            v.setTextViewText(R.id.wg_place,l.name)
+            v.setTextViewText(R.id.wg_place,l.name);v.gpsMark(l,0xFFFFFFFF.toInt())
             v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l),null))
         }
         val data=if(l==null) null else read(c,id,l)
@@ -446,8 +446,8 @@ class DayWidgetConfigActivity:ComponentActivity() {
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
         val locations=LocationStore(this).load()
-        val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-        val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+        val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+        val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
         val startLoc=DayWidgets.loc(this,id);val startRows=DayWidgets.rows(this,id)
         setContent {
             PerunTheme {
@@ -472,8 +472,8 @@ class DayWidgetConfigActivity:ComponentActivity() {
 /** The settings of the Day by hours widget; shared by the screen that opens from the home screen and by the Settings of the app. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable internal fun DayWidgetForm(locations:List<Location>,startLoc:String,startRows:List<String>,onSave:(String,List<String>)->Unit) {
-    val keys=listOf("active")+locations.map { BackgroundRefresh.locationKey(it) }
-    val names=listOf(uiText(R.string.wg_loc_active))+locations.map { it.name }
+    val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
+    val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
     var loc by remember { mutableStateOf(startLoc) }
     var rows by remember { mutableStateOf(startRows) }
     val muted=Color(0xFFBBC4D2)

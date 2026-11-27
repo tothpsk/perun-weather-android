@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="loc_use_here">Use the place where I am</string>
+    <string name="loc_use_here">Save the place where I am</string>
     <string name="loc_removed">Location %1$s was removed</string>
     <string name="loc_undo">Undo</string>
     <string name="loc_swipe_hint">Swipe a card to the left to remove it.</string>
     <string name="loc_current">Current location</string>
     <string name="loc_current_at">Current location · %1$s</string>
-    <string name="loc_add_current">Add current location</string>
-    <string name="loc_add_current_note">A location that follows where you are and is refreshed in the background too.</string>
-    <string name="loc_use_here_note">Adds a fixed location at the place where you are now.</string>
+    <string name="loc_add_current">Follow my location</string>
     <string name="loc_locating">Finding the location…</string>
     <string name="loc_location_off">The location could not be found. Check that location is turned on in the phone.</string>
     <string name="loc_bg_title">Location in the background</string>
@@ -21,4 +19,10 @@
     <string name="loc_approximate">The app has only the approximate location (about 2 km). The name of the place or the country near a border may be wrong.</string>
     <string name="loc_permissions">Permissions</string>
     <string name="loc_no_permission">The location permission was not granted.</string>
+    <string name="loc_current_named">Current location (%1$s)</string>
+    <string name="loc_info_title">Fixed place or followed location</string>
+    <string name="loc_info_fixed_short">Fixed place</string>
+    <string name="loc_info_follow_short">Followed location</string>
+    <string name="loc_info_fixed">Saves the place where you are now as an ordinary location. When you leave, the weather is still shown for this place.</string>
+    <string name="loc_info_follow">The location moves with you: the weather, widgets and notifications are where you are, also while the app is closed if you allow it. There can be only one followed location.</string>
 </resources>

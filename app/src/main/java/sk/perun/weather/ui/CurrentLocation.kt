@@ -15,6 +15,9 @@ import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -177,4 +180,18 @@ internal fun currentLocationLabel(fixTime: Long): String {
     val today = at.toLocalDate() == java.time.LocalDate.now(ZoneId.systemDefault())
     val pattern = if (today) "HH:mm" else appPattern("d. M. HH:mm")
     return uiText(sk.perun.weather.R.string.loc_current_at, at.format(DateTimeFormatter.ofPattern(pattern, appLocale())))
+}
+
+/** Places in the pickers of widgets, notifications and refreshes: the Current location first, then the others in their order. */
+internal fun pickerLocations(locations: List<Location>): List<Location> = locations.filter { it.current } + locations.filter { !it.current }
+
+/** "Current location (Bratislava)" for the Current location, otherwise the name of the place. */
+internal fun pickerName(l: Location): String = if (l.current) uiText(sk.perun.weather.R.string.loc_current_named, l.name) else l.name
+
+/** A place in a list of check boxes: the Current location with the location mark of the app. */
+@Composable internal fun PickerPlace(l: Location, modifier: androidx.compose.ui.Modifier = androidx.compose.ui.Modifier) {
+    androidx.compose.foundation.layout.Row(modifier, verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+        androidx.compose.material3.Text(pickerName(l))
+        if (l.current) androidx.compose.material3.Icon(PerunIcons.Gps, null, androidx.compose.ui.Modifier.padding(start = 6.dp).size(16.dp), tint = androidx.compose.ui.graphics.Color(0xFF4FC3F7))
+    }
 }
