@@ -69,7 +69,8 @@ class AlertSourcesTest : ResourceStringsTestBase() {
 
     @Test fun budgetCountsOnlyDownloads() {
         val s = store(); val budget = CapBudget(1); var downloads = 0
-        val cap = bytes("meteoalarm_sk_icing.xml")
+        // The real message with its expiry moved to the future, so the test does not depend on today.
+        val cap = String(bytes("meteoalarm_sk_icing.xml")).replace(Regex("<expires>[^<]*</expires>"), "<expires>2099-01-01T00:00:00+00:00</expires>").toByteArray()
         val load: (String) -> ByteArray = { downloads++; cap }
         assertTrue(fetchCap("https://a", budget, load, s) is CapFetch.Read)
         assertTrue(fetchCap("https://a", budget, load, s) is CapFetch.Read)

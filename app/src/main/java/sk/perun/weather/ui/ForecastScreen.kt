@@ -402,8 +402,10 @@ private fun forecastPrecipColor(h:ForecastHour)=precipitationType(h.v("rain"),h.
                 fun number(h:ForecastHour)=weatherUnitNumber(convert(v,h.v(row.key),u),decimals(v,u))
                 fun col(h:ForecastHour)=if(v==FV.Rain) forecastPrecipColor(h) else tint(v,h.v(row.key),h.v("dew_point_2m"))
                 val values=day.values(row.key).map { convert(v,it,u) }.filter(Double::isFinite)
-                val low=if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
-                val high=(values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
+                // Temperature and dew point: a scale at least 2 °C wide, so small changes stay small.
+                val tempScale=if(v==FV.Temp || v==FV.Dew) dayRowScale(values,u.temperature.fromCelsius(2.0)-u.temperature.fromCelsius(0.0)) else null
+                val low=tempScale?.first ?: if(v in listOf(FV.Rain,FV.Prob,FV.Wind,FV.Gust,FV.Cloud,FV.Uv,FV.Humidity)) 0.0 else values.minOrNull() ?: 0.0
+                val high=tempScale?.second ?: (values.maxOrNull() ?: (low+1)).coerceAtLeast(low+1)
                 // The scale starts at the bottom of the row; the precipitation row of a day with snow keeps the room for the marks under the bars.
                 val base=(if(v==FV.Rain && day.hours.any { it.v("snowfall")>0 }) 15 else 3).dp.toPx()
                 fun y(a:Double)=y1-base-((a-low)/(high-low)*(rh-base-16.dp.toPx()).coerceAtLeast(1f)).toFloat()

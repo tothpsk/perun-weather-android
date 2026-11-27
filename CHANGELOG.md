@@ -4,6 +4,12 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [1.4.2] - 2026-11-27
+
+### Changed
+
+- Forecast, expanded day: the rows of temperature and dew point have a scale at least 2 °C (3.6 °F) wide. A day with small differences shows a flatter curve in the middle of the row, so changes of a few tenths of a degree no longer look like large swings. The values do not change.
+
 ## [1.4.1] - 2026-11-26
 
 ### Changed
