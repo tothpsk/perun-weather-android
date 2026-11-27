@@ -461,7 +461,7 @@ private fun meteoLabel(key:String):String = when(key) {
     @Composable fun label(res:Int,first:Boolean=false) { if(!first) HorizontalDivider(color=Color(0x804B586C));Text(uiText(res),style=MaterialTheme.typography.labelLarge,color=muted) }
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         label(R.string.wg_location,true)
-        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] },marked=keys.indexOf(CurrentLocation.Key))
         if(kind.endsWith("NowWidget") || kind.endsWith("SixDayWidget")) {
             for(i in 0..3) {
                 HorizontalDivider(color=Color(0x804B586C))

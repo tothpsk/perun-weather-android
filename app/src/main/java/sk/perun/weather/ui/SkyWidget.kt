@@ -461,7 +461,7 @@ class SkyWidgetConfigActivity:ComponentActivity() {
     val muted=Color(0xFFBBC4D2)
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] },marked=keys.indexOf(CurrentLocation.Key))
         HorizontalDivider(color=Color(0x804B586C))
         Text(uiText(R.string.wg_sky_main),style=MaterialTheme.typography.labelLarge,color=muted)
         PerunChips(listOf(uiText(R.string.ui_slnko_d4e0d075),uiText(R.string.ui_mesiac_3ca578fb)),if(main=="moon") 1 else 0,{ main=if(it==1) "moon" else "sun" })

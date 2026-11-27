@@ -4,12 +4,16 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+### Fixed
+
+- Notifications: the warnings and rules of a place that is no longer saved go away, at once when the place is removed and otherwise at the next background refresh. Before, they stayed until the warnings ended, for example under a fixed place replaced by the Current location.
+
 ### Added
 
 - Current location: a saved place that follows where you are. It is added in Add location with Follow my location, at most once, and can be moved in the list like the other places; removing it stops following the position. The card and the header show the location mark and Current location with the time of the last position.
 - Current location: the position is taken when the card is added, when the app opens and when a widget is refreshed with its button (precise, from GPS), and at each background refresh and widget update (power-saving, from the network and Wi-Fi). The coordinates move after 300 m, and the name of the place is looked up again after more than 2 km. Only the last position is kept, rounded to about 100 m, without any history.
 - Current location: rules, widgets, notifications and the sources of the place stay with the card when it moves. The forecast model is Best match and can be changed; the alert sources follow the country of the position.
-- Current location in widgets and notifications: in every location picker (widgets, alerts, rules, summaries, current conditions, background refresh) it comes right after the active location as Current location (place), with the location mark in the lists of check boxes. Widgets that show it have the location mark of the app after the place; notifications have the sign ⌖ after the place.
+- Current location in widgets and notifications: in every location picker (widgets, alerts, rules, summaries, current conditions, background refresh) it comes right after the active location as Current location (place), with the location mark in the lists of check boxes and in the location chips of the widget settings. Widgets that show it have the location mark of the app after the place; notifications have the sign ⌖ after the place.
 - Add location: the two buttons are Save the place where I am and Follow my location, each with an (i) that explains the difference with a small picture of a trip.
 - Current location: after adding it without the permission to use the position in the background, a dialog leads to Allow all the time in the system settings. The sources of the card show whether the background position is allowed and whether the app has only the approximate position.
 

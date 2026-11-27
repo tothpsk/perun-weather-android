@@ -479,7 +479,7 @@ class DayWidgetConfigActivity:ComponentActivity() {
     val muted=Color(0xFFBBC4D2)
     Column(verticalArrangement=Arrangement.spacedBy(10.dp)) {
         Text(uiText(R.string.wg_location),style=MaterialTheme.typography.labelLarge,color=muted)
-        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] })
+        PerunChips(names,keys.indexOf(loc).coerceAtLeast(0),{ loc=keys[it] },marked=keys.indexOf(CurrentLocation.Key))
         HorizontalDivider(color=Color(0x804B586C))
         Row(Modifier.fillMaxWidth(),verticalAlignment=androidx.compose.ui.Alignment.CenterVertically) {
             Text(uiText(R.string.wg_day_rows),Modifier.weight(1f),style=MaterialTheme.typography.labelLarge,color=muted)
