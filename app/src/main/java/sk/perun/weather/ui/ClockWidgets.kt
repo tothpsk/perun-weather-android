@@ -152,31 +152,34 @@ internal object ClockRender {
                     val weather=art.rowWeather(rowH,s.cells)
                     v.setImageViewBitmap(R.id.wg_weather,weather)
                     val clockW=clockWidthDp(c,w,s,f,alarm)
-                    val room=s.wDp-20f-clockW-weather.width/dn-(if(refresh) 30f else 0f)-3*8f
+                    val room=s.wDp-20f-clockW-weather.width/dn-(if(refresh) 30f else 0f)-4*10f
                     val info=if(s.cells>=4 && room>=30f) art.rowInfo(room,rowH,extra,a) else null
                     if(info==null) v.setViewVisibility(R.id.wg_place,View.GONE) else { v.setViewVisibility(R.id.wg_place,View.VISIBLE);v.setImageViewBitmap(R.id.wg_place,info) }
-                    // Without the long date the parts stand at even gaps, as in the Compact widget; with it the clock keeps the left edge.
+                    // Without the long date the parts stand at even gaps, as in the Compact widget; with it the clock keeps the left edge
+                    // and the place stands in the middle between the clock and the weather.
                     val even=!longDate(w,s)
                     v.setViewVisibility(R.id.wg_sp0,if(even) View.VISIBLE else View.GONE)
                     v.setViewVisibility(R.id.wg_sp1,View.VISIBLE)
-                    v.setViewVisibility(R.id.wg_sp2,if(even && info!=null) View.VISIBLE else View.GONE)
+                    v.setViewVisibility(R.id.wg_sp2,if(info!=null) View.VISIBLE else View.GONE)
                     v.setViewVisibility(R.id.wg_sp3,if(even) View.VISIBLE else View.GONE)
                 }
                 s.cells<=2 -> {
                     val f=fitClock(c,w,40f,12f,s.hDp-18f-20f-34f)
                     clock(c,v,id,w,s,kind,pal,f,alarm)
-                    v.setImageViewBitmap(R.id.wg_weather,art.tall((s.wDp-16f).coerceAtLeast(40f),(s.hDp-18f-20f-f.heightDp-4f).coerceAtLeast(24f)))
+                    v.setImageViewBitmap(R.id.wg_weather,art.tall((s.wDp-16f).coerceAtLeast(40f),(s.hDp-18f-20f-f.heightDp-4f).coerceAtLeast(24f),extra))
                     v.setImageViewBitmap(R.id.wg_place,art.place((s.wDp-16f).coerceAtLeast(40f),20f,a,null,centre=true))
                 }
                 else -> {
                     val topH=(s.hDp-20f-26f).coerceAtLeast(30f)
                     // Three cells: the chosen value only without the date, under the clock.
                     val under=s.cells==3 && w.date=="none" && extra!=null
-                    val f=fitClock(c,w,when(s.cells) { 3->44f;4->54f;else->60f },if(s.cells==3) 12f else 13f,topH,if(under) 22f else 0f)
+                    val f=fitClock(c,w,when(s.cells) { 3->36f;4->54f;else->60f },if(s.cells==3) 12f else 13f,topH,if(under) 22f else 0f)
                     clock(c,v,id,w,s,kind,pal,f,alarm)
                     if(under) { v.setViewVisibility(R.id.wg_extra,View.VISIBLE);v.setImageViewBitmap(R.id.wg_extra,art.extraOnly(extra!!,13f)) }
-                    val room=(s.wDp-26f-clockWidthDp(c,w,s,f,alarm)-8f).coerceAtLeast(40f)
-                    v.setImageViewBitmap(R.id.wg_weather,art.box(room,topH,s.cells,if(s.cells==3) null else extra))
+                    val room=(s.wDp-26f-clockWidthDp(c,w,s,f,alarm)-10f).coerceAtLeast(40f)
+                    // The weather stands with its middle at the middle of the time.
+                    val timeMid=f.timeSp*c.resources.configuration.fontScale*TimeLine/2
+                    v.setImageViewBitmap(R.id.wg_weather,art.box(room,topH,s.cells,if(s.cells==3) null else extra,timeMid))
                     v.setImageViewBitmap(R.id.wg_place,art.place((s.wDp-26f-30f).coerceAtLeast(40f),26f,a,if(s.cells>=4) updated else null))
                 }
             }
@@ -189,13 +192,20 @@ internal object ClockRender {
             val avail=s.hDp-12f-22f-2f
             // The columns keep the heights of the 6 days widget; the clock takes what is left, the columns shrink only below the smallest clock.
             val rowsNatural=ClockArt.columnsHeight(bottom!=null)
-            val f=fitClock(c,w,if(s.cells>=5) 46f else 40f,12f,avail-rowsNatural,least=26f)
+            // The time is sized as with the long date, so that it, the place and the weather keep their size and place across the date styles;
+            // without the date the columns get the freed room.
+            val withDate=w.copy(date="long")
+            val fs=c.resources.configuration.fontScale
+            val sized=fitClock(c,withDate,if(s.cells>=5) 46f else 40f,12f,avail-rowsNatural,least=26f)
+            val timeH=sized.timeSp*fs*TimeLine
+            val f=ClockFit(sized.timeSp,sized.dateSp,if(w.date=="none") timeH else sized.heightDp)
             clock(c,v,id,w,s,kind,pal,f,alarm)
-            val clockW=clockWidthDp(c,w,s,f,alarm)
-            v.setImageViewBitmap(R.id.wg_weather,art.head((s.wDp-22f-clockW-8f).coerceAtLeast(60f),f.heightDp.coerceAtLeast(40f),a))
-            val rowsH=(avail-f.heightDp).coerceAtLeast(30f)
+            val clockW=clockWidthDp(c,withDate,s,sized,alarm)
+            v.setImageViewBitmap(R.id.wg_weather,art.head((s.wDp-22f-clockW-8f).coerceAtLeast(60f),timeH.coerceAtLeast(30f),a))
+            // A little room is kept free, as the real heights of the texts may differ slightly from the estimate.
+            val rowsH=(avail-max(f.heightDp,timeH.coerceAtLeast(30f))-4f).coerceAtLeast(30f)
             val cols=if(hours) art.hourColumns(series,bottom) else art.dayColumns(series,bottom)
-            v.setImageViewBitmap(R.id.wg_rows,art.columns((s.wDp-28f).coerceAtLeast(120f),rowsH,cols,bottom!=null))
+            v.setImageViewBitmap(R.id.wg_rows,art.columns((s.wDp-28f).coerceAtLeast(120f),rowsH,cols,bottom))
             v.setTextViewText(R.id.wg_foot,updated);v.setTextColor(R.id.wg_foot,pal.muted)
             v.setViewVisibility(R.id.wg_refresh,View.VISIBLE)
             v.setContentDescription(R.id.wg_weather,l.name+" "+WidgetRender.t(u,d.temperature)+(a?.let { ", "+alertName(it) } ?: ""))
@@ -316,17 +326,17 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         return b
     }
 
-    /** One row, four and five cells: the place over the chosen value, or the place alone at the size of the Compact widget (15 sp). */
+    /** One row, four and five cells: the place at the size of the Compact widget (15 sp), over the chosen value where it is set. */
     fun rowInfo(roomDp:Float,rowH:Float,extraKey:String?,alert:UnifiedAlert?):Bitmap? {
         val room=roomDp*dn
-        if(extraKey!=null && extraWidth(extraKey,12f)<=room) {
-            val sp=12f
+        if(extraKey!=null && extraWidth(extraKey,13f)<=room) {
+            val sp=15f;val es=13f
             val name=fittedPlace(sp,alert,room)
-            val w=max(placeWidth(name,sp,alert),extraWidth(extraKey,sp))
-            val h=min(rowH,40f)
+            val w=max(placeWidth(name,sp,alert),extraWidth(extraKey,es))
+            val h=min(rowH,44f)
             val (b,cv)=canvas(w/dn,h)
-            place(cv,name,0f,h/2*dn-9f*dn,sp,alert)
-            extra(cv,extraKey,extraWidth(extraKey,sp),h/2*dn+9f*dn,sp)
+            place(cv,name,0f,h/2*dn-10f*dn,sp,alert)
+            extra(cv,extraKey,extraWidth(extraKey,es),h/2*dn+10f*dn,es)
             return b
         }
         val sp=15f
@@ -346,48 +356,60 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         return b
     }
 
-    /** 2 x 2: the icon and the temperature, centred. */
-    fun tall(wDp:Float,hDp:Float):Bitmap {
+    /** 2 x 2: the icon and the temperature, centred, with the chosen value under them. */
+    fun tall(wDp:Float,hDp:Float,extraKey:String?):Bitmap {
         val (b,cv)=canvas(wDp,hDp);val w=wDp*dn;val h=hDp*dn
-        val s=min(h,44f*dn);val ts=(s/dn*0.5f).coerceIn(16f,24f)
+        val es=13f;val eh=if(extraKey!=null) (es+6f)*dn else 0f
+        val s=min(h-eh,44f*dn).coerceAtLeast(16f*dn);val ts=(s/dn*0.5f).coerceIn(16f,24f)
         val tw=width(temp,ts,true);val x0=(w-s-6f*dn-tw)/2
-        weather(cv,d.code,d.isDayFlag,x0,(h-s)/2,s)
-        text(cv,temp,x0+s+6f*dn,h/2,ts,pal.fg,true)
+        val top=(h-s-eh)/2
+        weather(cv,d.code,d.isDayFlag,x0,top,s)
+        text(cv,temp,x0+s+6f*dn,top+s/2,ts,pal.fg,true)
+        if(extraKey!=null) { val ew=extraWidth(extraKey,es);extra(cv,extraKey,(w+ew)/2,top+s+eh/2+1f*dn,es) }
         return b
     }
 
     /**
-     * Two rows, right of the clock, at the natural size. Three cells: the icon beside the temperature. Four and five: the same,
-     * larger, with the chosen value and its name under them; the icon is smaller with the chosen value, so that both fit.
-     * The size does not depend on the date.
+     * Two rows, right of the clock, with the middle of the icon at the middle of the time ([timeMid]). Three cells: the icon beside the
+     * temperature, smaller where the long date leaves less room. Four and five: the same, larger, with the chosen value and its name
+     * under them, or the weather in words without it; the icon is smaller with the chosen value, so that both fit. The size does not
+     * depend on the date.
      */
-    fun box(roomDp:Float,topH:Float,cells:Int,extraKey:String?):Bitmap {
+    fun box(roomDp:Float,topH:Float,cells:Int,extraKey:String?,timeMid:Float):Bitmap {
         if(cells==3) {
-            val ts=24f;val s=min(36f,topH*0.6f)
+            var ts=24f;var s=min(36f,topH*0.6f)
+            val k=min(1f,roomDp/(s+5f+width(temp,ts,true)/dn))
+            ts*=k;s*=k
             val tw=width(temp,ts,true)/dn
-            val ww=min(s+5f+tw,roomDp);val h=max(s,ts*1.25f)
+            val ww=s+5f+tw;val cy=max(timeMid,max(s,ts*1.25f)/2)
+            val h=cy+max(s,ts*1.25f)/2
             val (b,cv)=canvas(ww,h)
-            text(cv,temp,ww*dn,h/2*dn,ts,pal.fg,true,Paint.Align.RIGHT)
-            weather(cv,d.code,d.isDayFlag,(ww-tw-5f-s)*dn,(h-s)/2*dn,s*dn)
+            text(cv,temp,ww*dn,cy*dn,ts,pal.fg,true,Paint.Align.RIGHT)
+            weather(cv,d.code,d.isDayFlag,0f,(cy-s/2)*dn,s*dn)
             return b
         }
         val big=cells>=5
         val ts=if(big) 32f else 28f;val es=if(big) 16f else 14f
         val extraH=if(extraKey!=null) 10f+es+12f else 0f
-        val s=if(extraKey!=null) min(if(big) 48f else 44f,topH-extraH-4f) else min(if(big) 60f else 54f,topH*0.85f)
+        val condSp=12f;val condH=if(extraKey==null) condSp*1.3f+4f else 0f
+        val s=if(extraKey!=null) min(if(big) 48f else 44f,topH-extraH-4f) else min(if(big) 56f else 50f,topH*0.85f-condH)
         val tw=width(temp,ts,true)/dn
+        val cond=overviewCondition(d.code)
         val ew=if(extraKey!=null) max(extraWidth(extraKey,es),width(Notifier.paramLabel(extraKey),10f,false))/dn else 0f
-        val ww=min(max(s+6f+tw,ew),roomDp)
-        val h=s+4f+extraH
+        val cw=if(extraKey==null) width(cond,condSp,false)/dn else 0f
+        val ww=min(maxOf(s+6f+tw,ew,cw),roomDp)
+        // The icon centred on the time where the value under it still fits.
+        val cyDp=timeMid.coerceIn(2f+s/2,max(2f+s/2,topH-extraH-condH-s/2))
+        val h=cyDp+s/2+4f+extraH+condH
         val (b,cv)=canvas(ww,h);val w=ww*dn
-        val cy=(2f+s/2)*dn
+        val cy=cyDp*dn
         text(cv,temp,w,cy,ts,pal.fg,true,Paint.Align.RIGHT)
         weather(cv,d.code,d.isDayFlag,w-(tw+6f+s)*dn,cy-s/2*dn,s*dn)
+        val y=cy+(s/2+6f)*dn
         if(extraKey!=null) {
-            val y=(2f+s+8f)*dn
             text(cv,fit(Notifier.paramLabel(extraKey),10f,false,w),w,y+5f*dn,10f,pal.muted,false,Paint.Align.RIGHT)
             extra(cv,extraKey,w,y+10f*dn+es*dn*0.75f,es)
-        }
+        } else text(cv,fit(cond,condSp,false,w),w,y+condSp*dn*0.55f,condSp,pal.muted,false,Paint.Align.RIGHT)
         return b
     }
 
@@ -408,14 +430,16 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
     /** 6 days and 6 hours: the place with the warning and the weather in words, the icon and the temperature, right of the clock, at the natural width. */
     fun head(roomDp:Float,hDp:Float,alert:UnifiedAlert?):Bitmap {
         val ts=if(roomDp>=150f) 26f else 22f
-        val s=min(if(roomDp>=150f) 36f else 30f,hDp*0.6f)
+        val s=if(roomDp>=150f) 34f else 28f
         val tw=width(temp,ts,true)/dn
         val cond=overviewCondition(d.code)
         val placeW=placeWidth(l.name,14f,alert)/dn
         val oneLine=placeW+8f+s+6f+tw<=roomDp
         val textW=if(oneLine) max(placeW,width(cond,11f,false)/dn) else 0f
         val ww=if(oneLine) textW+8f+s+6f+tw else roomDp
-        val (b,cv)=canvas(ww,hDp);val w=ww*dn;val h=hDp*dn
+        // The height follows the time only; the date does not move the picture.
+        val hh=max(hDp,if(oneLine) max(s+4f,34f) else 20f+s+2f)
+        val (b,cv)=canvas(ww,hh);val w=ww*dn;val h=hh*dn
         if(oneLine) {
             // One line: the place over the weather in words, the icon and the temperature.
             val top=ts*dn*0.6f+2f*dn
@@ -468,22 +492,47 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         return d.hours.take(6).map { h -> ClockColumn(h.time.format(DateTimeFormatter.ofPattern("HH:mm")),h.code,WidgetRender.dayAt(d,h.time),WidgetRender.t(u,h.temperature),"","") }
     }
 
-    /** Six columns with the heights of the 6 days widget; a lower picture shrinks them evenly instead of cutting them. */
-    fun columns(wDp:Float,hDp:Float,cols:List<ClockColumn>,bottom:Boolean):Bitmap {
+    /**
+     * Six columns with the heights of the 6 days widget. A lower picture shrinks them evenly instead of cutting them; a higher one
+     * (without the date or the bottom row) widens the gaps between the rows a little. The bottom row has the icon of the value on the
+     * left and is smaller and quieter than the temperatures.
+     */
+    fun columns(wDp:Float,hDp:Float,cols:List<ClockColumn>,bottomKey:String?):Bitmap {
         val (b,cv)=canvas(wDp,hDp);val w=wDp*dn;val h=hDp*dn
+        val bottom=bottomKey!=null
         val natural=columnsHeight(bottom)
         val k=min(1f,hDp/natural)
+        val gaps=if(bottom) 4 else 3
+        val gap=if(hDp>natural) min(6f,(hDp-natural)/(gaps+2)) else 0f
+        val used=natural*k+gap*gaps
         val cw=w/6
         cols.take(6).forEachIndexed { i,col ->
             val cx=cw*i+cw/2
-            var y=(h-natural*k*dn)/2
-            text(cv,fit(col.label,11f*k,false,cw),cx,y+Label*k*dn/2,11f*k,pal.muted,false,Paint.Align.CENTER);y+=Label*k*dn
-            y+=IconGap*k*dn;weather(cv,col.code,col.day,cx-Icon*k*dn/2,y,Icon*k*dn);y+=(Icon+IconGap)*k*dn
-            text(cv,col.main,cx,y+Main*k*dn/2,13f*k,pal.fg,true,Paint.Align.CENTER);y+=Main*k*dn
+            var y=(h-used*dn)/2
+            text(cv,fit(col.label,11f*k,false,cw),cx,y+Label*k*dn/2,11f*k,pal.muted,false,Paint.Align.CENTER);y+=(Label*k+gap)*dn
+            y+=IconGap*k*dn;weather(cv,col.code,col.day,cx-Icon*k*dn/2,y,Icon*k*dn);y+=((Icon+IconGap)*k+gap)*dn
+            text(cv,col.main,cx,y+Main*k*dn/2,13f*k,pal.fg,true,Paint.Align.CENTER);y+=(Main*k+gap)*dn
             if(col.second.isNotEmpty()) text(cv,col.second,cx,y+Second*k*dn/2,12f*k,pal.muted,false,Paint.Align.CENTER)
-            y+=Second*k*dn
-            if(bottom && col.bottom.isNotEmpty()) text(cv,fit(col.bottom,11f*k,false,cw),cx,y+Bottom*k*dn/2,11f*k,pal.fg,false,Paint.Align.CENTER)
+            y+=(Second*k+gap)*dn
+            if(bottomKey!=null && col.bottom.isNotEmpty()) bottomValue(cv,bottomKey,col.bottom,cx,y+Bottom*k*dn/2,cw-2f*dn,10f*k)
         }
         return b
     }
+
+    /** A value of the bottom row with its icon on the left, centred at [cx]; the text shrinks to the width of the column, and the icon goes where even that is not enough. */
+    private fun bottomValue(cv:Canvas,key:String,value:String,cx:Float,cy:Float,room:Float,spec:Float) {
+        var sp=spec
+        fun total(sp:Float)=sp*dn+2f*dn+width(value,sp,false)
+        while(sp>8f && total(sp)>room) sp-=0.5f
+        val icon=total(sp)<=room
+        val tw=width(value,sp,false)
+        val all=if(icon) total(sp) else tw
+        val x=cx-all/2
+        if(icon) {
+            val a=sp*dn
+            pic(cv,widgetParamIcon(key,pal.muted,a.roundToInt().coerceAtLeast(1),Double.NaN,sp),x,cy-a/2,a)
+            text(cv,value,x+a+2f*dn,cy,sp,pal.muted)
+        } else text(cv,fit(value,sp,false,room),cx,cy,sp,pal.muted,false,Paint.Align.CENTER)
+    }
+
 }
