@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact with clock, two rows and three or more cells: the clock and the weather; the place with the warning, the time of the update and the refresh button. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wg_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:paddingStart="16dp" android:paddingEnd="10dp" android:paddingTop="12dp" android:paddingBottom="8dp" android:background="@drawable/wg_bg">
+<LinearLayout android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:orientation="horizontal">
+<include layout="@layout/wg_clock_block"/>
+<ImageView android:id="@+id/wg_weather" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="8dp" android:scaleType="fitCenter" android:contentDescription="@null"/>
+</LinearLayout>
+<LinearLayout android:layout_width="match_parent" android:layout_height="26dp" android:orientation="horizontal" android:gravity="center_vertical">
+<ImageView android:id="@+id/wg_place" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:scaleType="fitStart" android:contentDescription="@null"/>
+<ImageView android:id="@+id/wg_refresh" android:layout_width="26dp" android:layout_height="26dp" android:layout_marginStart="4dp" android:padding="4dp" android:src="@drawable/ic_wg_refresh" android:contentDescription="@string/wg_refresh"/>
+</LinearLayout>
+</LinearLayout>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_clock">Compact with clock</string>
+    <string name="wg_name_clock_days">6 days with clock</string>
+    <string name="wg_name_clock_hours">6 hours with clock</string>
+    <string name="wg_desc_clock">Clock, date, weather and one chosen value</string>
+    <string name="wg_desc_clock_days">Clock, date, current weather and the forecast for six days</string>
+    <string name="wg_desc_clock_hours">Clock, date, current weather and the forecast for six hours</string>
+    <string name="wg_clock_style">Clock style</string>
+    <string name="wg_clock_light">Light</string>
+    <string name="wg_clock_regular">Regular</string>
+    <string name="wg_clock_bold">Bold</string>
+    <string name="wg_clock_condensed">Condensed</string>
+    <string name="wg_date">Date</string>
+    <string name="wg_date_none">No date</string>
+    <string name="wg_alarm_set">An alarm is set</string>
+</resources>

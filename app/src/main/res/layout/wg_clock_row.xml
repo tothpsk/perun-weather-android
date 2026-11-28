@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact with clock, one row: the clock, the weather (one picture) and the refresh button where it fits. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wg_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" android:paddingStart="14dp" android:paddingEnd="8dp" android:paddingTop="6dp" android:paddingBottom="6dp" android:background="@drawable/wg_bg">
+<include layout="@layout/wg_clock_block"/>
+<ImageView android:id="@+id/wg_weather" android:layout_width="0dp" android:layout_height="match_parent" android:layout_weight="1" android:layout_marginStart="8dp" android:scaleType="fitEnd" android:contentDescription="@null"/>
+<ImageView android:id="@+id/wg_refresh" android:layout_width="26dp" android:layout_height="26dp" android:layout_marginStart="4dp" android:padding="4dp" android:src="@drawable/ic_wg_refresh" android:visibility="gone" android:contentDescription="@string/wg_refresh"/>
+</LinearLayout>
