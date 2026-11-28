@@ -205,7 +205,7 @@ internal object ClockRender {
             // A little room is kept free, as the real heights of the texts may differ slightly from the estimate.
             val rowsH=(avail-max(f.heightDp,timeH.coerceAtLeast(30f))-4f).coerceAtLeast(30f)
             val cols=if(hours) art.hourColumns(series,bottom) else art.dayColumns(series,bottom)
-            v.setImageViewBitmap(R.id.wg_rows,art.columns((s.wDp-28f).coerceAtLeast(120f),rowsH,cols,bottom))
+            v.setImageViewBitmap(R.id.wg_rows,art.columns((s.wDp-28f).coerceAtLeast(120f)+ClockArt.ColumnsGutter,rowsH,cols,bottom))
             v.setTextViewText(R.id.wg_foot,updated);v.setTextColor(R.id.wg_foot,pal.muted)
             v.setViewVisibility(R.id.wg_refresh,View.VISIBLE)
             v.setContentDescription(R.id.wg_weather,l.name+" "+WidgetRender.t(u,d.temperature)+(a?.let { ", "+alertName(it) } ?: ""))
@@ -259,6 +259,8 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
     companion object {
         // The column of the 6 days widget: the day (11 sp), the icon (26 dp and 2 dp above and below), the highest (13 sp bold) and the lowest (12 sp) temperature.
         const val Label=15f;const val Icon=26f;const val IconGap=2f;const val Main=17f;const val Second=16f;const val Bottom=16f
+        /** The room left of the columns, in the left padding of the widget (layout_marginStart of wg_rows). */
+        const val ColumnsGutter=12f
         fun columnsHeight(bottom:Boolean):Float = Label+Icon+2*IconGap+Main+Second+(if(bottom) Bottom else 0f)
     }
     private val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -502,22 +504,30 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         val bottom=bottomKey!=null
         val natural=columnsHeight(bottom)
         val k=min(1f,hDp/natural)
+        // The rows stand as without the bottom row where it still fits under them, so that the columns do not move when it is added.
+        val plain=columnsHeight(false)
+        val plainGap=if(hDp>plain) min(6f,(hDp-plain)/5) else 0f
+        val plainTop=(hDp-plain-plainGap*3)/2
+        val keep=bottom && hDp>=plain && plainTop+plain+plainGap*4+Bottom<=hDp
         val gaps=if(bottom) 4 else 3
-        val gap=if(hDp>natural) min(6f,(hDp-natural)/(gaps+2)) else 0f
+        val gap=if(keep) plainGap else if(hDp>natural) min(6f,(hDp-natural)/(gaps+2)) else 0f
         val used=natural*k+gap*gaps
-        val iconSize=12f*k*dn
-        val gutter=if(bottom) iconSize+4f*dn else 0f
+        val top=if(keep) plainTop*dn else (h-used*dn)/2
+        // The picture reaches into the left padding by ColumnsGutter (wg_rows), where the icon of the bottom row stands,
+        // so that the columns keep their place with and without the bottom row.
+        val gutter=ColumnsGutter*dn
+        val iconSize=min(11f*k*dn,gutter-1f*dn)
         val cw=(w-gutter)/6
         cols.take(6).forEachIndexed { i,col ->
             val cx=gutter+cw*i+cw/2
-            var y=(h-used*dn)/2
+            var y=top
             text(cv,fit(col.label,11f*k,false,cw),cx,y+Label*k*dn/2,11f*k,pal.muted,false,Paint.Align.CENTER);y+=(Label*k+gap)*dn
             y+=IconGap*k*dn;weather(cv,col.code,col.day,cx-Icon*k*dn/2,y,Icon*k*dn);y+=((Icon+IconGap)*k+gap)*dn
             text(cv,col.main,cx,y+Main*k*dn/2,13f*k,pal.fg,true,Paint.Align.CENTER);y+=(Main*k+gap)*dn
             if(col.second.isNotEmpty()) text(cv,col.second,cx,y+Second*k*dn/2,12f*k,pal.muted,false,Paint.Align.CENTER)
             y+=(Second*k+gap)*dn
             if(bottomKey!=null && col.bottom.isNotEmpty()) bottomValue(cv,col.bottom,cx,y+Bottom*k*dn/2,cw-2f*dn,10f*k)
-            if(bottomKey!=null && i==0) pic(cv,widgetParamIcon(bottomKey,pal.muted,iconSize.roundToInt().coerceAtLeast(1),Double.NaN,12f*k),0f,y+Bottom*k*dn/2-iconSize/2,iconSize)
+            if(bottomKey!=null && i==0) pic(cv,widgetParamIcon(bottomKey,pal.muted,iconSize.roundToInt().coerceAtLeast(1),Double.NaN,11f*k),(gutter-iconSize)/2,y+Bottom*k*dn/2-iconSize/2,iconSize)
         }
         return b
     }
