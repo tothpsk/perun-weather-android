@@ -494,8 +494,8 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
 
     /**
      * Six columns with the heights of the 6 days widget. A lower picture shrinks them evenly instead of cutting them; a higher one
-     * (without the date or the bottom row) widens the gaps between the rows a little. The bottom row has the icon of the value on the
-     * left and is smaller and quieter than the temperatures.
+     * (without the date or the bottom row) widens the gaps between the rows a little. The bottom row is smaller and quieter than the
+     * temperatures and has one icon of its value, on the left of the whole row; the columns then leave room for it.
      */
     fun columns(wDp:Float,hDp:Float,cols:List<ClockColumn>,bottomKey:String?):Bitmap {
         val (b,cv)=canvas(wDp,hDp);val w=wDp*dn;val h=hDp*dn
@@ -505,34 +505,28 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         val gaps=if(bottom) 4 else 3
         val gap=if(hDp>natural) min(6f,(hDp-natural)/(gaps+2)) else 0f
         val used=natural*k+gap*gaps
-        val cw=w/6
+        val iconSize=12f*k*dn
+        val gutter=if(bottom) iconSize+4f*dn else 0f
+        val cw=(w-gutter)/6
         cols.take(6).forEachIndexed { i,col ->
-            val cx=cw*i+cw/2
+            val cx=gutter+cw*i+cw/2
             var y=(h-used*dn)/2
             text(cv,fit(col.label,11f*k,false,cw),cx,y+Label*k*dn/2,11f*k,pal.muted,false,Paint.Align.CENTER);y+=(Label*k+gap)*dn
             y+=IconGap*k*dn;weather(cv,col.code,col.day,cx-Icon*k*dn/2,y,Icon*k*dn);y+=((Icon+IconGap)*k+gap)*dn
             text(cv,col.main,cx,y+Main*k*dn/2,13f*k,pal.fg,true,Paint.Align.CENTER);y+=(Main*k+gap)*dn
             if(col.second.isNotEmpty()) text(cv,col.second,cx,y+Second*k*dn/2,12f*k,pal.muted,false,Paint.Align.CENTER)
             y+=(Second*k+gap)*dn
-            if(bottomKey!=null && col.bottom.isNotEmpty()) bottomValue(cv,bottomKey,col.bottom,cx,y+Bottom*k*dn/2,cw-2f*dn,10f*k)
+            if(bottomKey!=null && col.bottom.isNotEmpty()) bottomValue(cv,col.bottom,cx,y+Bottom*k*dn/2,cw-2f*dn,10f*k)
+            if(bottomKey!=null && i==0) pic(cv,widgetParamIcon(bottomKey,pal.muted,iconSize.roundToInt().coerceAtLeast(1),Double.NaN,12f*k),0f,y+Bottom*k*dn/2-iconSize/2,iconSize)
         }
         return b
     }
 
-    /** A value of the bottom row with its icon on the left, centred at [cx]; the text shrinks to the width of the column, and the icon goes where even that is not enough. */
-    private fun bottomValue(cv:Canvas,key:String,value:String,cx:Float,cy:Float,room:Float,spec:Float) {
+    /** A value of the bottom row, centred at [cx]; the text shrinks to the width of the column. */
+    private fun bottomValue(cv:Canvas,value:String,cx:Float,cy:Float,room:Float,spec:Float) {
         var sp=spec
-        fun total(sp:Float)=sp*dn+2f*dn+width(value,sp,false)
-        while(sp>8f && total(sp)>room) sp-=0.5f
-        val icon=total(sp)<=room
-        val tw=width(value,sp,false)
-        val all=if(icon) total(sp) else tw
-        val x=cx-all/2
-        if(icon) {
-            val a=sp*dn
-            pic(cv,widgetParamIcon(key,pal.muted,a.roundToInt().coerceAtLeast(1),Double.NaN,sp),x,cy-a/2,a)
-            text(cv,value,x+a+2f*dn,cy,sp,pal.muted)
-        } else text(cv,fit(value,sp,false,room),cx,cy,sp,pal.muted,false,Paint.Align.CENTER)
+        while(sp>8f && width(value,sp,false)>room) sp-=0.5f
+        text(cv,fit(value,sp,false,room),cx,cy,sp,pal.muted,false,Paint.Align.CENTER)
     }
 
 }
