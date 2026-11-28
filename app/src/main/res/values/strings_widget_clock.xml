@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_clock">Kompaktný s hodinami</string>
+    <string name="wg_name_clock_days">6 dní s hodinami</string>
+    <string name="wg_name_clock_hours">6 hodín s hodinami</string>
+    <string name="wg_desc_clock">Hodiny, dátum, počasie a jeden zvolený údaj</string>
+    <string name="wg_desc_clock_days">Hodiny, dátum, aktuálne počasie a predpoveď na šesť dní</string>
+    <string name="wg_desc_clock_hours">Hodiny, dátum, aktuálne počasie a predpoveď na šesť hodín</string>
+    <string name="wg_clock_style">Štýl hodín</string>
+    <string name="wg_clock_light">Tenké</string>
+    <string name="wg_clock_regular">Klasické</string>
+    <string name="wg_clock_bold">Tučné</string>
+    <string name="wg_clock_condensed">Zúžené</string>
+    <string name="wg_date">Dátum</string>
+    <string name="wg_date_none">Bez dátumu</string>
+    <string name="wg_alarm_set">Budík je nastavený</string>
+</resources>

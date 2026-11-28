@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Compact with clock, 2 x 2: the clock, the weather and the place, centred. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wg_root" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:gravity="center_horizontal" android:paddingStart="8dp" android:paddingEnd="8dp" android:paddingTop="10dp" android:paddingBottom="8dp" android:background="@drawable/wg_bg">
+<include layout="@layout/wg_clock_block"/>
+<ImageView android:id="@+id/wg_weather" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="4dp" android:scaleType="fitCenter" android:contentDescription="@null"/>
+<ImageView android:id="@+id/wg_place" android:layout_width="match_parent" android:layout_height="20dp" android:scaleType="fitCenter" android:contentDescription="@null"/>
+</LinearLayout>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- The clock of the widgets with a clock: the time in one of four styles (only one is shown), the alarm mark and the date. -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/wg_clock_box" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="vertical">
+<LinearLayout android:id="@+id/wg_clock_tap" android:layout_width="wrap_content" android:layout_height="wrap_content" android:orientation="horizontal">
+<TextClock android:id="@+id/wg_time_light" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-light" android:format12Hour="h:mm" android:format24Hour="H:mm" android:includeFontPadding="false" android:maxLines="1" android:textColor="#FFFFFFFF" android:textSize="40sp"/>
+<TextClock android:id="@+id/wg_time_regular" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif" android:format12Hour="h:mm" android:format24Hour="H:mm" android:includeFontPadding="false" android:maxLines="1" android:textColor="#FFFFFFFF" android:textSize="40sp" android:visibility="gone"/>
+<TextClock android:id="@+id/wg_time_bold" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif" android:textStyle="bold" android:format12Hour="h:mm" android:format24Hour="H:mm" android:includeFontPadding="false" android:maxLines="1" android:textColor="#FFFFFFFF" android:textSize="40sp" android:visibility="gone"/>
+<TextClock android:id="@+id/wg_time_condensed" android:layout_width="wrap_content" android:layout_height="wrap_content" android:fontFamily="sans-serif-condensed" android:format12Hour="h:mm" android:format24Hour="H:mm" android:includeFontPadding="false" android:maxLines="1" android:textColor="#FFFFFFFF" android:textSize="40sp" android:visibility="gone"/>
+<ImageView android:id="@+id/wg_alarm" android:layout_width="13dp" android:layout_height="13dp" android:layout_marginStart="3dp" android:layout_marginTop="3dp" android:src="@drawable/ic_wg_alarm" android:visibility="gone" android:contentDescription="@string/wg_alarm_set"/>
+</LinearLayout>
+<TextClock android:id="@+id/wg_date" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginTop="3dp" android:format12Hour="EEEE d MMMM" android:format24Hour="EEEE d MMMM" android:maxLines="1" android:textColor="#FFFFFFFF" android:textSize="12sp"/>
+</LinearLayout>

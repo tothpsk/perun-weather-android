@@ -43,6 +43,22 @@
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_compact_info" />
         </receiver>
+        <receiver android:name=".ui.ClockWidget" android:exported="false" android:label="@string/wg_name_clock">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_clock_info" />
+        </receiver>
+        <receiver android:name=".ui.ClockDaysWidget" android:exported="false" android:label="@string/wg_name_clock_days">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_clock_days_info" />
+        </receiver>
+        <receiver android:name=".ui.ClockHoursWidget" android:exported="false" android:label="@string/wg_name_clock_hours">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_clock_hours_info" />
+        </receiver>
+        <!-- Shows or hides the alarm mark of the widgets with a clock when the next alarm changes. -->
+        <receiver android:name=".ui.ClockAlarmReceiver" android:exported="false">
+            <intent-filter><action android:name="android.app.action.NEXT_ALARM_CLOCK_CHANGED" /></intent-filter>
+        </receiver>
         <receiver android:name=".ui.NowWidget" android:exported="false" android:label="@string/wg_title_now">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
             <meta-data android:name="android.appwidget.provider" android:resource="@xml/wg_now_info" />

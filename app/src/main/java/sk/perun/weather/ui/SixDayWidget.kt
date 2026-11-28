@@ -101,7 +101,7 @@ internal object SixDayWidgets {
         "feels"->t(u,d.apparent)
         else->"-"
     }
-    private fun load(l:Location,model:String):List<DaySummary> {
+    internal fun load(l:Location,model:String):List<DaySummary> {
         val q="latitude=${l.latitude}&longitude=${l.longitude}&timezone="+URLEncoder.encode(l.timezone.ifBlank { "auto" },"UTF-8")+"&timeformat=unixtime&forecast_days=16&past_days=1&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm"+(l.elevation?.let { "&elevation=$it" } ?: "")
         val extra=(if(model=="best_match") "" else "&models="+URLEncoder.encode(model,"UTF-8"))+"&hourly="+Keys.joinToString(",")
         val root=JSONObject(String(fetchBytes("https://api.open-meteo.com/v1/forecast?$q$extra"),Charsets.UTF_8))
