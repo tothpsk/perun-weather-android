@@ -11,6 +11,7 @@
     <string name="wg_clock_regular">Regular</string>
     <string name="wg_clock_bold">Bold</string>
     <string name="wg_clock_condensed">Condensed</string>
+    <string name="wg_bottom_row">Bottom row (at a height of 3 or more)</string>
     <string name="wg_date">Date</string>
     <string name="wg_date_none">No date</string>
     <string name="wg_alarm_set">An alarm is set</string>
