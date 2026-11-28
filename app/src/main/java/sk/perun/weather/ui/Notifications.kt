@@ -641,8 +641,11 @@ internal object Notifier {
         val allowed=HashSet<Int>()
         if(s.enabled) all.forEach { l -> val key=BackgroundRefresh.locationKey(l);s.rules.filter { it.id!=reset && locMatch(it.loc,key,key==activeKey) }.forEach { allowed+=ruleId(key,it) } }
         val nm=NotificationManagerCompat.from(c)
-        runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
-            .filter { it.notification.channelId==ChRules && ((it.id>=RuleIdBase && it.id !in allowed) || it.id<70000) }.forEach { nm.cancel(it.id) }
+        val active=runCatching { c.getSystemService(NotificationManager::class.java).activeNotifications }.getOrNull().orEmpty()
+        active.filter { it.notification.channelId==ChRules && ((it.id>=RuleIdBase && it.id !in allowed) || it.id<70000) }.forEach { nm.cancel(it.id) }
+        // Notifications of a place that is no longer saved (removed, or a fixed place replaced by the Current location) go away with their group.
+        val saved=all.map { BackgroundRefresh.locationKey(it) }.toSet()
+        active.filter { val g=it.notification.group ?: "";g.startsWith("perun_alerts:") && g.removePrefix("perun_alerts:") !in saved }.forEach { nm.cancel(it.id) }
     }
     private fun ruleDetail(text:String,until:Instant?,zone:java.time.ZoneId):String =
         if(until!=null && ruleLeft(until)>0L) text+"\n"+uiText(R.string.nt_alert_until,until.atZone(zone).format(DayDm)) else text

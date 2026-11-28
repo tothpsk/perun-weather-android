@@ -8,6 +8,7 @@ import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -28,13 +29,14 @@ private val ChipEdge=Color(0xFF4B586C)
 
 /** Stand-alone rounded choice buttons: the active one is filled with the app accent, the rest stay dark. */
 @OptIn(ExperimentalLayoutApi::class)
-@Composable internal fun PerunChips(labels:List<String>,selected:Int,onSelect:(Int)->Unit,modifier:Modifier=Modifier,enabled:Boolean=true) {
+// [marked]: the chip of the Current location, with the location mark of the app after its label.
+@Composable internal fun PerunChips(labels:List<String>,selected:Int,onSelect:(Int)->Unit,modifier:Modifier=Modifier,enabled:Boolean=true,marked:Int=-1) {
     FlowRow(modifier.selectableGroup(),horizontalArrangement=Arrangement.spacedBy(8.dp),verticalArrangement=Arrangement.spacedBy(8.dp)) {
-        labels.forEachIndexed { index,label -> PerunChip(label,index==selected,enabled) { onSelect(index) } }
+        labels.forEachIndexed { index,label -> PerunChip(label,index==selected,enabled,index==marked) { onSelect(index) } }
     }
 }
 
-@Composable internal fun PerunChip(label:String,active:Boolean,enabled:Boolean=true,onClick:()->Unit) {
+@Composable internal fun PerunChip(label:String,active:Boolean,enabled:Boolean=true,mark:Boolean=false,onClick:()->Unit) {
     val shape=RoundedCornerShape(50)
     val filled=active && enabled
     Box(
@@ -42,7 +44,11 @@ private val ChipEdge=Color(0xFF4B586C)
             .selectable(selected=active,enabled=enabled,role=Role.RadioButton,onClick=onClick).padding(horizontal=14.dp,vertical=8.dp),
         contentAlignment=Alignment.Center,
     ) {
-        Text(label,color=if(!enabled) Color(0xFF9AA6B7) else if(filled) Color(0xFF10131A) else Color(0xFFBBC4D2),fontSize=13.sp,fontWeight=FontWeight.SemiBold,maxLines=1,softWrap=false)
+        val color=if(!enabled) Color(0xFF9AA6B7) else if(filled) Color(0xFF10131A) else Color(0xFFBBC4D2)
+        Row(verticalAlignment=Alignment.CenterVertically) {
+            Text(label,color=color,fontSize=13.sp,fontWeight=FontWeight.SemiBold,maxLines=1,softWrap=false)
+            if(mark) Icon(PerunIcons.Gps,null,Modifier.padding(start=5.dp).size(14.dp),tint=color)
+        }
     }
 }
 

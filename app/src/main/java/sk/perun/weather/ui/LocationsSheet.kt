@@ -220,6 +220,8 @@ internal fun LocationsSheet(state: LocationState, onCurrentAdded: () -> Unit = {
                                 if (at >= 0 && state.locations.size > 1) {
                                     removed = Triple(location, at, location == state.current)
                                     state.remove(at)
+                                    // Its warnings and rules leave the notifications at once (Undo brings them back with the next refresh).
+                                    Notifier.syncRuleNotifications(context)
                                 }
                             },
                             onHeight = { rowHeight = it + spacingPx },
