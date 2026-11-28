@@ -238,14 +238,14 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
             text(cv,temp,w-max(s,width(temp,ts,true))/2,h-ts*dn*0.6f,ts,pal.fg,true,Paint.Align.CENTER)
             return b
         }
-        val ts=(hDp*0.42f).coerceIn(16f,22f)
-        val s=min(h*0.8f,34f*dn)
+        val ts=if(cells>=4) (hDp*0.38f).coerceIn(16f,20f) else (hDp*0.42f).coerceIn(16f,22f)
+        val s=min(h*0.8f,(if(cells>=4) 30f else 34f)*dn)
         val tw=width(temp,ts,true)
         text(cv,temp,w,h/2,ts,pal.fg,true,Paint.Align.RIGHT)
         weather(cv,d.code,d.isDayFlag,w-tw-4f*dn-s,(h-s)/2,s)
         if(cells>=4) {
-            val room=w-tw-4f*dn-s-12f*dn
-            val sp=13f
+            val room=w-tw-4f*dn-s-16f*dn
+            val sp=12f
             val name=fittedPlace(sp,alert,room)
             val hasExtra=extraKey!=null && extraWidth(extraKey,sp)<=room
             val colW=max(placeWidth(name,sp,alert),if(hasExtra) extraWidth(extraKey!!,sp) else 0f)
