@@ -6,7 +6,7 @@ Perun Weather is a weather app for Android built around charts. Instead of an ic
 
 It is the Android version of [Perun Weather for Linux and Windows](https://github.com/tothpsk/perun-weather), written in Kotlin with Jetpack Compose.
 
-**Current version:** 1.4.2 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
+**Current version:** 1.5.0 (see the [changelog](CHANGELOG.md)) | **Requires:** Android 15 (API 35) or newer | **Languages:** Slovak, British English
 
 ## A tour of the app
 
@@ -107,7 +107,7 @@ Sunrise and sunset, the length of the day and its change, moonrise and moonset, 
 
 ### Widgets
 
-Seven home-screen widgets are available, each with its own settings, which open from the home screen and from the Settings of the app:
+Ten home-screen widgets are available, each with its own settings, which open from the home screen and from the Settings of the app:
 
 - Compact: the current weather in one row.
 - Next 6 hours: the current conditions and the coming hours.
@@ -116,6 +116,9 @@ Seven home-screen widgets are available, each with its own settings, which open 
 - 6 days: the forecast by day.
 - Air and pollen: the air quality index or the pollen, with pollutants or kinds of pollen at larger sizes.
 - Sun and Moon: the Sun or the Moon, with more values at larger sizes.
+- Compact with clock: the time and the date, the current weather, the place and one chosen value. A tap on the time opens the clock app, on the date the calendar.
+- 6 days with clock and 6 hours with clock: the time and the date, the current weather and the coming days or hours, with an optional bottom row from three rows of height.
+- Precipitation and storms: rain for the next two hours, storm cells and lightning nearby on a radar circle, and the nearest storm.
 
 The wind direction is an arrow that points to where the wind blows to: behind the wind speed in Compact, Next 6 hours and 6 days, and as a row above the chart in Meteogram. The pressure icon shows the trend of the pressure.
 

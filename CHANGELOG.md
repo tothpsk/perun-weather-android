@@ -4,6 +4,8 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-28
+
 ### Fixed
 
 - Notifications: the warnings and rules of a place that is no longer saved go away, at once when the place is removed and otherwise at the next background refresh. Before, they stayed until the warnings ended, for example under a fixed place replaced by the Current location.
@@ -16,6 +18,10 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 - Current location in widgets and notifications: in every location picker (widgets, alerts, rules, summaries, current conditions, background refresh) it comes right after the active location as Current location (place), with the location mark in the lists of check boxes and in the location chips of the widget settings. Widgets that show it have the location mark of the app after the place; notifications have the sign ⌖ after the place.
 - Add location: the two buttons are Save the place where I am and Follow my location, each with an (i) that explains the difference with a small picture of a trip.
 - Current location: after adding it without the permission to use the position in the background, a dialog leads to Allow all the time in the system settings. The sources of the card show whether the background position is allowed and whether the app has only the approximate position.
+- Widgets: Compact with clock, from 2 x 1 to 5 x 2, with the time and the date of the system clock (they run without the app), the weather, the place with the warning and one chosen value. Four clock styles, a short or long date or none; a small alarm mark beside the time while an alarm is set. A tap on the time opens the clock app, on the date the calendar.
+- Widgets: 6 days with clock and 6 hours with clock, from 4 x 2, with the clock, the current weather and six columns of days or hours. From three rows of height a bottom row can show one more value (wind, precipitation, pressure and others).
+- Widgets: Precipitation and storms, from 1 x 1 to 5 x 2: the nowcast for up to two hours as bars, the radar circle with storm cells and lightning nearby, the nearest storm with its distance and direction, and the warning of the place. Range 25, 50 or 100 km.
+- Widgets: two new backgrounds, Opaque and Frosted glass, in every widget with a choice of background.
 
 ### Changed
 
@@ -24,6 +30,8 @@ All notable changes to Perun Weather for Android. The format follows [Keep a Cha
 - Locations: each card shows the current weather of the place at the left, the symbol and the temperature of the Now screen with the model and sources of the place. The warning mark stays as before, and the drag handle moved to the right edge.
 - Locations: a card is removed by swiping it to the left, instead of the cross. For a few seconds a row offers Undo, which returns the place to its position. The last place cannot be removed; screen readers offer Remove location as an action of the card.
 - Adding a location: the button that adds a fixed place at the current position moved to the search, as Save the place where I am.
+- Day by hours widget: the temperature and dew point use the same scale at least 4 °C (7.2 °F) wide as the expanded day of Forecast.
+- Backup: it contains the settings of every widget by kind, and after a restore on a new phone a newly placed widget of the same kind gets them prefilled. Caches and temporary states are left out of the backup.
 
 ## [1.4.2] - 2026-11-27
 
