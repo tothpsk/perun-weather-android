@@ -144,7 +144,7 @@ internal object SkyWidgets {
         val warningPicture=warning?.let { widgetAlertBitmap(it,(18*dn).roundToInt()) }
         v.setImageViewBitmap(R.id.wg_sky_img,skyWidgetBitmap(dn,l.name,zone,l.latitude,l.longitude,cfg.main=="moon",cfg.text=="dark",wPx,hPx,cols,rows,warningPicture,l.current))
         v.setContentDescription(R.id.wg_sky_img,l.name+" \u00B7 "+uiText(R.string.wg_name_sky)+(warning?.let { ", "+alertName(it) } ?: ""))
-        v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setInt(R.id.wg_root,"setBackgroundResource",widgetBackgroundRes(cfg.bg))
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             setData(android.net.Uri.parse("perun://widget/"+id))
@@ -405,7 +405,7 @@ class SkyWidget:AppWidgetProvider() {
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray) { SkyWidgets.refresh(context);SkyWidgets.schedule(context) }
     // A new size changes what the widget shows.
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { SkyWidgets.refresh(context) }
-    override fun onDeleted(context:Context,ids:IntArray) { SkyWidgets.remove(context,ids) }
+    override fun onDeleted(context:Context,ids:IntArray) { SkyWidgets.remove(context,ids);WidgetBackup.release(context,ids) }
     override fun onDisabled(context:Context) { SkyWidgets.cancel(context) }
 }
 
@@ -427,6 +427,8 @@ class SkyWidgetConfigActivity:ComponentActivity() {
         val id=intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
+        // A widget placed after a restore takes the waiting settings of its kind from the backup.
+        WidgetBackup.prefill(this,id,::backupReadValue)
         val locations=LocationStore(this).load()
         val initial=SkyWidgets.read(this,id)
         val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
@@ -440,6 +442,7 @@ class SkyWidgetConfigActivity:ComponentActivity() {
                             SkyWidgets.write(this@SkyWidgetConfigActivity,id,next)
                             SkyWidgets.refresh(this@SkyWidgetConfigActivity)
                             SkyWidgets.schedule(this@SkyWidgetConfigActivity)
+                            WidgetBackup.commit(this@SkyWidgetConfigActivity,id)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
                         }
@@ -467,7 +470,7 @@ class SkyWidgetConfigActivity:ComponentActivity() {
         PerunChips(listOf(uiText(R.string.ui_slnko_d4e0d075),uiText(R.string.ui_mesiac_3ca578fb)),if(main=="moon") 1 else 0,{ main=if(it==1) "moon" else "sun" })
         HorizontalDivider(color=Color(0x804B586C))
         Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
-        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
+        PerunChips(widgetBackgroundLabels(),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
         HorizontalDivider(color=Color(0x804B586C))
         Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
         PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })

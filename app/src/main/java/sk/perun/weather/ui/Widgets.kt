@@ -49,6 +49,12 @@ import kotlin.math.roundToInt
 /** Per-widget settings; loc is "active" or a BackgroundRefresh.locationKey. */
 internal data class WidgetConfig(val loc:String,val params:List<String>,val extra:String,val hours:Int,val bg:String,val text:String,val meteo:List<String>)
 
+internal fun widgetBackgroundRes(bg:String):Int = when(bg) {
+    "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;"opaque"->R.drawable.wg_bg_opaque;"frost"->R.drawable.wg_bg_frost;else->R.drawable.wg_bg
+}
+/** The labels of [PerunWidgets.Backgrounds], in the same order. */
+internal fun widgetBackgroundLabels():List<String> = listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light),uiText(R.string.wg_bg_opaque),uiText(R.string.wg_bg_frost))
+
 internal object PerunWidgets {
     private const val Prefs="perun_widgets"
     private const val Work="perun-widgets"
@@ -59,7 +65,8 @@ internal object PerunWidgets {
     /** Every widget of the app, for the settings page. The last four are drawn by their own workers. */
     val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java,AirWidget::class.java,SkyWidget::class.java)
     val MeteoOptions=listOf("temp","feels","dew","precip","prob","humidity","cloud","wind","gust","direction","pressure","uv","visibility")
-    val Backgrounds=listOf("dark","glass","light")
+    /** The background of a widget. "glass" is the translucent dark one (its key is kept for the saved widgets); "frost" is the frosted glass. */
+    val Backgrounds=listOf("dark","glass","light","opaque","frost")
     private fun prefs(c:Context) = c.applicationContext.getSharedPreferences(Prefs,Context.MODE_PRIVATE)
     fun read(c:Context,id:Int):WidgetConfig {
         val p=prefs(c)
@@ -102,7 +109,7 @@ abstract class PerunWidgetProvider:AppWidgetProvider() {
     override fun onReceive(context:Context,intent:Intent) { if(intent.action==PerunWidgets.ActionRefresh) PerunWidgets.refresh(context,true) else super.onReceive(context,intent) }
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray) { PerunWidgets.refresh(context);BackgroundRefresh.schedule(context) }
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { PerunWidgets.refresh(context) }
-    override fun onDeleted(context:Context,ids:IntArray) { PerunWidgets.remove(context,ids) }
+    override fun onDeleted(context:Context,ids:IntArray) { PerunWidgets.remove(context,ids);WidgetBackup.release(context,ids) }
     override fun onDisabled(context:Context) { BackgroundRefresh.schedule(context) }
 }
 class CompactWidget:PerunWidgetProvider()
@@ -169,7 +176,7 @@ internal object WidgetRender {
             NowWidget::class.java->now(c,w,l,d,ex,u,pal,o)
             else->meteo(c,w,l,d,u,o,pal,more)
         }
-        v.setInt(R.id.wg_root,"setBackgroundResource",when(w.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setInt(R.id.wg_root,"setBackgroundResource",widgetBackgroundRes(w.bg))
         v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,"overview",BackgroundRefresh.locationKey(l)))
         v.setImageViewResource(R.id.wg_refresh,R.drawable.ic_wg_refresh)
         v.setInt(R.id.wg_refresh,"setColorFilter",pal.muted)
@@ -414,6 +421,8 @@ class WidgetConfigActivity:ComponentActivity() {
         val id=intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
+        // A widget placed after a restore takes the waiting settings of its kind from the backup.
+        WidgetBackup.prefill(this,id,::backupReadValue)
         val kind=AppWidgetManager.getInstance(this).getAppWidgetInfo(id)?.provider?.className ?: ""
         val locations=LocationStore(this).load()
         val initial=PerunWidgets.read(this,id)
@@ -426,6 +435,7 @@ class WidgetConfigActivity:ComponentActivity() {
                             PerunWidgets.write(this@WidgetConfigActivity,id,cfg)
                             PerunWidgets.refresh(this@WidgetConfigActivity)
                             BackgroundRefresh.schedule(this@WidgetConfigActivity)
+                            WidgetBackup.commit(this@WidgetConfigActivity,id)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
                         }
@@ -494,7 +504,7 @@ private fun meteoLabel(key:String):String = when(key) {
             }
         }
         label(R.string.wg_background)
-        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
+        PerunChips(widgetBackgroundLabels(),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
         label(R.string.wg_text)
         PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })
         Button(onClick={ onSave(WidgetConfig(loc,params,extra,hours,bg,text,meteo)) },modifier=Modifier.fillMaxWidth()) { Text(uiText(R.string.wg_save)) }

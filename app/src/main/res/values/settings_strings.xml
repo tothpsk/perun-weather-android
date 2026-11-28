@@ -182,6 +182,8 @@
     <string name="wg_updated">Aktualizované %1$s</string>
     <string name="wg_note">Widget sa obnovuje spolu s obnovou na pozadí, najmenej každých 30 minút. Ťuknutím otvoríte aplikáciu.</string>
     <string name="wg_bg_light">Svetlé</string>
+    <string name="wg_bg_opaque">Nepriehľadné</string>
+    <string name="wg_bg_frost">Sklo</string>
     <string name="wg_text">Farba textu</string>
     <string name="wg_text_light">Svetlá</string>
     <string name="wg_text_dark">Tmavá</string>

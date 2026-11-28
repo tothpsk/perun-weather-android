@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Frosted glass: a light translucent coat brighter at the top, with a thin light edge. A widget cannot blur the wallpaper. -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle"><gradient android:angle="290" android:startColor="#45FFFFFF" android:centerColor="#1FFFFFFF" android:endColor="#14FFFFFF" android:type="linear"/><stroke android:width="1dp" android:color="#59FFFFFF"/><corners android:radius="20dp"/></shape>

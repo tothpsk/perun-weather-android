@@ -44,7 +44,7 @@
     <string name="tiles_summary_v2">"%1$d of %2$d enabled"</string>
     <string name="tile_order_hint_v2">"Ticked tiles are shown on Now. Drag the handle on the left to change their order. Sea tiles are shown only when sea data is turned on."</string>
     <string name="tile_drag_handle">"Move tile"</string>
-    <string name="backup_description">"Export saves locations and their order, models and location sources, units, display and tile order, chart settings and custom charts into one JSON file. API keys are not exported."</string>
+    <string name="backup_description">"Export saves locations and their order, models and location sources, units, display and tile order, chart settings and custom charts, notifications and rules, background refresh and widget settings into one JSON file. API keys are not exported."</string>
     <string name="backup_export">"Export configuration"</string>
     <string name="backup_import">"Restore from file…"</string>
     <string name="backup_exported">"The configuration was saved."</string>
@@ -59,6 +59,13 @@
     <string name="backup_store_locations">"Locations"</string>
     <string name="backup_store_forecast">"Forecast, units and tiles"</string>
     <string name="backup_store_marine">"Sea"</string>
+    <string name="backup_store_location_sources">"Models and location sources"</string>
+    <string name="backup_store_long">"Long-range forecast and charts"</string>
+    <string name="backup_store_air">"Air quality and pollen"</string>
+    <string name="backup_store_notifications">"Notifications and rules"</string>
+    <string name="backup_store_background">"Background refresh"</string>
+    <string name="backup_store_widgets">"Widgets"</string>
+    <string name="backup_widgets_note">"Widgets on the home screen: %1$d. A widget of the same kind that you add afterwards takes over their settings."</string>
     <string name="backup_scope_title">"What the backup does not contain"</string>
-    <string name="backup_scope_text">"Weather cache, system permissions and API keys. The backup is versioned; an older version of the app may not accept a newer backup."</string>
+    <string name="backup_scope_text">"Weather and warning cache, the last GPS fix (the Current location card stays in the list), system permissions and API keys. The backup is versioned; an older version of the app may not accept a newer backup."</string>
 </resources>
