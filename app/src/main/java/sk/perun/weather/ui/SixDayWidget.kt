@@ -44,6 +44,11 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
 internal class DaySummary(val date:LocalDate,val code:Int,val max:Double,val min:Double)
+/** Hourly values by Open-Meteo key, with their times (unix seconds) and the time zone of the place. */
+internal class HourlySeries(val zone:ZoneId,val times:List<Long>,val values:Map<String,List<Double>>) {
+    fun of(key:String):List<Double> = values[key] ?: List(times.size) { Double.NaN }
+    fun days(count:Int=6):List<DaySummary> = daySummaries(times,of("temperature_2m"),of("weather_code"),zone,Instant.now().atZone(zone).toLocalDate(),count)
+}
 /** Days from today: highest and lowest temperature and the weather code of the hour nearest to noon, as in the day rows of the Forecast screen. */
 internal fun daySummaries(times:List<Long>,temps:List<Double>,codes:List<Double>,zone:ZoneId,today:LocalDate,count:Int=6):List<DaySummary> {
     val rows=times.indices.groupBy { Instant.ofEpochSecond(times[it]).atZone(zone).toLocalDate() }
@@ -101,14 +106,16 @@ internal object SixDayWidgets {
         "feels"->t(u,d.apparent)
         else->"-"
     }
-    internal fun load(l:Location,model:String):List<DaySummary> {
+    /** The hourly forecast of 16 days, the same request as the Forecast screen, so that both share one cached response. */
+    internal fun loadSeries(l:Location,model:String):HourlySeries {
         val q="latitude=${l.latitude}&longitude=${l.longitude}&timezone="+URLEncoder.encode(l.timezone.ifBlank { "auto" },"UTF-8")+"&timeformat=unixtime&forecast_days=16&past_days=1&temperature_unit=celsius&wind_speed_unit=kmh&precipitation_unit=mm"+(l.elevation?.let { "&elevation=$it" } ?: "")
         val extra=(if(model=="best_match") "" else "&models="+URLEncoder.encode(model,"UTF-8"))+"&hourly="+Keys.joinToString(",")
         val root=JSONObject(String(fetchBytes("https://api.open-meteo.com/v1/forecast?$q$extra"),Charsets.UTF_8))
         val zone=ZoneId.of(root.getString("timezone"));val h=root.getJSONObject("hourly");val t=h.getJSONArray("time")
         fun series(key:String):List<Double> { val a=h.optJSONArray(key);return List(t.length()) { i -> if(a==null || a.isNull(i)) Double.NaN else a.optDouble(i,Double.NaN) } }
-        return daySummaries(List(t.length()) { t.getLong(it) },series("temperature_2m"),series("weather_code"),zone,Instant.now().atZone(zone).toLocalDate())
+        return HourlySeries(zone,List(t.length()) { t.getLong(it) },Keys.associateWith { series(it) })
     }
+    internal fun load(l:Location,model:String):List<DaySummary> = loadSeries(l,model).days()
     private fun launch(c:Context,id:Int,loc:String):PendingIntent {
         val i=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             data=android.net.Uri.parse("perun://widget/"+id)

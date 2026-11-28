@@ -161,8 +161,9 @@ internal class WidgetWorker(context:Context,params:WorkerParameters):CoroutineWo
                     // Hourly values the overview does not load, only for a meteogram that shows one of them.
                     val more=if(kind==MeteogramWidget::class.java && cfg.meteo.any { it in MeteoExtraKeys || it=="precip" }) loadMeteogramExtra(l,sources.read(l).weatherModel,cfg.meteo) else emptyMap()
                     // The six days of the 6 days with clock widget, from the same response as the 6 days widget.
-                    val days=if(kind==ClockDaysWidget::class.java) withContext(Dispatchers.IO) { SixDayWidgets.load(l,sources.read(l).weatherModel) } else emptyList()
-                    WidgetRender.render(c,kind,id,cfg,l,data.first,data.second,units,manager.getAppWidgetOptions(id),more,days)
+                    // The hourly forecast of the 6 days and 6 hours with clock widgets, from the same response as the 6 days widget.
+                    val series=if(kind==ClockDaysWidget::class.java || kind==ClockHoursWidget::class.java) withContext(Dispatchers.IO) { SixDayWidgets.loadSeries(l,sources.read(l).weatherModel) } else null
+                    WidgetRender.render(c,kind,id,cfg,l,data.first,data.second,units,manager.getAppWidgetOptions(id),more,series)
                 } catch(e:CancellationException) { throw e } catch(e:Exception) { null }
                 if(views==null) { failed=true;continue }
                 manager.updateAppWidget(id,views)
@@ -185,12 +186,12 @@ internal object WidgetRender {
     private val HourIcon=intArrayOf(R.id.wg_h0i,R.id.wg_h1i,R.id.wg_h2i,R.id.wg_h3i,R.id.wg_h4i,R.id.wg_h5i)
     private val HourTemp=intArrayOf(R.id.wg_h0v,R.id.wg_h1v,R.id.wg_h2v,R.id.wg_h3v,R.id.wg_h4v,R.id.wg_h5v)
 
-    fun render(c:Context,kind:Class<*>,id:Int,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,o:Bundle,more:Map<String,Map<LocalDateTime,Double>> = emptyMap(),days:List<DaySummary> = emptyList()):RemoteViews {
+    fun render(c:Context,kind:Class<*>,id:Int,w:WidgetConfig,l:Location,d:OverviewData,ex:OverviewExtra?,u:WeatherUnits,o:Bundle,more:Map<String,Map<LocalDateTime,Double>> = emptyMap(),series:HourlySeries?=null):RemoteViews {
         val pal=if(w.text=="dark") DarkText else LightText
         val v=when(kind) {
             CompactWidget::class.java->compact(c,w,l,d,ex,u,pal,o)
             NowWidget::class.java->now(c,w,l,d,ex,u,pal,o)
-            ClockWidget::class.java,ClockDaysWidget::class.java,ClockHoursWidget::class.java->ClockRender.render(c,kind,id,w,l,d,ex,u,pal,o,days)
+            ClockWidget::class.java,ClockDaysWidget::class.java,ClockHoursWidget::class.java->ClockRender.render(c,kind,id,w,l,d,ex,u,pal,o,series)
             else->meteo(c,w,l,d,u,o,pal,more)
         }
         v.setInt(R.id.wg_root,"setBackgroundResource",widgetBackgroundRes(w.bg))
@@ -506,9 +507,10 @@ private fun meteoLabel(key:String):String = when(key) {
                 })
             }
         }
-        if(kind.endsWith("CompactWidget") || kind.endsWith(".ClockWidget")) {
+        if(kind.endsWith("CompactWidget") || kind.endsWith(".ClockWidget") || kind.endsWith("ClockDaysWidget") || kind.endsWith("ClockHoursWidget")) {
             val extras=listOf("none")+options
-            label(R.string.wg_extra)
+            // The 6 days and 6 hours with clock show the chosen value as a row under the columns, from three rows of height.
+            if(kind.endsWith("ClockDaysWidget") || kind.endsWith("ClockHoursWidget")) label(R.string.wg_bottom_row) else label(R.string.wg_extra)
             PerunChips(listOf(uiText(R.string.wg_none))+labels,extras.indexOf(extra).coerceAtLeast(0),{ extra=extras[it] })
         }
         if(kind.endsWith("ClockWidget") || kind.endsWith("ClockDaysWidget") || kind.endsWith("ClockHoursWidget")) {

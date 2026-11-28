@@ -11,6 +11,7 @@
     <string name="wg_clock_regular">Klasické</string>
     <string name="wg_clock_bold">Tučné</string>
     <string name="wg_clock_condensed">Zúžené</string>
+    <string name="wg_bottom_row">Spodný riadok (pri výške 3 a viac)</string>
     <string name="wg_date">Dátum</string>
     <string name="wg_date_none">Bez dátumu</string>
     <string name="wg_alarm_set">Budík je nastavený</string>
