@@ -22,6 +22,7 @@ internal object WidgetBackup {
         "DayHoursWidget" -> "perun_widget_day"
         "AirWidget" -> "perun_widget_air"
         "SkyWidget" -> "perun_widget_sky"
+        "StormWidget" -> "perun_widget_storm"
         else -> "perun_widgets"
     }
 

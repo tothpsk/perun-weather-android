@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_storm">Zrážky a búrky</string>
+    <string name="wg_desc_storm">Dážď na najbližšie hodiny, búrkové bunky a blesky v okolí</string>
+    <string name="st_raining">Prší</string>
+    <string name="st_rain_in">Dážď o %1$d min</string>
+    <string name="st_dry">Bez zrážok</string>
+    <string name="st_dry_1h">Bez zrážok do 1 hodiny</string>
+    <string name="st_dry_2h">Bez zrážok do 2 hodín</string>
+    <string name="st_until_rain">do dažďa</string>
+    <string name="st_storm_here">Búrka pri vás</string>
+    <string name="st_storm_at">Búrka %1$d km %2$s</string>
+    <string name="st_storm_moving">", smer %1$s"</string>
+    <string name="st_storm_eta">" · o %1$d min"</string>
+    <string name="st_storm_arrives">príchod o %1$d min</string>
+    <string name="st_lightning_at">Blesky %1$d km %2$s</string>
+    <string name="st_no_storms">Žiadne búrky do %1$d km</string>
+    <string name="st_small_storm">búrka · %1$s</string>
+    <string name="st_small_lightning">blesky · %1$s</string>
+    <string name="st_now">teraz</string>
+    <string name="st_minutes">%1$d min</string>
+    <string name="st_show">Zobraziť</string>
+    <string name="st_show_radar">Radarový kruh</string>
+    <string name="st_show_chart">Graf zrážok</string>
+    <string name="st_show_storm">Búrky a blesky</string>
+    <string name="st_range">Dosah búrok a bleskov</string>
+    <string name="st_span">Graf zrážok</string>
+    <string name="st_span_1h">1 hodina</string>
+    <string name="st_span_2h">2 hodiny</string>
+</resources>

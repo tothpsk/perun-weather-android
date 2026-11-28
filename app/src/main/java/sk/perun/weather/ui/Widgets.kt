@@ -70,7 +70,7 @@ internal object PerunWidgets {
     const val WideDp=320
     val Kinds:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,ClockWidget::class.java,ClockDaysWidget::class.java,ClockHoursWidget::class.java)
     /** Every widget of the app, for the settings page. 6 days, Day by hours, Air and pollen and Sun and Moon are drawn by their own workers. */
-    val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java,AirWidget::class.java,SkyWidget::class.java,ClockWidget::class.java,ClockDaysWidget::class.java,ClockHoursWidget::class.java)
+    val Listed:List<Class<*>> = listOf(CompactWidget::class.java,NowWidget::class.java,MeteogramWidget::class.java,SixDayWidget::class.java,DayHoursWidget::class.java,AirWidget::class.java,SkyWidget::class.java,ClockWidget::class.java,ClockDaysWidget::class.java,ClockHoursWidget::class.java,StormWidget::class.java)
     val MeteoOptions=listOf("temp","feels","dew","precip","prob","humidity","cloud","wind","gust","direction","pressure","uv","visibility")
     /** The background of a widget. "glass" is the translucent dark one (its key is kept for the saved widgets); "frost" is the frosted glass. */
     val Backgrounds=listOf("dark","glass","light","opaque","frost")
@@ -111,12 +111,12 @@ internal object PerunWidgets {
         WorkManager.getInstance(c.applicationContext).enqueueUniqueWork(Work,ExistingWorkPolicy.REPLACE,request)
     }
     /** The manual refresh of the settings page: every widget of the app, from the network. The Sun and Moon widget is computed in the device. */
-    fun refreshAll(c:Context) { refresh(c,true);SixDayWidgets.refresh(c,true);DayWidgets.refresh(c,true);AirWidgets.refresh(c,true);SkyWidgets.refresh(c) }
+    fun refreshAll(c:Context) { refresh(c,true);SixDayWidgets.refresh(c,true);DayWidgets.refresh(c,true);AirWidgets.refresh(c,true);SkyWidgets.refresh(c);StormWidgets.refresh(c,true) }
     fun pin(c:Context,kind:Class<*>):Boolean {
         val m=AppWidgetManager.getInstance(c)
         return m.isRequestPinAppWidgetSupported && m.requestPinAppWidget(ComponentName(c,kind),null,null)
     }
-    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_title_compact;NowWidget::class.java->R.string.wg_title_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;AirWidget::class.java->R.string.wg_name_air;SkyWidget::class.java->R.string.wg_name_sky;ClockWidget::class.java->R.string.wg_name_clock;ClockDaysWidget::class.java->R.string.wg_name_clock_days;ClockHoursWidget::class.java->R.string.wg_name_clock_hours;else->R.string.wg_title_meteo })
+    fun kindName(kind:Class<*>):String = uiText(when(kind) { CompactWidget::class.java->R.string.wg_title_compact;NowWidget::class.java->R.string.wg_title_now;SixDayWidget::class.java->R.string.wg_name_days;DayHoursWidget::class.java->R.string.wg_name_day;AirWidget::class.java->R.string.wg_name_air;SkyWidget::class.java->R.string.wg_name_sky;ClockWidget::class.java->R.string.wg_name_clock;ClockDaysWidget::class.java->R.string.wg_name_clock_days;ClockHoursWidget::class.java->R.string.wg_name_clock_hours;StormWidget::class.java->R.string.wg_name_storm;else->R.string.wg_title_meteo })
 }
 
 abstract class PerunWidgetProvider:AppWidgetProvider() {
@@ -559,8 +559,8 @@ private fun meteoLabel(key:String):String = when(key) {
     placed.forEach { (kind,id) ->
         val cfg=PerunWidgets.read(c,id)
         // The Day by hours, the Air and pollen and the Sun and Moon widgets keep their own settings and have their own forms.
-        val ownSettings=kind==DayHoursWidget::class.java || kind==AirWidget::class.java || kind==SkyWidget::class.java
-        val locKey=when(kind) { DayHoursWidget::class.java->DayWidgets.loc(c,id);AirWidget::class.java->AirWidgets.loc(c,id);SkyWidget::class.java->SkyWidgets.loc(c,id);else->cfg.loc }
+        val ownSettings=kind==DayHoursWidget::class.java || kind==AirWidget::class.java || kind==SkyWidget::class.java || kind==StormWidget::class.java
+        val locKey=when(kind) { DayHoursWidget::class.java->DayWidgets.loc(c,id);AirWidget::class.java->AirWidgets.loc(c,id);SkyWidget::class.java->SkyWidgets.loc(c,id);StormWidget::class.java->StormWidgets.loc(c,id);else->cfg.loc }
         val place=locations.firstOrNull { BackgroundRefresh.locationKey(it)==locKey }?.let { pickerName(it) } ?: uiText(R.string.wg_loc_active)
         Row(Modifier.fillMaxWidth().heightIn(min=52.dp).clickable { editing=if(editing==id) null else id },verticalAlignment=Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
@@ -572,6 +572,7 @@ private fun meteoLabel(key:String):String = when(key) {
         if(editing==id) key(id) {
             if(kind==DayHoursWidget::class.java) DayWidgetForm(locations,DayWidgets.loc(c,id),DayWidgets.rows(c,id)) { loc,rows -> DayWidgets.write(c,id,loc,rows);runCatching { DayWidgets.draw(c,id) };DayWidgets.refresh(c,true);editing=null;tick++ }
             else if(kind==AirWidget::class.java) AirWidgetForm(locations,AirWidgets.read(c,id)) { next -> AirWidgets.write(c,id,next);AirWidgets.refresh(c,true);editing=null;tick++ }
+            else if(kind==StormWidget::class.java) StormWidgetForm(locations,StormWidgets.read(c,id)) { next -> StormWidgets.write(c,id,next);StormWidgets.refresh(c,true);editing=null;tick++ }
             else if(kind==SkyWidget::class.java) SkyWidgetForm(locations,SkyWidgets.read(c,id)) { next -> SkyWidgets.write(c,id,next);SkyWidgets.refresh(c);editing=null;tick++ }
             else WidgetConfigForm(kind.name,locations,cfg) { next -> PerunWidgets.write(c,id,next);if(kind==SixDayWidget::class.java) SixDayWidgets.refresh(c,true) else PerunWidgets.refresh(c,true);editing=null;tick++ }
         }

@@ -49,7 +49,7 @@ import kotlin.math.*
 private val NcBg=Color(0xFF202833)
 private val NcEdge=Color(0xFF4B586C)
 private const val NcBase="https://api.librewxr.net"
-private val NcPalette="009f9f 009e9e 009d99 009a8c 009573 008c4b 008c4a 009047 009b40 00b031 00d319 00d319 02d519 07dc1a 10e81d 21fd22 22fd21 2ffd21 50fd20 92fd1e fffd1b fffc1a fffa19 fff415 ffe80d ffd400 ffd300 ffd100 ffcb00 ffbf00 ffab00 ffaa00 ffa700 ff9d00 ff8b00 ff6e00 fe6d00 fe6700 fb5900 f73d01 f01002 ef0f02 ed0f04 e90d09 df0a12 d00523 d00424 d1042c d40341 da026b e400b1 e400b1 e503b5 e90bc1 f11ad8 ff33ff ff33ff ff36ff ff3eff ff4dff ff66ff ff66ff ff69ff ff71ff ff80ff ff99ff ff99ff ff9aff ff9cff ffa1ff ffaaff".split(" ").map { it.toInt(16) }
+internal val NcPalette="009f9f 009e9e 009d99 009a8c 009573 008c4b 008c4a 009047 009b40 00b031 00d319 00d319 02d519 07dc1a 10e81d 21fd22 22fd21 2ffd21 50fd20 92fd1e fffd1b fffc1a fffa19 fff415 ffe80d ffd400 ffd300 ffd100 ffcb00 ffbf00 ffab00 ffaa00 ffa700 ff9d00 ff8b00 ff6e00 fe6d00 fe6700 fb5900 f73d01 f01002 ef0f02 ed0f04 e90d09 df0a12 d00523 d00424 d1042c d40341 da026b e400b1 e400b1 e503b5 e90bc1 f11ad8 ff33ff ff33ff ff36ff ff3eff ff4dff ff66ff ff66ff ff69ff ff71ff ff80ff ff99ff ff99ff ff9aff ff9cff ffa1ff ffaaff".split(" ").map { it.toInt(16) }
 
 private fun ncColor(r:Double)=when { r>=7.6->Color(0xFFEF5350);r>=2.5->Color(0xFFFFCA28);r>=0.5->Color(0xFF66BB6A);r>=0.1->Color(0xFFA5D6A7);else->Color(0xFF2A3446) }
 private fun ncIntensity(r:Double)=when { r>=7.6->uiText(R.string.ui_silne_zrazky_208eb2db);r>=2.5->uiText(R.string.ui_mierne_zrazky_beedc2e1);r>=0.5->uiText(R.string.ui_slabe_zrazky_135b3ccf);r>=0.1->uiText(R.string.ui_velmi_slabe_zrazky_aa3f54f0);else->uiText(R.string.ui_bez_zrazok_2da018fe) }
@@ -122,6 +122,18 @@ private suspend fun ncRadar(l:Location):Pair<Instant,List<NcPoint>> = coroutineS
     now to points
 }
 
+/** The model every 10 minutes over [minutes] from now (Open-Meteo minutely_15, the rate of each quarter hour in mm/h). */
+private fun ncModelRange(l:Location,minutes:IntProgression):List<NcPoint> {
+    val m=ncJson("https://api.open-meteo.com/v1/forecast?latitude=${l.latitude}&longitude=${l.longitude}&minutely_15=precipitation&forecast_minutely_15=10&past_minutely_15=1&timeformat=unixtime&timezone=GMT").getJSONObject("minutely_15")
+    val times=m.getJSONArray("time");val values=m.getJSONArray("precipitation");val base=Instant.now().epochSecond
+    return minutes.mapNotNull { min->
+        val stamp=base+min*60
+        val i=(0 until times.length()).firstOrNull { stamp>times.getLong(it)-900 && stamp<=times.getLong(it) } ?: return@mapNotNull null
+        val amount=values.optDouble(i,Double.NaN)
+        if(amount.isFinite() && amount>=0) NcPoint(min,amount*4) else null
+    }
+}
+
 private fun ncModel(l:Location):Pair<Instant,List<NcPoint>> {
     val m=ncJson("https://api.open-meteo.com/v1/forecast?latitude=${l.latitude}&longitude=${l.longitude}&minutely_15=precipitation&forecast_minutely_15=8&past_minutely_15=1&timeformat=unixtime&timezone=GMT").getJSONObject("minutely_15")
     val times=m.getJSONArray("time");val values=m.getJSONArray("precipitation");val base=Instant.now()
@@ -175,6 +187,17 @@ internal suspend fun ncLoad(l:Location,source:String="libre"):NcNow = withContex
         val result=radar ?: ncTry { ncModel(l) }
         NcNow(result?.second ?: emptyList(),if(radar!=null) "radar" else "openmeteo",radar==null && source!="openmeteo",result?.first ?: Instant.now(),storm.await())
     }
+}
+
+/**
+ * As [ncLoad], continued by the model up to two hours: the radar nowcast ends at one hour. For the Precipitation and
+ * storms widget; the Now screen keeps its hour.
+ */
+internal suspend fun ncLoadLong(l:Location,source:String="libre"):NcNow {
+    val n=ncLoad(l,source)
+    val last=n.points.maxOfOrNull { it.min } ?: -10
+    val tail=withContext(Dispatchers.IO) { ncTry { ncModelRange(l,(last+10)..120 step 10) } } ?: emptyList()
+    return n.copy(points=n.points+tail)
 }
 
 @Composable private fun NcNowHelp() {
