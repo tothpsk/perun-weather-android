@@ -261,8 +261,6 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
         const val Label=15f;const val Icon=26f;const val IconGap=2f;const val Main=17f;const val Second=16f;const val Bottom=16f
         /** The room left of the columns, in the left padding of the widget (layout_marginStart of wg_rows). */
         const val ColumnsGutter=12f
-        /** The gap between the icon of the bottom row and the first value, about two spaces of its text. */
-        const val IconTextGap=4f
         fun columnsHeight(bottom:Boolean):Float = Label+Icon+2*IconGap+Main+Second+(if(bottom) Bottom else 0f)
     }
     private val p=Paint(Paint.ANTI_ALIAS_FLAG or Paint.FILTER_BITMAP_FLAG)
@@ -529,8 +527,8 @@ private class ClockArt(val dn:Float,val pal:Palette,val d:OverviewData,val ex:Ov
             if(col.second.isNotEmpty()) text(cv,col.second,cx,y+Second*k*dn/2,12f*k,pal.muted,false,Paint.Align.CENTER)
             y+=(Second*k+gap)*dn
             val left=if(bottomKey!=null && col.bottom.isNotEmpty()) bottomValue(cv,col.bottom,cx,y+Bottom*k*dn/2,cw-2f*dn,10f*k) else cx
-            // The one icon of the row stands a fixed gap (about two spaces) before the first value.
-            if(bottomKey!=null && i==0) pic(cv,widgetParamIcon(bottomKey,pal.muted,iconSize.roundToInt().coerceAtLeast(1),Double.NaN,11f*k),(left-IconTextGap*k*dn-iconSize).coerceAtLeast(0f),y+Bottom*k*dn/2-iconSize/2,iconSize)
+            // The one icon of the row stands one space of its text before the first value.
+            if(bottomKey!=null && i==0) pic(cv,widgetParamIcon(bottomKey,pal.muted,iconSize.roundToInt().coerceAtLeast(1),Double.NaN,11f*k),(left-width(" ",10f*k,false)-iconSize).coerceAtLeast(0f),y+Bottom*k*dn/2-iconSize/2,iconSize)
         }
         return b
     }
