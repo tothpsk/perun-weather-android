@@ -320,8 +320,10 @@ internal object DayWidgets {
             val values=day.hours.map { convert(row,it.v(key),u) }
             val finite=values.filter { it.isFinite() }
             if(finite.isEmpty()) return@forEachIndexed
-            val low=if(row in ZeroBased) 0.0 else finite.minOrNull() ?: 0.0
-            val high=(finite.maxOrNull() ?: low).coerceAtLeast(low+1)
+            // Temperature and dew point: a day with differences under 4 °C keeps its curve in the middle of a 4 °C scale, as in the expanded day of the app.
+            val tempScale=if(row=="temp" || row=="dew") dayRowScale(finite,u.temperature.fromCelsius(4.0)-u.temperature.fromCelsius(0.0)) else null
+            val low=tempScale?.first ?: if(row in ZeroBased) 0.0 else finite.minOrNull() ?: 0.0
+            val high=tempScale?.second ?: (finite.maxOrNull() ?: low).coerceAtLeast(low+1)
             val labelSpace=if(row=="pressure") 3*dn else 11*dn
             // The marks of snowfall stand under the bars of precipitation, as in the app; the row keeps their room only on a day with snow.
             val snowSize=if(row=="rain" && day.hours.any { it.v("snowfall")>0 }) min(11*dn,rh*.34f).roundToInt().coerceAtLeast(7) else 0
@@ -410,7 +412,7 @@ class DayHoursWidget:AppWidgetProvider() {
         DayWidgets.refresh(context);DayWidgets.schedule(context)
     }
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { runCatching { DayWidgets.draw(context,id) } }
-    override fun onDeleted(context:Context,ids:IntArray) { DayWidgets.remove(context,ids) }
+    override fun onDeleted(context:Context,ids:IntArray) { DayWidgets.remove(context,ids);WidgetBackup.release(context,ids) }
     override fun onDisabled(context:Context) { DayWidgets.cancel(context) }
 }
 
@@ -445,6 +447,8 @@ class DayWidgetConfigActivity:ComponentActivity() {
         val id=intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
+        // A widget placed after a restore takes the waiting settings of its kind from the backup.
+        WidgetBackup.prefill(this,id,::backupReadValue)
         val locations=LocationStore(this).load()
         val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
         val names=listOf(uiText(R.string.wg_loc_active))+pickerLocations(locations).map { pickerName(it) }
@@ -459,6 +463,7 @@ class DayWidgetConfigActivity:ComponentActivity() {
                             runCatching { DayWidgets.draw(this@DayWidgetConfigActivity,id) }
                             DayWidgets.refresh(this@DayWidgetConfigActivity)
                             DayWidgets.schedule(this@DayWidgetConfigActivity)
+                            WidgetBackup.commit(this@DayWidgetConfigActivity,id)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
                         }

@@ -45,7 +45,7 @@
     <string name="tiles_summary_v2">%1$d z %2$d zapnutých</string>
     <string name="tile_order_hint_v2">Zaškrtnuté dlaždice sa zobrazia na obrazovke Teraz. Poradie zmeníš potiahnutím za úchyt vľavo. Morské dlaždice sa zobrazia len pri zapnutých morských údajoch.</string>
     <string name="tile_drag_handle">Presunúť dlaždicu</string>
-    <string name="backup_description">Export uloží lokality a ich poradie, modely a zdroje lokalít, jednotky, zobrazenie a poradie dlaždíc, nastavenia grafov a vlastné grafy do jedného súboru JSON. API kľúče sa neexportujú.</string>
+    <string name="backup_description">Export uloží lokality a ich poradie, modely a zdroje lokalít, jednotky, zobrazenie a poradie dlaždíc, nastavenia grafov a vlastné grafy, notifikácie a pravidlá, obnovovanie na pozadí a nastavenia widgetov do jedného súboru JSON. API kľúče sa neexportujú.</string>
     <string name="backup_export">Exportovať konfiguráciu</string>
     <string name="backup_import">Obnoviť zo súboru…</string>
     <string name="backup_exported">Konfigurácia bola uložená.</string>
@@ -60,6 +60,13 @@
     <string name="backup_store_locations">Lokality</string>
     <string name="backup_store_forecast">Predpoveď, jednotky a dlaždice</string>
     <string name="backup_store_marine">More</string>
+    <string name="backup_store_location_sources">Modely a zdroje lokalít</string>
+    <string name="backup_store_long">Dlhodobá predpoveď a grafy</string>
+    <string name="backup_store_air">Kvalita ovzdušia a peľ</string>
+    <string name="backup_store_notifications">Notifikácie a pravidlá</string>
+    <string name="backup_store_background">Obnovovanie na pozadí</string>
+    <string name="backup_store_widgets">Widgety</string>
+    <string name="backup_widgets_note">Widgety na ploche: %1$d. Widget rovnakého druhu, ktorý potom pridáte, prevezme ich nastavenia.</string>
     <string name="backup_scope_title">Čo záloha neobsahuje</string>
-    <string name="backup_scope_text">Cache počasia, systémové povolenia a API kľúče. Záloha je verzovaná; staršia aplikácia nemusí novšiu zálohu prijať.</string>
+    <string name="backup_scope_text">Cache počasia a výstrah, poslednú polohu GPS (karta Aktuálnej polohy v zozname zostáva), systémové povolenia a API kľúče. Záloha je verzovaná; staršia aplikácia nemusí novšiu zálohu prijať.</string>
 </resources>

@@ -105,7 +105,7 @@ internal object AirWidgets {
         val warningPicture=warning?.let { widgetAlertBitmap(it,(18*dn).roundToInt()) }
         v.setImageViewBitmap(R.id.wg_air_img,airWidgetBitmap(dn,l.name,air,scale,cfg.main=="pollen",cfg.text=="dark",wPx,hPx,airWidgetShape(wDp,hDp),warningPicture,l.current))
         v.setContentDescription(R.id.wg_air_img,l.name+" \u00B7 "+uiText(R.string.wg_name_air)+(warning?.let { ", "+alertName(it) } ?: ""))
-        v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setInt(R.id.wg_root,"setBackgroundResource",widgetBackgroundRes(cfg.bg))
         v.setViewPadding(R.id.wg_root,(padH*dn).roundToInt(),(padV*dn).roundToInt(),(padH*dn).roundToInt(),(padV*dn).roundToInt())
         val open=(c.packageManager.getLaunchIntentForPackage(c.packageName) ?: Intent()).apply {
             setData(android.net.Uri.parse("perun://widget/"+id))
@@ -335,7 +335,7 @@ class AirWidget:AppWidgetProvider() {
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray) { AirWidgets.refresh(context);AirWidgets.schedule(context) }
     // A new size changes what the widget shows.
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { AirWidgets.refresh(context) }
-    override fun onDeleted(context:Context,ids:IntArray) { AirWidgets.remove(context,ids) }
+    override fun onDeleted(context:Context,ids:IntArray) { AirWidgets.remove(context,ids);WidgetBackup.release(context,ids) }
     override fun onDisabled(context:Context) { AirWidgets.cancel(context) }
 }
 
@@ -365,6 +365,8 @@ class AirWidgetConfigActivity:ComponentActivity() {
         val id=intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
+        // A widget placed after a restore takes the waiting settings of its kind from the backup.
+        WidgetBackup.prefill(this,id,::backupReadValue)
         val locations=LocationStore(this).load()
         val initial=AirWidgets.read(this,id)
         val keys=listOf("active")+pickerLocations(locations).map { BackgroundRefresh.locationKey(it) }
@@ -378,6 +380,7 @@ class AirWidgetConfigActivity:ComponentActivity() {
                             AirWidgets.write(this@AirWidgetConfigActivity,id,next)
                             AirWidgets.refresh(this@AirWidgetConfigActivity)
                             AirWidgets.schedule(this@AirWidgetConfigActivity)
+                            WidgetBackup.commit(this@AirWidgetConfigActivity,id)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
                         }
@@ -405,7 +408,7 @@ class AirWidgetConfigActivity:ComponentActivity() {
         PerunChips(listOf(uiText(R.string.wg_air_quality),uiText(R.string.wg_air_pollen)),if(main=="pollen") 1 else 0,{ main=if(it==1) "pollen" else "air" })
         HorizontalDivider(color=Color(0x804B586C))
         Text(uiText(R.string.wg_background),style=MaterialTheme.typography.labelLarge,color=muted)
-        PerunChips(listOf(uiText(R.string.wg_bg_dark),uiText(R.string.wg_bg_glass),uiText(R.string.wg_bg_light)),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
+        PerunChips(widgetBackgroundLabels(),PerunWidgets.Backgrounds.indexOf(bg).coerceAtLeast(0),{ bg=PerunWidgets.Backgrounds[it] })
         HorizontalDivider(color=Color(0x804B586C))
         Text(uiText(R.string.wg_text),style=MaterialTheme.typography.labelLarge,color=muted)
         PerunChips(listOf(uiText(R.string.wg_text_light),uiText(R.string.wg_text_dark)),if(text=="dark") 1 else 0,{ text=if(it==1) "dark" else "light" })

@@ -155,62 +155,81 @@ private enum class SettingsPage(val titleRes:Int) {
         Column(Modifier.padding(14.dp),verticalArrangement=Arrangement.spacedBy(12.dp)) {if(title.isNotEmpty()) Text(title,style=MaterialTheme.typography.titleMedium,fontWeight=FontWeight.SemiBold);content()}
     }
 }
-// Backup covers every "perun_*" preference store; keys that look like credentials are never exported.
+// Backup covers every "perun_*" preference store; keys that look like credentials are never exported, nor are the caches
+// and the state of the app (downloaded warnings, model availability, the last fix of the Current location, the times of the
+// background refresh, the shown day of a widget). The widgets are also kept by kind, see WidgetBackup.
 private const val BackupVersion=1
 private val BackupSkip=listOf("apikey","api_key","token","secret","password")
+private val BackupSkipStores=setOf("perun_widget_alerts","perun_model_availability","perun_current_location",WidgetBackup.PendingStore)
+private val BackupSkipKeys=mapOf("perun_background" to setOf("lastAttempt","lastSuccess","lastSkipReason"),"perun_notifications" to setOf("sentAlerts"))
+internal fun backupKeeps(store:String,key:String):Boolean =
+    store.startsWith("perun_") && store !in BackupSkipStores && key !in BackupSkipKeys[store].orEmpty() && !WidgetBackup.isState(store,key) && BackupSkip.none {key.lowercase().contains(it)}
 private fun backupStoreNames(context:Context):List<String> =
-    (File(context.applicationInfo.dataDir,"shared_prefs").listFiles() ?: emptyArray()).map {it.nameWithoutExtension}.filter {it.startsWith("perun_")}.sorted()
+    (File(context.applicationInfo.dataDir,"shared_prefs").listFiles() ?: emptyArray()).map {it.nameWithoutExtension}.filter {it.startsWith("perun_") && it !in BackupSkipStores}.sorted()
+private fun backupTyped(v:Any?):JSONObject? {
+    val e=JSONObject()
+    when(v) {
+        is Boolean->e.put("t","b").put("v",v)
+        is Int->e.put("t","i").put("v",v)
+        is Long->e.put("t","l").put("v",v)
+        is Float->e.put("t","f").put("v",v.toDouble())
+        is String->e.put("t","s").put("v",v)
+        is Set<*>->e.put("t","ss").put("v",JSONArray(v.map {it.toString()}))
+        else->return null
+    }
+    return e
+}
+private fun backupValue(e:JSONObject):Any? = when(e.optString("t")) {
+    "b"->e.getBoolean("v");"i"->e.getInt("v");"l"->e.getLong("v");"f"->e.getDouble("v").toFloat();"s"->e.getString("v")
+    "ss"->e.getJSONArray("v").let {a->(0 until a.length()).map {a.getString(it)}.toSet()}
+    else->null
+}
 internal fun exportConfiguration(context:Context):String {
     val stores=JSONObject()
     backupStoreNames(context).forEach {name->
         val o=JSONObject()
         context.getSharedPreferences(name,Context.MODE_PRIVATE).all.forEach {(k,v)->
-            if(BackupSkip.any {k.lowercase().contains(it)}) return@forEach
-            val e=JSONObject()
-            when(v) {
-                is Boolean->e.put("t","b").put("v",v)
-                is Int->e.put("t","i").put("v",v)
-                is Long->e.put("t","l").put("v",v)
-                is Float->e.put("t","f").put("v",v.toDouble())
-                is String->e.put("t","s").put("v",v)
-                is Set<*>->e.put("t","ss").put("v",JSONArray(v.map {it.toString()}))
-                else->return@forEach
-            }
-            o.put(k,e)
+            if(!backupKeeps(name,k)) return@forEach
+            backupTyped(v)?.let {o.put(k,it)}
         }
-        stores.put(name,o)
+        if(o.length()>0) stores.put(name,o)
     }
-    return JSONObject().put("app","perun-weather").put("version",BackupVersion).put("exported",Instant.now().toString()).put("stores",stores).toString(2)
+    return JSONObject().put("app","perun-weather").put("version",BackupVersion).put("exported",Instant.now().toString()).put("stores",stores)
+        .put("widgets",WidgetBackup.export(context,::backupTyped)).toString(2)
 }
-internal data class BackupPreview(val exported:String,val stores:Map<String,Int>)
+internal data class BackupPreview(val exported:String,val stores:Map<String,Int>,val widgets:Int=0)
 internal fun previewConfiguration(raw:String):BackupPreview {
     val root=JSONObject(raw)
     require(root.optString("app")=="perun-weather" && root.optInt("version") in 1..BackupVersion)
     val stores=root.getJSONObject("stores")
     val counts=LinkedHashMap<String,Int>()
-    stores.keys().forEach {name->counts[name]=stores.getJSONObject(name).length()}
-    return BackupPreview(root.optString("exported"),counts)
+    stores.keys().forEach {name->if(name.startsWith("perun_") && name !in BackupSkipStores) counts[name]=stores.getJSONObject(name).length()}
+    return BackupPreview(root.optString("exported"),counts,root.optJSONArray("widgets")?.length() ?: 0)
 }
 internal fun importConfiguration(context:Context,raw:String,replace:Boolean) {
-    val stores=JSONObject(raw).getJSONObject("stores")
+    val root=JSONObject(raw)
+    val stores=root.getJSONObject("stores")
     stores.keys().forEach {name->
-        if(!name.startsWith("perun_")) return@forEach
+        // Older backups may still hold the caches; they are not restored.
+        if(!name.startsWith("perun_") || name in BackupSkipStores) return@forEach
         val o=stores.getJSONObject(name);val ed=context.getSharedPreferences(name,Context.MODE_PRIVATE).edit()
         if(replace) ed.clear()
         o.keys().forEach {k->
-            val e=o.getJSONObject(k)
-            when(e.getString("t")) {
-                "b"->ed.putBoolean(k,e.getBoolean("v"))
-                "i"->ed.putInt(k,e.getInt("v"))
-                "l"->ed.putLong(k,e.getLong("v"))
-                "f"->ed.putFloat(k,e.getDouble("v").toFloat())
-                "s"->ed.putString(k,e.getString("v"))
-                "ss"->{val a=e.getJSONArray("v");ed.putStringSet(k,(0 until a.length()).map {a.getString(it)}.toSet())}
+            if(!backupKeeps(name,k)) return@forEach
+            when(val v=backupValue(o.getJSONObject(k))) {
+                is Boolean->ed.putBoolean(k,v)
+                is Int->ed.putInt(k,v)
+                is Long->ed.putLong(k,v)
+                is Float->ed.putFloat(k,v)
+                is String->ed.putString(k,v)
+                is Set<*>->ed.putStringSet(k,v.map {it.toString()}.toSet())
             }
         }
         ed.commit()
     }
+    WidgetBackup.keep(context,root.optJSONArray("widgets"))
 }
+internal fun backupReadValue(e:JSONObject):Any? = backupValue(e)
 private fun restartApp(context:Context) {
     val intent=context.packageManager.getLaunchIntentForPackage(context.packageName)?.apply {addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)}
     if(intent!=null) context.startActivity(intent)
@@ -220,6 +239,12 @@ private fun restartApp(context:Context) {
     "perun_locations"->stringResource(R.string.backup_store_locations)
     "perun_forecast"->stringResource(R.string.backup_store_forecast)
     "perun_marine"->stringResource(R.string.backup_store_marine)
+    "perun_location_preferences"->stringResource(R.string.backup_store_location_sources)
+    "perun_long_forecast"->stringResource(R.string.backup_store_long)
+    "perun_air_detail"->stringResource(R.string.backup_store_air)
+    "perun_notifications"->stringResource(R.string.backup_store_notifications)
+    "perun_background"->stringResource(R.string.backup_store_background)
+    "perun_widgets","perun_widget_day","perun_widget_air","perun_widget_sky"->stringResource(R.string.backup_store_widgets)
     else->name.removePrefix("perun_")
 }
 @Composable private fun BackupSettings() {
@@ -249,7 +274,10 @@ private fun restartApp(context:Context) {
         AlertDialog(onDismissRequest={pending=null},title={Text(stringResource(R.string.backup_preview_title))},text={
             Column(verticalArrangement=Arrangement.spacedBy(6.dp)) {
                 if(preview.exported.isNotBlank()) Text(stringResource(R.string.backup_preview_exported,preview.exported),style=MaterialTheme.typography.bodySmall)
-                preview.stores.forEach {(name,count)->Text(backupStoreLabel(name)+" · "+stringResource(R.string.backup_items,count),style=MaterialTheme.typography.bodySmall)}
+                // The four stores of the widgets share one line.
+                val labelled=preview.stores.map {(name,count)->backupStoreLabel(name) to count}
+                labelled.groupBy({it.first},{it.second}).forEach {(label,counts)->Text(label+" · "+stringResource(R.string.backup_items,counts.sum()),style=MaterialTheme.typography.bodySmall)}
+                if(preview.widgets>0) Text(stringResource(R.string.backup_widgets_note,preview.widgets),style=MaterialTheme.typography.bodySmall)
                 Text(stringResource(R.string.backup_replace_note),style=MaterialTheme.typography.bodySmall,color=MaterialTheme.colorScheme.onSurfaceVariant)
             }
         },confirmButton={TextButton(onClick={importConfiguration(context,raw,true);pending=null;restartApp(context)}) {Text(stringResource(R.string.backup_replace))}},

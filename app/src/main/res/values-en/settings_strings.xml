@@ -182,6 +182,8 @@
     <string name="wg_updated">"Updated %1$s"</string>
     <string name="wg_note">"The widget refreshes together with the background refresh, at least every 30 minutes. Tap to open the app."</string>
     <string name="wg_bg_light">"Light"</string>
+    <string name="wg_bg_opaque">"Opaque"</string>
+    <string name="wg_bg_frost">"Frosted glass"</string>
     <string name="wg_text">"Text colour"</string>
     <string name="wg_text_light">"Light"</string>
     <string name="wg_text_dark">"Dark"</string>

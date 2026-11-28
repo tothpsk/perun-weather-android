@@ -163,7 +163,7 @@ internal object SixDayWidgets {
             v.setImageViewBitmap(R.id.wg_alert,widgetAlertBitmap(alert,54))
             v.setContentDescription(R.id.wg_alert,alertName(alert))
         }
-        v.setInt(R.id.wg_root,"setBackgroundResource",when(cfg.bg) { "glass"->R.drawable.wg_bg_glass;"light"->R.drawable.wg_bg_light;else->R.drawable.wg_bg })
+        v.setInt(R.id.wg_root,"setBackgroundResource",widgetBackgroundRes(cfg.bg))
         v.setOnClickPendingIntent(R.id.wg_root,launch(c,id,BackgroundRefresh.locationKey(l)))
         v.setInt(R.id.wg_refresh,"setColorFilter",muted)
         v.setOnClickPendingIntent(R.id.wg_refresh,PendingIntent.getBroadcast(c,20000+id,Intent(c,SixDayWidget::class.java).setAction(ActionRefresh),PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE))
@@ -177,7 +177,7 @@ class SixDayWidget:AppWidgetProvider() {
     override fun onUpdate(context:Context,manager:AppWidgetManager,ids:IntArray) { SixDayWidgets.refresh(context);SixDayWidgets.schedule(context) }
     // A new width can show or hide the fourth value.
     override fun onAppWidgetOptionsChanged(context:Context,manager:AppWidgetManager,id:Int,options:Bundle) { SixDayWidgets.refresh(context) }
-    override fun onDeleted(context:Context,ids:IntArray) { PerunWidgets.remove(context,ids) }
+    override fun onDeleted(context:Context,ids:IntArray) { PerunWidgets.remove(context,ids);WidgetBackup.release(context,ids) }
     override fun onDisabled(context:Context) { SixDayWidgets.cancel(context) }
 }
 
@@ -208,6 +208,8 @@ class SixDayConfigActivity:ComponentActivity() {
         val id=intent?.extras?.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID,AppWidgetManager.INVALID_APPWIDGET_ID) ?: AppWidgetManager.INVALID_APPWIDGET_ID
         setResult(RESULT_CANCELED,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
         if(id==AppWidgetManager.INVALID_APPWIDGET_ID) { finish();return }
+        // A widget placed after a restore takes the waiting settings of its kind from the backup.
+        WidgetBackup.prefill(this,id,::backupReadValue)
         val locations=LocationStore(this).load()
         val initial=PerunWidgets.read(this,id)
         setContent {
@@ -220,6 +222,7 @@ class SixDayConfigActivity:ComponentActivity() {
                             PerunWidgets.write(this@SixDayConfigActivity,id,cfg)
                             SixDayWidgets.refresh(this@SixDayConfigActivity)
                             SixDayWidgets.schedule(this@SixDayConfigActivity)
+                            WidgetBackup.commit(this@SixDayConfigActivity,id)
                             setResult(RESULT_OK,Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID,id))
                             finish()
                         }
