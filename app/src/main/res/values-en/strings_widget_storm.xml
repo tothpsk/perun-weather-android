@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wg_name_storm">Precipitation and storms</string>
+    <string name="wg_desc_storm">Rain for the next hours, storm cells and lightning nearby</string>
+    <string name="st_raining">Raining</string>
+    <string name="st_rain_in">Rain in %1$d min</string>
+    <string name="st_dry">No precipitation</string>
+    <string name="st_dry_1h">No precipitation within 1 hour</string>
+    <string name="st_dry_2h">No precipitation within 2 hours</string>
+    <string name="st_until_rain">until rain</string>
+    <string name="st_storm_here">Storm at your place</string>
+    <string name="st_storm_at">Storm %1$d km %2$s</string>
+    <string name="st_storm_moving">", moving %1$s"</string>
+    <string name="st_storm_eta">" · in %1$d min"</string>
+    <string name="st_storm_arrives">arrives in %1$d min</string>
+    <string name="st_lightning_at">Lightning %1$d km %2$s</string>
+    <string name="st_no_storms">No storms within %1$d km</string>
+    <string name="st_small_storm">storm · %1$s</string>
+    <string name="st_small_lightning">lightning · %1$s</string>
+    <string name="st_now">now</string>
+    <string name="st_minutes">%1$d min</string>
+    <string name="st_show">Show</string>
+    <string name="st_show_radar">Radar circle</string>
+    <string name="st_show_chart">Precipitation chart</string>
+    <string name="st_show_storm">Storms and lightning</string>
+    <string name="st_range">Range of storms and lightning</string>
+    <string name="st_span">Precipitation chart</string>
+    <string name="st_span_1h">1 hour</string>
+    <string name="st_span_2h">2 hours</string>
+</resources>

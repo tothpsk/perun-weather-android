@@ -244,7 +244,7 @@ private fun restartApp(context:Context) {
     "perun_air_detail"->stringResource(R.string.backup_store_air)
     "perun_notifications"->stringResource(R.string.backup_store_notifications)
     "perun_background"->stringResource(R.string.backup_store_background)
-    "perun_widgets","perun_widget_day","perun_widget_air","perun_widget_sky"->stringResource(R.string.backup_store_widgets)
+    "perun_widgets","perun_widget_day","perun_widget_air","perun_widget_sky","perun_widget_storm"->stringResource(R.string.backup_store_widgets)
     else->name.removePrefix("perun_")
 }
 @Composable private fun BackupSettings() {
